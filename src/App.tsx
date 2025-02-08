@@ -3,6 +3,8 @@ import { Clock } from './components/Clock';
 import { Calendar, CalendarProvider } from './components/Calendar';
 import { Bookmarks } from './components/Bookmarks';
 import BackgroundSelector from './components/BackgroundSelector';
+import { TodoList } from './components/TodoList';
+import { Notes } from './components/Notes';
 
 // Helper function to get image from IndexedDB
 const getImageFromIndexedDB = async (id: string): Promise<string> => {
@@ -97,12 +99,14 @@ function App() {
           </div>
         )}
         
-        <div className="min-h-screen backdrop-blur-[2px] bg-black/0 p-4 md:p-8 transition-all duration-300">
+        <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300">
           <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-[30%_1fr] gap-8">
             {/* Left side */}
             <div className="space-y-8">
               <Clock />
               <Calendar />
+              <TodoList />
+            <Notes />
             </div>
 
             {/* Right side */}

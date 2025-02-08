@@ -6,6 +6,18 @@ interface BackgroundSelectorProps {
   storageKey?: string;
 }
 
+interface StoredBackground {
+  id: string;
+  url: string;
+  isBlob: boolean;
+  type: 'image' | 'color';
+  createdAt: number;
+}
+
+const DB_NAME = 'backgroundSelectorDB';
+const STORE_NAME = 'backgrounds';
+const DB_VERSION = 1;
+
 const isDataUrl = (url: string) => url.startsWith('data:');
 const isColor = (str: string) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
 
@@ -25,8 +37,91 @@ const processImageUrl = (url: string, width = 1920, height = 1080) => {
   }
 };
 
+// Database initialization function
+const initializeDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => {
+      console.error('Failed to open database:', request.error);
+      reject(request.error);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      
+      if (db.objectStoreNames.contains(STORE_NAME)) {
+        db.deleteObjectStore(STORE_NAME);
+      }
+      
+      const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      store.createIndex('type', 'type', { unique: false });
+      store.createIndex('createdAt', 'createdAt', { unique: false });
+    };
+
+    request.onsuccess = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      resolve(db);
+    };
+  });
+};
+
+// Database operations wrapper
+const createDatabaseOperations = () => {
+  let db: IDBDatabase | null = null;
+
+  const getDB = async (): Promise<IDBDatabase> => {
+    if (!db) {
+      db = await initializeDB();
+    }
+    return db;
+  };
+
+  const saveBackground = async (background: StoredBackground): Promise<void> => {
+    const database = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put(background);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  };
+
+  const getAllBackgrounds = async (): Promise<StoredBackground[]> => {
+    const database = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      transaction.oncomplete = () => resolve(request.result || []);
+      transaction.onerror = () => reject(transaction.error);
+    });
+  };
+
+  const deleteBackground = async (id: string): Promise<void> => {
+    const database = await getDB();
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.delete(id);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  };
+
+  return {
+    saveBackground,
+    getAllBackgrounds,
+    deleteBackground
+  };
+};
+
 const BackgroundThumbnail: React.FC<{
-  bg: { id: string; url: string; isBlob: boolean; type: 'image' | 'color' };
+  bg: StoredBackground;
   onSelect: () => void;
   onRemove?: () => void;
 }> = ({ bg, onSelect, onRemove }) => {
@@ -90,62 +185,45 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   const [activeTab, setActiveTab] = useState<'images' | 'colors'>('images');
   const [urlInput, setUrlInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [savedBackgrounds, setSavedBackgrounds] = useState<Array<{
-    id: string;
-    url: string;
-    isBlob: boolean;
-    type: 'image' | 'color';
-  }>>([]);
+  const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dbOps = createDatabaseOperations();
 
   const defaultBackgrounds = useMemo(() => [
-    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
-    'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05',
-  ].map(url => ({ id: url, url, isBlob: false, type: 'image' as const })), []);
+    '/static/background/img-1.jpg',
+    '/static/background/img-2.gif'
+  ].map(url => ({
+    id: url,
+    url,
+    isBlob: false,
+    type: 'image' as const,
+    createdAt: Date.now()
+  })), []);
 
   const colorOptions = useMemo(() => [
-    '#000000', // black
-    '#FFFFFF', // white
-    '#1E40AF', // blue-800
-    '#047857', // emerald-800
-    '#B45309', // amber-700
-    '#9F1239', // rose-800
-    '#4C1D95', // violet-900
-    '#831843', // pink-800
-    '#3730A3', // indigo-800
-    '#064E3B', // emerald-900
-    '#701A75', // fuchsia-800
-    '#7C2D12', // orange-900
+    '#000000', '#FFFFFF', '#1E40AF', '#047857', '#B45309', '#9F1239',
+    '#4C1D95', '#831843', '#3730A3', '#064E3B', '#701A75', '#7C2D12'
   ].map(color => ({
     id: color,
     url: color,
     isBlob: false,
-    type: 'color' as const
+    type: 'color' as const,
+    createdAt: Date.now()
   })), []);
 
-  useEffect(() => {
-    const loadSavedBackgrounds = () => {
-      const savedBgs = localStorage.getItem('savedBackgrounds');
-      if (savedBgs) {
-        try {
-          const parsed = JSON.parse(savedBgs);
-          if (Array.isArray(parsed)) {
-            const validBackgrounds = parsed.filter(bg => 
-              typeof bg === 'object' && bg.url && 
-              (!bg.isBlob || bg.url.startsWith('data:')) &&
-              (bg.type === 'image' || bg.type === 'color')
-            );
-            setSavedBackgrounds(validBackgrounds);
-          }
-        } catch {
-          setSavedBackgrounds([]);
-        }
-      }
-    };
-
-    loadSavedBackgrounds();
+  const loadSavedBackgrounds = useCallback(async () => {
+    try {
+      const backgrounds = await dbOps.getAllBackgrounds();
+      setSavedBackgrounds(backgrounds);
+    } catch (error) {
+      console.error('Error loading backgrounds:', error);
+      setSavedBackgrounds([]);
+    }
   }, []);
+
+  useEffect(() => {
+    loadSavedBackgrounds();
+  }, [loadSavedBackgrounds]);
 
   useEffect(() => {
     const lastSelected = localStorage.getItem(storageKey);
@@ -161,7 +239,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }
   }, [storageKey, onSelectBackground]);
 
-  const handleSelectBackground = useCallback((background: { url: string; isBlob: boolean; type: 'image' | 'color' }) => {
+  const handleSelectBackground = useCallback((background: StoredBackground) => {
     const finalUrl = background.type === 'image' && !isDataUrl(background.url) ? 
       processImageUrl(background.url) : 
       background.url;
@@ -192,19 +270,19 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
       setIsUploading(true);
       
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const dataUrl = e.target?.result as string;
         if (dataUrl) {
-          const newBackground = {
+          const newBackground: StoredBackground = {
             id: `bg-${Date.now()}`,
             url: dataUrl,
             isBlob: true,
-            type: 'image' as const
+            type: 'image',
+            createdAt: Date.now()
           };
           
-          const updatedBackgrounds = [...savedBackgrounds, newBackground];
-          setSavedBackgrounds(updatedBackgrounds);
-          localStorage.setItem('savedBackgrounds', JSON.stringify(updatedBackgrounds));
+          await dbOps.saveBackground(newBackground);
+          await loadSavedBackgrounds();
           handleSelectBackground(newBackground);
         }
       };
@@ -216,7 +294,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     } finally {
       setIsUploading(false);
     }
-  }, [savedBackgrounds, handleSelectBackground]);
+  }, [handleSelectBackground, loadSavedBackgrounds]);
 
   const handleUrlSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,33 +307,36 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
         return;
       }
 
-      const newBackground = {
+      const newBackground: StoredBackground = {
         id: `bg-${Date.now()}`,
         url: urlInput,
         isBlob: false,
-        type: 'image' as const
+        type: 'image',
+        createdAt: Date.now()
       };
       
-      const updatedBackgrounds = [...savedBackgrounds, newBackground];
-      setSavedBackgrounds(updatedBackgrounds);
-      localStorage.setItem('savedBackgrounds', JSON.stringify(updatedBackgrounds));
+      await dbOps.saveBackground(newBackground);
+      await loadSavedBackgrounds();
       handleSelectBackground(newBackground);
       setUrlInput('');
     } catch {
       alert('Please enter a valid URL');
     }
-  }, [urlInput, savedBackgrounds, handleSelectBackground]);
+  }, [urlInput, handleSelectBackground, loadSavedBackgrounds]);
 
-  const handleRemoveBackground = useCallback((backgroundToRemove: typeof savedBackgrounds[0]) => {
-    const updatedBackgrounds = savedBackgrounds.filter(bg => bg.id !== backgroundToRemove.id);
-    setSavedBackgrounds(updatedBackgrounds);
-    localStorage.setItem('savedBackgrounds', JSON.stringify(updatedBackgrounds));
+  const handleRemoveBackground = useCallback(async (backgroundToRemove: StoredBackground) => {
+    try {
+      await dbOps.deleteBackground(backgroundToRemove.id);
+      await loadSavedBackgrounds();
 
-    const currentBackground = localStorage.getItem(storageKey);
-    if (currentBackground === backgroundToRemove.url) {
-      handleSelectBackground(defaultBackgrounds[0]);
+      const currentBackground = localStorage.getItem(storageKey);
+      if (currentBackground === backgroundToRemove.url) {
+        handleSelectBackground(defaultBackgrounds[0]);
+      }
+    } catch (error) {
+      console.error('Error removing background:', error);
     }
-  }, [savedBackgrounds, defaultBackgrounds, storageKey, handleSelectBackground]);
+  }, [defaultBackgrounds, storageKey, handleSelectBackground, loadSavedBackgrounds]);
 
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col items-end">
@@ -319,25 +400,25 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                   className="hidden"
                 />
 
-                <form onSubmit={handleUrlSubmit} className="flex gap-2">
+<form onSubmit={handleUrlSubmit} className="flex gap-2">
                   <input
                     type="text"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="Enter image URL"
-                    className="flex-1 bg-white/20 text-white placeholder-white/60 px-3 py-2 rounded-lg text-sm"
+                    placeholder="Paste image URL"
+                    className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
                   />
                   <button
                     type="submit"
-                    className="bg-white/30 hover:bg-white/40 transition-colors p-2 rounded-lg"
+                    className="bg-white/30 hover:bg-white/40 transition-colors p-2 rounded-lg text-white"
                   >
-                    <Link className="w-4 h-4 text-white" />
+                    <Link className="w-4 h-4" />
                   </button>
                 </form>
               </div>
             </>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {colorOptions.map((color) => (
                 <BackgroundThumbnail
                   key={color.id}

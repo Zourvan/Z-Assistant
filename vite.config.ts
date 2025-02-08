@@ -10,6 +10,10 @@ export default defineConfig({
         {
           src: './manifest.json', // مسیر فایل ثابت شما
           dest: '' // این گزینه فایل را در کنار سایر فایل‌ها در پوشه dist قرار می‌دهد
+        },
+        {
+          src: 'static',
+          dest: './'
         }
       ]
     })

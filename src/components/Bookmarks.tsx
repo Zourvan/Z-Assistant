@@ -180,7 +180,6 @@ export function Bookmarks() {
             className="flex flex-col items-center p-3 hover:bg-white/10 rounded-lg transition-colors"
           >
             <Plus className="w-6 h-6 text-white/60 mb-1" />
-            <span className="text-white/60 text-xs">Add Bookmark or Folder</span>
           </button>
         </div>
       );
@@ -233,7 +232,7 @@ export function Bookmarks() {
       <a
         href={tile.url}
         className={`${commonClasses} hover:bg-white/30 transition-colors`}
-        target="_blank"
+        target="_self"
         rel="noopener noreferrer"
       >
         {actionButtons}
