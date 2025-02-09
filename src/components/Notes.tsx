@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react';
 import * as dateFns from 'date-fns';
 import * as dateFnsJalali from 'date-fns-jalali';
 import { useCalendar } from './Calendar';
+import './Notes.css'
 
 interface Note {
   id: string;
@@ -58,17 +59,22 @@ export function Notes({  }: NotesProps) {
     return dateFns.format(date, 'dd MMMM yyyy');
   };
 
+  const isPersian = (text) => {
+    const persianRegex = /[\u0600-\u06FF]/;
+    return persianRegex.test(text);
+  };
+
   return (
     <div className="bg-white/20 backdrop-blur-md rounded-xl p-4">
-      <h2 className="text-white text-lg font-medium mb-4">Notes</h2>
+      <h2 className="text-white text-lg font-medium mb-2">Notes</h2>
       
-      <form onSubmit={addNote} className="mb-4">
-        <div className="flex gap-2 mb-2">
+      <form onSubmit={addNote} className="mb-2">
+        <div className="flex gap-1 mb-1">
           <textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             placeholder="Write a note..."
-            className="flex-1 bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[80px] resize-none"
+            className={`flex-1 bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[80px] resize-none ${isPersian(newNote) ? 'rtl' : 'ltr'} `}
           />
           <button
             type="submit"
@@ -79,7 +85,7 @@ export function Notes({  }: NotesProps) {
         </div>
       </form>
 
-      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+      <div className="space-y-3 max-h-[20vh] overflow-y-auto">
         {notes.map((note) => (
           <div
             key={note.id}
@@ -88,10 +94,10 @@ export function Notes({  }: NotesProps) {
               fontFamily: calendarType === 'persian' ? 'Vazirmatn, sans-serif' : 'inherit'
             }}
           >
-            <div className="text-white whitespace-pre-wrap break-words">
+            <div className={`text-white whitespace-pre-wrap break-words ${isPersian(note.text) ? 'rtl' : 'ltr'} `}>
               {note.text}
             </div>
-            <div className="text-white/50 text-sm mt-2">
+            <div className="text-white/50 text-sm mt-1">
               {formatDate(note.createdAt)}
             </div>
             <button

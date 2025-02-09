@@ -1,9 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Image, Upload, Link, X, Palette } from 'lucide-react';
+import './BackgroundSelector.css';
 
 interface BackgroundSelectorProps {
   onSelectBackground: (background: string) => void;
+  onCalendarTypeChange?: (type: 'gregorian' | 'persian') => void;
   storageKey?: string;
+  calendarType: 'gregorian' | 'persian';
+}
+
+interface CalendarSettings {
+  type: 'gregorian' | 'persian';
+  tileNumber: number;
 }
 
 interface StoredBackground {
@@ -179,12 +187,17 @@ const BackgroundThumbnail: React.FC<{
 
 export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ 
   onSelectBackground,
+  onCalendarTypeChange,
   storageKey = 'selectedBackground'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'images' | 'colors'>('images');
   const [urlInput, setUrlInput] = useState('');
+  const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
+  const [calendarType, setCalendarType] = useState<'gregorian' | 'persian'>('gregorian');
+  const [selectedDay, setSelectedDay] = React.useState(null);
+  const [firstDayOfWeek, setFirstDayOfWeek] = React.useState("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dbOps = createDatabaseOperations();
@@ -238,6 +251,79 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
       }
     }
   }, [storageKey, onSelectBackground]);
+
+  useEffect(() => {
+    const loadCalendarSettings = async () => {
+      try {
+        const savedSettings = localStorage.getItem('calendarSettings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings) as CalendarSettings;
+          setCalendarType(settings.type);
+          setTileNumber(settings.tileNumber);
+        }
+      } catch (error) {
+        console.error('Error loading calendar settings:', error);
+      }
+    };
+
+    loadCalendarSettings();
+  }, []);
+
+
+  const saveCalendarSettings = useCallback((
+    type: 'gregorian' | 'persian',
+    tiles: number
+  ) => {
+    const settings: CalendarSettings = {
+      type,
+      tileNumber: tiles
+    };
+    console.log()
+    localStorage.setItem('calendarSettings', JSON.stringify(settings));
+    localStorage.setItem('calendarType', type);
+    localStorage.setItem('tileNumber', JSON.stringify(tiles));
+  }, []);
+
+  useEffect(() => {
+    saveCalendarSettings(calendarType, tileNumber);
+  }, [tileNumber, calendarType, saveCalendarSettings]);
+
+
+  useEffect(() => {
+    const loadCalendarSettings = () => {
+      try {
+        const savedSettings = localStorage.getItem('calendarSettings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings) as CalendarSettings;
+          setCalendarType(settings.type);
+          setTileNumber(settings.tileNumber);
+        } else {
+          // Set default values if no settings exist
+          setCalendarType('gregorian');
+          setTileNumber(10);
+          saveCalendarSettings('gregorian', 10);
+        }
+      } catch (error) {
+        console.error('Error loading calendar settings:', error);
+        // Set default values on error
+        setCalendarType('gregorian');
+        setTileNumber(10);
+        saveCalendarSettings('gregorian', 10);
+      }
+    };
+  
+    loadCalendarSettings();
+  }, [saveCalendarSettings]);
+
+
+    // Handle calendar type change
+    const handleCalendarTypeChange = useCallback((type: 'gregorian' | 'persian') => {
+      setCalendarType(type);
+      saveCalendarSettings(type, tileNumber);
+      if (onCalendarTypeChange) {
+        onCalendarTypeChange(type);
+      }
+    }, [onCalendarTypeChange, tileNumber, saveCalendarSettings]);
 
   const handleSelectBackground = useCallback((background: StoredBackground) => {
     const finalUrl = background.type === 'image' && !isDataUrl(background.url) ? 
@@ -338,99 +424,218 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     }
   }, [defaultBackgrounds, storageKey, handleSelectBackground, loadSavedBackgrounds]);
 
-  return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col items-end">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
-      >
-        <Image className="w-5 h-5 text-white" />
-      </button>
+  const handleTileNumberChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(event.target.value);
+    if (value >= 10 && value <= 100) {
+      setTileNumber(value);
+      saveCalendarSettings(calendarType, value); // Save settings immediately when tile number changes
+    }
+  }, [calendarType, saveCalendarSettings]);
 
-      {isOpen && (
-        <div className="mt-2 bg-white/20 backdrop-blur-md rounded-xl p-4 w-72 shadow-lg">
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setActiveTab('images')}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
-                activeTab === 'images' ? 'bg-white/30' : 'hover:bg-white/20'
-              } transition-colors text-white`}
-            >
-              <Image className="w-4 h-4" />
-              Images
-            </button>
-            <button
-              onClick={() => setActiveTab('colors')}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
-                activeTab === 'colors' ? 'bg-white/30' : 'hover:bg-white/20'
-              } transition-colors text-white`}
-            >
-              <Palette className="w-4 h-4" />
-              Colors
-            </button>
+
+  return (
+    <div
+  className="fixed top-4 right-4 z-50 flex flex-col items-end"
+  id="background-container"
+  
+>
+  <button
+    onClick={() => setIsOpen(!isOpen)}
+    className="bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
+  >
+    <Image className="w-5 h-5 text-white" />
+  </button>
+
+  {isOpen ? (
+    <div
+      className="mt-2 bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
+      style={{
+        width: "35vw", // افزایش عرض کادر
+        height: "80vh", // افزایش ارتفاع کادر
+        minWidth: "250px",
+        minHeight: "500px", // افزایش حداقل اندازه
+        // overflow: "hidden",
+      }}
+    >
+      {/* تب‌ها */}
+      <div className="flex gap-2 mb-4 flex-shrink-0">
+        <button
+          onClick={() => setActiveTab("images")}
+          className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+            activeTab === "images" ? "bg-white/30" : "hover:bg-white/20"
+          } transition-colors text-white`}
+        >
+          <Image className="w-4 h-4" />
+          Images
+        </button>
+        <button
+          onClick={() => setActiveTab("colors")}
+          className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+            activeTab === "colors" ? "bg-white/30" : "hover:bg-white/20"
+          } transition-colors text-white`}
+        >
+          <Palette className="w-4 h-4" />
+          Colors
+        </button>
+      </div>
+
+      {/* محتوای تب‌ها */}
+      {activeTab === "images" ? (
+        <div className="flex flex-col flex-grow overflow-hidden">
+          {/* لیست تصاویر */}
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
+            {[...defaultBackgrounds, ...savedBackgrounds.filter((bg) => bg.type === "image")].map(
+              (bg) => (
+                <BackgroundThumbnail
+                  key={bg.id}
+                  bg={bg}
+                  onSelect={() => handleSelectBackground(bg)}
+                  onRemove={bg.isBlob ? () => handleRemoveBackground(bg) : undefined}
+                />
+              )
+            )}
           </div>
 
-          {activeTab === 'images' ? (
-            <>
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {[...defaultBackgrounds, ...savedBackgrounds.filter(bg => bg.type === 'image')].map((bg) => (
-                  <BackgroundThumbnail
-                    key={bg.id}
-                    bg={bg}
-                    onSelect={() => handleSelectBackground(bg)}
-                    onRemove={bg.isBlob ? () => handleRemoveBackground(bg) : undefined}
-                  />
-                ))}
-              </div>
+          {/* آپلود فایل و دریافت URL */}
+          <div className="space-y-4 flex-shrink-0">
+            {/* آپلود فایل */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
+              disabled={isUploading}
+            >
+              <Upload className="w-4 h-4" />
+              {isUploading ? "Uploading..." : "Upload Image"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.gif"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
 
-              <div className="space-y-4">
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
-                  disabled={isUploading}
-                >
-                  <Upload className="w-4 h-4" />
-                  {isUploading ? 'Uploading...' : 'Upload Image'}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.gif"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-
-<form onSubmit={handleUrlSubmit} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="Paste image URL"
-                    className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-white/30 hover:bg-white/40 transition-colors p-2 rounded-lg text-white"
-                  >
-                    <Link className="w-4 h-4" />
-                  </button>
-                </form>
-              </div>
-            </>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {colorOptions.map((color) => (
-                <BackgroundThumbnail
-                  key={color.id}
-                  bg={color}
-                  onSelect={() => handleSelectBackground(color)}
-                />
-              ))}
-            </div>
-          )}
+            {/* فرم دریافت URL */}
+            <form
+              onSubmit={handleUrlSubmit}
+              className="flex flex-col gap-3 sm:flex-row sm:gap-2"
+            >
+              <input
+                type="text"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="Paste image URL"
+                className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
+              />
+              <button
+                type="submit"
+                className="bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-white flex items-center justify-center"
+              >
+                <Link className="w-4 h-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : (
+        // تب رنگ‌ها
+        <div className="grid grid-cols-4 gap-4 overflow-auto flex-grow">
+          {colorOptions.map((color) => (
+            <BackgroundThumbnail
+              key={color.id}
+              bg={color}
+              onSelect={() => handleSelectBackground(color)}
+            />
+          ))}
         </div>
       )}
+
+<div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
+  {/* سطر انتخاب روزهای هفته */}
+  <div className="flex justify-between items-center gap-2">
+    {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(
+      (day) => (
+        <button
+          key={day}
+          onClick={() => setSelectedDay(day)} // تغییر روز انتخاب شده
+          className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
+            selectedDay === day ? "bg-green-500 text-white" : "bg-white/30 text-white"
+          } hover:bg-white/40 transition-colors`}
+        >
+          {day.slice(0, 2)} {/* نمایش دو حرف اول روز */}
+        </button>
+      )
+    )}
+  </div>
+
+  {/* سطر انتخاب روز اول هفته */}
+  <div className="flex flex-col w-full">
+  <label className="text-white text-sm mb-2">First Day of the Week</label>
+  <select
+    value={firstDayOfWeek}
+    onChange={(e) => setFirstDayOfWeek(e.target.value)}
+    className="w-full bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-full text-sm text-white outline-none cursor-pointer backdrop-blur-sm"
+  >
+    {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(
+      (day) => (
+        <option
+          key={day}
+          value={day}
+          className="bg-transparent text-white cursor-pointer"
+        >
+          {day}
+        </option>
+      )
+    )}
+  </select>
+</div>
+
+
+
+</div>
+
+
+      {/* تنظیمات پایین */}
+      <div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
+        {/* دکمه‌ها */}
+        <div className="flex w-full gap-2">
+          <button
+            className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+              calendarType === 'gregorian' 
+                ? 'bg-white/50 hover:bg-white/60' 
+                : 'bg-white/30 hover:bg-white/40'
+            }`}
+            onClick={() => handleCalendarTypeChange('gregorian')}
+          >
+            Gregorian
+          </button>
+          <button
+           className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+            calendarType === 'persian' 
+              ? 'bg-white/50 hover:bg-white/60' 
+              : 'bg-white/30 hover:bg-white/40'
+          }`}
+          onClick={() => handleCalendarTypeChange('persian')}
+          >
+            Persian
+          </button>
+        </div>
+
+        {/* ورودی Tile Number */}
+        <div className="flex flex-col w-full">
+          <label className="text-white text-sm mb-2">Tile Number</label>
+          <input
+            type="number"
+            value={tileNumber}
+            onChange={handleTileNumberChange}
+            min="10"
+            max="100"
+            className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white outline-none placeholder-white/50"
+          />
+        </div>
+      </div>
     </div>
+  ) : null}
+</div>
   );
 };
 

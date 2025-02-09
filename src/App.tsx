@@ -99,18 +99,23 @@ function App() {
           </div>
         )}
         
-        <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300">
-          <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-[30%_1fr] gap-8">
+        <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300 overflow-x-hidden">
+          <div   className="max-w-[80vw] mx-auto box-border grid 
+                  grid-cols-1 gap-4 sm:gap-8 
+                  md:grid-cols-[25%_25%_45%]" >
+            {/* بخش 1: Clock */}
+          <div className="space-y-8 order-1 ">
+            <Clock />
+            <Calendar />
+          </div>
             {/* Left side */}
-            <div className="space-y-8">
-              <Clock />
-              <Calendar />
+            <div className="space-y-8 order-2">
               <TodoList />
-            <Notes />
+            <Notes calendarType={'gregorian'} />
             </div>
 
             {/* Right side */}
-            <div>
+            <div className="space-y-8 order-3">
               <Bookmarks />
             </div>
           </div>

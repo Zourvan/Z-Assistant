@@ -1,0 +1,16 @@
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+.ltr {
+    direction: ltr;
+    text-align: left;
+}
+
+@media (max-width: 300px) {
+    .your-form-class {
+        flex-direction: column;
+        /* Stack elements vertically on small screens */
+    }
+}
