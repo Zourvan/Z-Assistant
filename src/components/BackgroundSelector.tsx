@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Image, Upload, Link, X, Palette } from 'lucide-react';
+import { SlidersHorizontal, Image, Upload, Link, X, Palette } from 'lucide-react';
 import './BackgroundSelector.css';
 
 interface BackgroundSelectorProps {
@@ -269,6 +269,20 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     '/static/background/g-5.gif',
     '/static/background/g-6.gif',
     '/static/background/g-7.gif',
+    '/static/background/g-8.gif',
+    '/static/background/g-9.gif',
+    '/static/background/g-10.gif',
+    '/static/background/g-11.gif',
+    '/static/background/g-12.gif',
+    '/static/background/g-13.gif',
+    '/static/background/g-14.gif',
+    '/static/background/g-15.gif',
+    '/static/background/g-16.gif',
+    '/static/background/g-17.gif',
+    '/static/background/g-18.gif',
+    '/static/background/g-19.gif',
+    '/static/background/g-20.gif',
+    '/static/background/g-21.gif',
   ].map(url => ({
     id: url,
     url,
@@ -497,7 +511,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     onClick={() => setIsOpen(!isOpen)}
     className="bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
   >
-    <Image className="w-5 h-5 text-white" />
+    <SlidersHorizontal className="w-5 h-5 text-white" />
   </button>
 
   {isOpen ? (
