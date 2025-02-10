@@ -114,7 +114,7 @@ export function Bookmarks() {
 
     return (
       <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
-        <div className="w-[80%] h-[80%] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
+        <div className="w-[80vw] h-[80vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
           <div className="flex items-center justify-between gap-4 mb-6 sticky top-0 bg-black/50 p-4 z-10">
             <button
               onClick={currentFolder ? navigateBack : () => setIsSelecting(false)}
@@ -160,7 +160,7 @@ export function Bookmarks() {
                     }}
                   />
                 )}
-                <span className="text-white text-center text-sm font-medium line-clamp-2">
+                <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
                   {node.title}
                 </span>
               </button>
@@ -221,7 +221,7 @@ export function Bookmarks() {
         >
           {actionButtons}
           <Folder className="w-8 h-8 mb-2 text-white" />
-          <span className="text-white text-center text-sm font-medium line-clamp-2">
+          <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
             {tile.title}
           </span>
         </button>
@@ -244,7 +244,7 @@ export function Bookmarks() {
             e.currentTarget.src = 'https://www.google.com/s2/favicons?domain=chrome&sz=32';
           }}
         />
-        <span className="text-white text-center text-sm font-medium line-clamp-2">
+        <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
           {tile.title}
         </span>
       </a>
@@ -256,7 +256,7 @@ export function Bookmarks() {
   
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div className="w-[80%] h-[80%] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative box-border">
+        <div className="w-[80vw] h-[80vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative box-border">
     
           {/* هدر ثابت */}
           <div className="flex items-center justify-between gap-4 sticky top-0 bg-black/50 p-4 z-20">
@@ -292,7 +292,7 @@ export function Bookmarks() {
                       }}
                     />
                   )}
-                  <span className="text-white text-center text-sm font-medium line-clamp-2">
+                  <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
                     {node.title}
                   </span>
                 </button>
