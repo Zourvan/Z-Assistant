@@ -1,4 +1,4 @@
-import  { useState } from 'react';
+import React, { useState } from 'react';
 import * as dateFns from 'date-fns';
 import * as dateFnsJalali from 'date-fns-jalali';
 import { useCalendar } from './BackgroundSelector';
@@ -12,7 +12,19 @@ export function Calendar() {
 
   const daysInMonth = dateLib.getDaysInMonth(currentDate);
   const firstDayOfMonth = dateLib.startOfMonth(currentDate);
-  const startDay = dateLib.getDay(firstDayOfMonth);
+  
+  // Adjust start day calculation for Persian calendar
+  const getAdjustedStartDay = () => {
+    const dayOfWeek = dateLib.getDay(firstDayOfMonth);
+    if (calendarType === 'gregorian') {
+      return dayOfWeek;
+    } else {
+      // Convert Sunday-based index (0-6) to Saturday-based index (0-6)
+      return (dayOfWeek + 1) % 7;
+    }
+  };
+
+  const startDay = getAdjustedStartDay();
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const weekDays = calendarType === 'gregorian' 
@@ -31,7 +43,13 @@ export function Calendar() {
 
   const getDayIndex = (day) => {
     const date = dateLib.setDate(firstDayOfMonth, day);
-    return dateLib.getDay(date);
+    const dayOfWeek = dateLib.getDay(date);
+    if (calendarType === 'gregorian') {
+      return dayOfWeek;
+    } else {
+      // Convert Sunday-based index to Saturday-based index for Persian calendar
+      return (dayOfWeek + 1) % 7;
+    }
   };
 
   const formatMonth = () => {
