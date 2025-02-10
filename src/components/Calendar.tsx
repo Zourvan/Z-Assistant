@@ -1,47 +1,12 @@
-import React, { createContext, useContext, useState } from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import  { useState } from 'react';
 import * as dateFns from 'date-fns';
 import * as dateFnsJalali from 'date-fns-jalali';
+import { useCalendar } from './BackgroundSelector';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Create context
-const CalendarContext = createContext({
-  calendarType: 'gregorian' as 'gregorian' | 'persian',
-  setCalendarType: (type: 'gregorian' | 'persian') => {},
-});
-
-// Create provider component
-export function CalendarProvider({ children }) {
-  const [calendarType, setCalendarType] = useState<'gregorian' | 'persian'>(() => {
-    // Try to get saved preference from localStorage
-    const saved = localStorage.getItem('calendarType');
-    return (saved === 'persian' || saved === 'gregorian') ? saved : 'gregorian';
-  });
-
-  const updateCalendarType = (type: 'gregorian' | 'persian') => {
-    setCalendarType(type);
-    localStorage.setItem('calendarType', type);
-  };
-
-  return (
-    <CalendarContext.Provider value={{ calendarType, setCalendarType: updateCalendarType }}>
-      {children}
-    </CalendarContext.Provider>
-  );
-}
-
-// Custom hook for using calendar context
-export function useCalendar() {
-  const context = useContext(CalendarContext);
-  if (!context) {
-    throw new Error('useCalendar must be used within a CalendarProvider');
-  }
-  return context;
-}
-
-// Updated Calendar component
 export function Calendar() {
-  const { calendarType, setCalendarType } = useCalendar();
-  const currentDate = new Date();
+  const { calendarType } = useCalendar();
+  const [currentDate, setCurrentDate] = useState(new Date());
   
   const dateLib = calendarType === 'gregorian' ? dateFns : dateFnsJalali;
 
@@ -51,8 +16,23 @@ export function Calendar() {
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const weekDays = calendarType === 'gregorian' 
-    ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
     : ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+
+  const isWeekend = (dayIndex) => {
+    if (calendarType === 'gregorian') {
+      // Saturday (6) and Sunday (0)
+      return dayIndex === 0 || dayIndex === 6;
+    } else {
+      // Thursday (4) and Friday (5) for Persian calendar
+      return dayIndex === 5 || dayIndex === 6;
+    }
+  };
+
+  const getDayIndex = (day) => {
+    const date = dateLib.setDate(firstDayOfMonth, day);
+    return dateLib.getDay(date);
+  };
 
   const formatMonth = () => {
     if (calendarType === 'gregorian') {
@@ -66,42 +46,71 @@ export function Calendar() {
     ? dateFns.getDate(currentDate)
     : dateFnsJalali.getDate(currentDate);
 
+  const handlePreviousMonth = () => {
+    setCurrentDate(dateLib.subMonths(currentDate, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(dateLib.addMonths(currentDate, 1));
+  };
+
   return (
     <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-white text-lg font-medium">{formatMonth()}</h2>
-        <button
-          onClick={() => setCalendarType(calendarType === 'gregorian' ? 'persian' : 'gregorian')}
-          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 text-white text-sm"
+        <button 
+          onClick={handlePreviousMonth}
+          className="p-2 rounded-full hover:bg-white/10 text-white"
+          aria-label="Previous month"
         >
-          <CalendarIcon className="w-4 h-4" />
-          {calendarType === 'gregorian' ? 'Persian' : 'Gregorian'}
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        
+        <h2 className="text-white text-lg font-medium text-center">
+          {formatMonth()}
+        </h2>
+        
+        <button 
+          onClick={handleNextMonth}
+          className="p-2 rounded-full hover:bg-white/10 text-white"
+          aria-label="Next month"
+        >
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-white">
-        {weekDays.map(day => (
-          <div key={day} className="text-center text-sm font-medium p-2">
+        {weekDays.map((day, index) => (
+          <div 
+            key={day} 
+            className={`text-center text-sm font-medium p-2 ${
+              isWeekend(index) ? 'text-green-400' : ''
+            }`}
+          >
             {day}
           </div>
         ))}
         {Array(startDay).fill(null).map((_, i) => (
           <div key={`empty-${i}`} className="p-2" />
         ))}
-        {days.map(day => (
-          <div
-            key={day}
-            className={`text-center p-2 rounded-full ${
-              day === currentDay
-                ? 'bg-white/30 font-bold'
-                : 'hover:bg-white/10'
-            }`}
-          >
-            {calendarType === 'persian' 
-              ? day.toLocaleString('fa-IR')
-              : day}
-          </div>
-        ))}
+        {days.map(day => {
+          const dayIndex = getDayIndex(day);
+          return (
+            <div
+              key={day}
+              className={`text-center p-2 rounded-full ${
+                day === currentDay
+                  ? 'bg-white/30 font-bold'
+                  : isWeekend(dayIndex)
+                    ? 'bg-green-500/20 hover:bg-green-500/30'
+                    : 'hover:bg-white/10'
+              }`}
+            >
+              {calendarType === 'persian' 
+                ? day.toLocaleString('fa-IR')
+                : day}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

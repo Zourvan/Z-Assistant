@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import * as dateFns from 'date-fns';
 import * as dateFnsJalali from 'date-fns-jalali';
-import { useCalendar } from './Calendar';
+import { useCalendar } from './BackgroundSelector';
 import './Notes.css'
 
 interface Note {
@@ -21,7 +21,7 @@ export function Notes({  }: NotesProps) {
   const [newNote, setNewNote] = useState('');
 
   useEffect(() => {
-    chrome.storage.sync.get(['notes'], (result) => {
+    chrome.storage.sync.get(['notes'], (result: { notes: React.SetStateAction<Note[]>; }) => {
       if (result.notes) {
         setNotes(result.notes);
       }
@@ -59,7 +59,7 @@ export function Notes({  }: NotesProps) {
     return dateFns.format(date, 'dd MMMM yyyy');
   };
 
-  const isPersian = (text) => {
+  const isPersian = (text: string) => {
     const persianRegex = /[\u0600-\u06FF]/;
     return persianRegex.test(text);
   };

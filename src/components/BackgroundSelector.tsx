@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Image, Upload, Link, X, Palette } from 'lucide-react';
 import './BackgroundSelector.css';
 
@@ -185,9 +185,41 @@ const BackgroundThumbnail: React.FC<{
   );
 };
 
+const CalendarContext = createContext({
+  calendarType: 'gregorian' as 'gregorian' | 'persian',
+  setCalendarType: (type: 'gregorian' | 'persian') => {},
+});
+
+// Create provider component
+export function CalendarProvider({ children }) {
+  const [calendarType, setCalendarType] = useState<'gregorian' | 'persian'>(() => {
+    // Try to get saved preference from localStorage
+    const saved = localStorage.getItem('calendarType');
+    return (saved === 'persian' || saved === 'gregorian') ? saved : 'gregorian';
+  });
+
+  const updateCalendarType = (type: 'gregorian' | 'persian') => {
+    setCalendarType(type);
+    localStorage.setItem('calendarType', type);
+  };
+
+  return (
+    <CalendarContext.Provider value={{ calendarType, setCalendarType: updateCalendarType }}>
+      {children}
+    </CalendarContext.Provider>
+  );
+}
+
+export function useCalendar() {
+  const context = useContext(CalendarContext);
+  if (!context) {
+    throw new Error('useCalendar must be used within a CalendarProvider');
+  }
+  return context;
+}
+
 export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ 
   onSelectBackground,
-  onCalendarTypeChange,
   storageKey = 'selectedBackground'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -195,16 +227,48 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   const [urlInput, setUrlInput] = useState('');
   const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
-  const [calendarType, setCalendarType] = useState<'gregorian' | 'persian'>('gregorian');
+  const { calendarType, setCalendarType } = useCalendar();
   const [selectedDay, setSelectedDay] = React.useState(null);
   const [firstDayOfWeek, setFirstDayOfWeek] = React.useState("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dbOps = createDatabaseOperations();
 
+  const selectorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if ( selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+      setIsOpen(false)
+    }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, setIsOpen]);
+
   const defaultBackgrounds = useMemo(() => [
     '/static/background/img-1.jpg',
-    '/static/background/img-2.gif'
+    '/static/background/img-2.jpg',
+    '/static/background/img-3.jpg',
+    '/static/background/img-4.jpg',
+    '/static/background/img-5.jpg',
+    '/static/background/img-6.jpg',
+    '/static/background/img-7.jpg',
+    '/static/background/img-8.jpg',
+    '/static/background/img-9.jpg',
+    '/static/background/img-10.jpg',
+    '/static/background/img-11.jpg',
+    '/static/background/img-12.jpg',
+    '/static/background/g-1.gif',
+    '/static/background/g-2.gif',
+    '/static/background/g-3.gif',
+    '/static/background/g-4.gif',
+    '/static/background/g-5.gif',
+    '/static/background/g-6.gif',
+    '/static/background/g-7.gif',
   ].map(url => ({
     id: url,
     url,
@@ -214,7 +278,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   })), []);
 
   const colorOptions = useMemo(() => [
-    '#000000', '#FFFFFF', '#1E40AF', '#047857', '#B45309', '#9F1239',
+    '#000000', '#eeeeee', '#1E40AF', '#047857', '#B45309', '#9F1239',
     '#4C1D95', '#831843', '#3730A3', '#064E3B', '#701A75', '#7C2D12'
   ].map(color => ({
     id: color,
@@ -314,16 +378,6 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
   
     loadCalendarSettings();
   }, [saveCalendarSettings]);
-
-
-    // Handle calendar type change
-    const handleCalendarTypeChange = useCallback((type: 'gregorian' | 'persian') => {
-      setCalendarType(type);
-      saveCalendarSettings(type, tileNumber);
-      if (onCalendarTypeChange) {
-        onCalendarTypeChange(type);
-      }
-    }, [onCalendarTypeChange, tileNumber, saveCalendarSettings]);
 
   const handleSelectBackground = useCallback((background: StoredBackground) => {
     const finalUrl = background.type === 'image' && !isDataUrl(background.url) ? 
@@ -448,6 +502,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
 
   {isOpen ? (
     <div
+     ref={selectorRef}
       className="mt-2 bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
       style={{
         width: "35vw", // افزایش عرض کادر
@@ -604,7 +659,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
                 ? 'bg-white/50 hover:bg-white/60' 
                 : 'bg-white/30 hover:bg-white/40'
             }`}
-            onClick={() => handleCalendarTypeChange('gregorian')}
+            onClick={() => setCalendarType('gregorian')}
           >
             Gregorian
           </button>
@@ -614,7 +669,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
               ? 'bg-white/50 hover:bg-white/60' 
               : 'bg-white/30 hover:bg-white/40'
           }`}
-          onClick={() => handleCalendarTypeChange('persian')}
+          onClick={() => setCalendarType('persian')}
           >
             Persian
           </button>

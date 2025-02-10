@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { Clock } from './components/Clock';
-import { Calendar, CalendarProvider } from './components/Calendar';
+import { Calendar } from './components/Calendar';
 import { Bookmarks } from './components/Bookmarks';
-import BackgroundSelector from './components/BackgroundSelector';
+import {BackgroundSelector,CalendarProvider} from './components/BackgroundSelector';
 import { TodoList } from './components/TodoList';
 import { Notes } from './components/Notes';
 
@@ -121,9 +121,8 @@ function App() {
           </div>
 
           <BackgroundSelector 
-            onSelectBackground={handleBackgroundChange} 
-            storageKey="selectedBackground"
-          />
+            onSelectBackground={handleBackgroundChange}
+            storageKey="selectedBackground" calendarType={'gregorian'}          />
         </div>
       </div>
     </CalendarProvider>

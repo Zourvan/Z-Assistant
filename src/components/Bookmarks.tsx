@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Bookmark, Folder, ChevronLeft, Settings, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Folder, ChevronLeft, Settings, Plus, Trash2 } from 'lucide-react';
 
 interface BookmarkNode {
   id: string;
@@ -20,7 +20,7 @@ interface BookmarkPreferences {
   tiles: TileConfig[];
 }
 
-const MAX_TILES = 30-6;
+const MAX_TILES = 30;
 const ASPECT_RATIO = 'aspect-square';
 
 export function Bookmarks() {
@@ -30,6 +30,10 @@ export function Bookmarks() {
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [currentFolder, setCurrentFolder] = useState<BookmarkNode | null>(null);
   const [activeFolderContent, setActiveFolderContent] = useState<BookmarkNode | null>(null);
+  
+  // Add refs for the modal containers
+  const selectorRef = useRef<HTMLDivElement>(null);
+  const folderContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,6 +54,28 @@ export function Bookmarks() {
   useEffect(() => {
     chrome.storage.sync.set({ bookmarkPreferences: preferences });
   }, [preferences]);
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Handle selector modal
+      if (isSelecting && selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+        setIsSelecting(false);
+        setSelectedTileIndex(null);
+        setCurrentFolder(null);
+      }
+      
+      // Handle folder content modal
+      if (activeFolderContent && folderContentRef.current && !folderContentRef.current.contains(event.target as Node)) {
+        setActiveFolderContent(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSelecting, activeFolderContent]);
 
   const openSelector = (index: number) => {
     setSelectedTileIndex(index);
@@ -114,7 +140,7 @@ export function Bookmarks() {
 
     return (
       <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
-        <div className="w-[80vw] h-[80vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
+        <div ref={selectorRef} className="w-[80vw] h-[80vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
           <div className="flex items-center justify-between gap-4 mb-6 sticky top-0 bg-black/50 p-4 z-10">
             <button
               onClick={currentFolder ? navigateBack : () => setIsSelecting(false)}
@@ -256,9 +282,7 @@ export function Bookmarks() {
   
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div className="w-[80vw] h-[80vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative box-border">
-    
-          {/* هدر ثابت */}
+        <div ref={folderContentRef} className="w-[80vw] h-[80vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative box-border">
           <div className="flex items-center justify-between gap-4 sticky top-0 bg-black/50 p-4 z-20">
             <button
               onClick={navigateBack}
@@ -270,7 +294,6 @@ export function Bookmarks() {
             <h3 className="text-white text-xl font-medium">{activeFolderContent.title}</h3>
           </div>
     
-          {/* محتوای اصلی با تنظیمات مناسب اسکرول */}
           <div className="overflow-y-auto overflow-x-hidden h-[85%] pt-4 box-border">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {activeFolderContent.children?.map(node => (
@@ -299,13 +322,10 @@ export function Bookmarks() {
               ))}
             </div>
           </div>
-    
         </div>
       </div>
     );
-    
   };
-  
 
   const tiles = Array(MAX_TILES).fill(null).map((_, i) => preferences.tiles[i] || null);
 
@@ -320,3 +340,4 @@ export function Bookmarks() {
     </div>
   );
 }
+

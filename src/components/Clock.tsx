@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useCalendar } from './Calendar';
-
-interface ClockProps {
-  calendarType: 'gregorian' | 'persian';
-}
+import  { useState, useEffect } from 'react';
+import { useCalendar } from './BackgroundSelector';
 
 
 export function Clock() {
