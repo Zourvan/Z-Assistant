@@ -87,6 +87,7 @@ function App() {
 
   return (
     <CalendarProvider>
+       {/* <MarketBoard /> */}
       <div 
         className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${
           isLoading ? 'opacity-50' : 'opacity-100'
@@ -127,6 +128,7 @@ function App() {
             storageKey="selectedBackground" calendarType={'gregorian'}          
             />
              <SocialLinks />
+            
         </div>
       </div>
     </CalendarProvider>
