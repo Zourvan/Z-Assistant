@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Folder, ChevronLeft, Settings, Plus, Trash2 } from 'lucide-react';
+import { Folder, ChevronLeft,MoreHorizontal   , Settings, Plus, Trash2 } from 'lucide-react';
 
 interface BookmarkNode {
   id: string;
@@ -30,6 +30,7 @@ export function Bookmarks() {
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [currentFolder, setCurrentFolder] = useState<BookmarkNode | null>(null);
   const [activeFolderContent, setActiveFolderContent] = useState<BookmarkNode | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
   // Add refs for the modal containers
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,17 @@ export function Bookmarks() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isSelecting, activeFolderContent]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openMenuId && !((event.target as Element).closest('.action-menu'))) {
+        setOpenMenuId(null);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
 
   const openSelector = (index: number) => {
     setSelectedTileIndex(index);
@@ -213,29 +225,48 @@ export function Bookmarks() {
 
     const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl group`;
     const actionButtons = (
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 action-menu">
         <button
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            openSelector(index);
+            setOpenMenuId(openMenuId === tile.id ? null : tile.id);
           }}
-          className="p-1.5 bg-white/0 hover:bg-white/20 rounded-lg transition-colors"
-          title="Edit"
+          className="p-0.75 bg-white/0 hover:bg-white/20 rounded-md transition-colors"
+          title="Menu"
         >
-          <Settings className="w-4 h-4 text-white" />
+          <MoreHorizontal strokeWidth={0.5} className="w-4 h-4 text-white" />
         </button>
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            clearTile(index);
-          }}
-          className="p-1.5 bg-white/0 hover:bg-red-500/20 rounded-lg transition-colors"
-          title="Clear"
-        >
-          <Trash2 className="w-4 h-4 text-white" />
-        </button>
+        
+        {/* Dropdown Menu */}
+        {openMenuId === tile.id && (
+          <div className="absolute right-0 mt-1 py-1 w-32 bg-black/50 backdrop-blur-md rounded-lg shadow-lg">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                openSelector(index);
+                setOpenMenuId(null);
+              }}
+              className="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Edit</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTile(index);
+                setOpenMenuId(null);
+              }}
+              className="w-full px-4 py-2 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Clear</span>
+            </button>
+          </div>
+        )}
       </div>
     );
 
@@ -259,6 +290,10 @@ export function Bookmarks() {
         href={tile.url}
         className={`${commonClasses} hover:bg-white/30 transition-colors`}
         target="_self"
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.href = tile.url || '';
+        }}
         rel="noopener noreferrer"
       >
         {actionButtons}
@@ -299,7 +334,12 @@ export function Bookmarks() {
               {activeFolderContent.children?.map(node => (
                 <button
                   key={node.id}
-                  onClick={() => node.children ? navigateToFolder(node.id) : window.open(node.url, '_blank')}
+                  onClick={() => {if (node.children) {
+                    navigateToFolder(node.id);
+                  } else {
+                    // Change this line to open in same tab
+                    window.location.href = node.url || '';
+                  }}}
                   className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors box-border"
                   style={{ width: '100%' }}
                 >

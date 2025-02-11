@@ -282,7 +282,6 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({
     '/static/background/g-18.gif',
     '/static/background/g-19.gif',
     '/static/background/g-20.gif',
-    '/static/background/g-21.gif',
   ].map(url => ({
     id: url,
     url,
