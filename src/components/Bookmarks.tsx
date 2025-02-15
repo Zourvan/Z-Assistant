@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { Folder, ChevronLeft,MoreHorizontal   , Settings, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef } from "react";
+import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
 
 interface BookmarkNode {
   id: string;
@@ -10,7 +10,7 @@ interface BookmarkNode {
 
 interface TileConfig {
   id: string;
-  type: 'bookmark' | 'folder';
+  type: "bookmark" | "folder";
   nodeId: string;
   title: string;
   url?: string;
@@ -21,7 +21,7 @@ interface BookmarkPreferences {
 }
 
 const MAX_TILES = 30;
-const ASPECT_RATIO = 'aspect-square';
+const ASPECT_RATIO = "aspect-retro";
 
 export function Bookmarks() {
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
@@ -31,14 +31,15 @@ export function Bookmarks() {
   const [currentFolder, setCurrentFolder] = useState<BookmarkNode | null>(null);
   const [activeFolderContent, setActiveFolderContent] = useState<BookmarkNode | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  
+  const [folderHistory, setFolderHistory] = useState<BookmarkNode[]>([]);
+
   // Add refs for the modal containers
   const selectorRef = useRef<HTMLDivElement>(null);
   const folderContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadData = async () => {
-      chrome.storage.sync.get(['bookmarkPreferences'], (result) => {
+      chrome.storage.sync.get(["bookmarkPreferences"], (result) => {
         if (result.bookmarkPreferences) {
           setPreferences(result.bookmarkPreferences);
         }
@@ -65,28 +66,28 @@ export function Bookmarks() {
         setSelectedTileIndex(null);
         setCurrentFolder(null);
       }
-      
+
       // Handle folder content modal
       if (activeFolderContent && folderContentRef.current && !folderContentRef.current.contains(event.target as Node)) {
         setActiveFolderContent(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isSelecting, activeFolderContent]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId && !((event.target as Element).closest('.action-menu'))) {
+      if (openMenuId && !(event.target as Element).closest(".action-menu")) {
         setOpenMenuId(null);
       }
     };
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
 
   const openSelector = (index: number) => {
@@ -100,10 +101,10 @@ export function Bookmarks() {
 
     const newTile = {
       id: crypto.randomUUID(),
-      type: node.children ? 'folder' : 'bookmark',
+      type: node.children ? "folder" : "bookmark",
       nodeId: node.id,
       title: node.title,
-      url: node.url,
+      url: node.url
     };
 
     updateTile(newTile);
@@ -131,8 +132,16 @@ export function Bookmarks() {
     chrome.bookmarks.getSubTree(folderId, (nodes) => {
       if (nodes[0]) {
         if (isSelecting) {
+          if (currentFolder) {
+            // اضافه کردن فولدر فعلی به تاریخچه
+            setFolderHistory((prev) => [...prev, currentFolder]);
+          }
           setCurrentFolder(nodes[0]);
         } else {
+          if (activeFolderContent) {
+            // اضافه کردن فولدر فعلی به تاریخچه
+            setFolderHistory((prev) => [...prev, activeFolderContent]);
+          }
           setActiveFolderContent(nodes[0]);
         }
       }
@@ -141,10 +150,31 @@ export function Bookmarks() {
 
   const navigateBack = () => {
     if (isSelecting) {
-      setCurrentFolder(null);
+      // بازگشت در انتخاب فولدر
+      if (folderHistory.length > 0) {
+        const previousFolder = folderHistory[folderHistory.length - 1];
+        setFolderHistory((prev) => prev.slice(0, prev.length - 1)); // حذف آخرین فولدر از تاریخچه
+        setCurrentFolder(previousFolder); // تنظیم فولدر فعلی
+      } else {
+        setCurrentFolder(null); // اگر به ابتدا رسیدید
+      }
     } else {
-      setActiveFolderContent(null);
+      // بازگشت در محتوای فعال
+      if (folderHistory.length > 0) {
+        const previousFolder = folderHistory[folderHistory.length - 1];
+        setFolderHistory((prev) => prev.slice(0, prev.length - 1)); // حذف آخرین فولدر از تاریخچه
+        setActiveFolderContent(previousFolder); // تنظیم فولدر فعلی
+      } else {
+        setActiveFolderContent(null); // اگر به ابتدا رسیدید
+      }
     }
+  };
+
+  const closeSelector = () => {
+    setIsSelecting(false);
+    setSelectedTileIndex(null);
+    setCurrentFolder(null);
+    setFolderHistory([]); // پاک کردن تاریخچه
   };
 
   const renderSelector = () => {
@@ -155,23 +185,23 @@ export function Bookmarks() {
         <div ref={selectorRef} className="w-[80vw] h-[80vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
           <div className="flex items-center justify-between gap-4 mb-6 sticky top-0 bg-black/50 p-4 z-10">
             <button
-              onClick={currentFolder ? navigateBack : () => setIsSelecting(false)}
+              onClick={currentFolder ? navigateBack : closeSelector}
               className="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 text-white"
             >
               <ChevronLeft className="w-4 h-4" />
-              {currentFolder ? 'Back' : 'Cancel'}
+              {currentFolder ? "Back" : "Cancel"}
             </button>
-            <h3 className="text-white text-xl font-medium flex-grow">
-              {currentFolder ? currentFolder.title : 'Select a bookmark or folder'}
-            </h3>
+            <h3 className="text-white text-xl font-medium flex-grow">{currentFolder ? currentFolder.title : "Select a bookmark or folder"}</h3>
             {currentFolder && (
               <button
-                onClick={() => updateTile({
-                  id: crypto.randomUUID(),
-                  type: 'folder',
-                  nodeId: currentFolder.id,
-                  title: currentFolder.title,
-                })}
+                onClick={() =>
+                  updateTile({
+                    id: crypto.randomUUID(),
+                    type: "folder",
+                    nodeId: currentFolder.id,
+                    title: currentFolder.title
+                  })
+                }
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
               >
                 Confirm
@@ -180,27 +210,25 @@ export function Bookmarks() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {nodes.map(node => (
+            {nodes.map((node) => (
               <button
                 key={node.id}
-                onClick={() => node.children ? navigateToFolder(node.id) : selectNode(node)}
+                onClick={() => (node.children ? navigateToFolder(node.id) : selectNode(node))}
                 className={`flex flex-col items-center justify-center p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
               >
                 {node.children ? (
                   <Folder className="w-8 h-8 mb-2 text-white" />
                 ) : (
-                  <img 
-                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ''}&sz=32`}
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=32`}
                     alt=""
                     className="w-8 h-8 mb-2"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://www.google.com/s2/favicons?domain=chrome&sz=32';
+                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
                     }}
                   />
                 )}
-                <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
-                  {node.title}
-                </span>
+                <span className="text-white text-center text-[2vh] font-medium line-clamp-2">{node.title}</span>
               </button>
             ))}
           </div>
@@ -212,21 +240,21 @@ export function Bookmarks() {
   const renderTile = (tile: TileConfig | null, index: number) => {
     if (!tile) {
       return (
-        <div className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-xl group`}>
-          <button
-            onClick={() => openSelector(index)}
-            className="flex flex-col items-center p-3 hover:bg-white/10 rounded-lg transition-colors"
-          >
+        <div
+          id={`tile-empty-${index}`}
+          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-xl group`}
+        >
+          <button onClick={() => openSelector(index)} className="flex flex-col items-center p-3 hover:bg-white/10 rounded-lg transition-colors">
             <Plus className="w-6 h-6 text-white/60 mb-1" />
           </button>
         </div>
       );
     }
 
-    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl group`;
     const actionButtons = (
-      <div className="absolute top-2 right-2 action-menu">
+      <div id={`action-menu-${tile.id}`} className="absolute top-2 right-2 action-menu" style={{ zIndex: 1000 }}>
         <button
+          id={`menu-button-${tile.id}`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -237,11 +265,12 @@ export function Bookmarks() {
         >
           <MoreHorizontal strokeWidth={0.5} className="w-4 h-4 text-white" />
         </button>
-        
+
         {/* Dropdown Menu */}
         {openMenuId === tile.id && (
-          <div className="absolute right-0 mt-1 py-1 w-32 bg-black/50 backdrop-blur-md rounded-lg shadow-lg">
+          <div className="absolute right-0 mt-1 py-1 w-32 bg-black/100 backdrop-blur-md rounded-lg shadow-lg" style={{ zIndex: 1000 }}>
             <button
+              id={`edit-button-${tile.id}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -254,6 +283,7 @@ export function Bookmarks() {
               <span>Edit</span>
             </button>
             <button
+              id={`clear-button-${tile.id}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -265,56 +295,71 @@ export function Bookmarks() {
               <Trash2 className="w-4 h-4" />
               <span>Clear</span>
             </button>
+            <button
+              id={`color-button-${tile.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearTile(index);
+                setOpenMenuId(null);
+              }}
+              className="w-full px-4 py-2 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-2"
+            >
+              <Palette className="w-4 h-4" />
+              <span>Color</span>
+            </button>
           </div>
         )}
       </div>
     );
 
-    if (tile.type === 'folder') {
+    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl group`;
+
+    if (tile.type === "folder") {
       return (
         <button
+          id={`folder-tile-${tile.nodeId}`}
           onClick={() => navigateToFolder(tile.nodeId)}
           className={`${commonClasses} hover:bg-white/30 transition-colors`}
+          style={{ position: "relative", zIndex: 1 }} // Ensure tile stacks correctly
         >
           {actionButtons}
           <Folder className="w-8 h-8 mb-2 text-white" />
-          <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
-            {tile.title}
-          </span>
+          <span className="text-white text-center text-[0.8vw] font-medium line-clamp-2">{tile.title}</span>
         </button>
       );
     }
 
     return (
       <a
+        id={`bookmark-tile-${tile.nodeId}`}
         href={tile.url}
         className={`${commonClasses} hover:bg-white/30 transition-colors`}
         target="_self"
         onClick={(e) => {
           e.preventDefault();
-          window.location.href = tile.url || '';
+          window.location.href = tile.url || "";
         }}
         rel="noopener noreferrer"
+        style={{ position: "relative", zIndex: 1 }} // Same positioning mandate
       >
         {actionButtons}
         <img
-          src={`https://www.google.com/s2/favicons?domain=${tile.url ? new URL(tile.url).hostname : ''}&sz=32`}
+          src={`https://www.google.com/s2/favicons?domain=${tile.url ? new URL(tile.url).hostname : ""}&sz=16`}
           alt=""
           className="w-8 h-8 mb-2"
           onError={(e) => {
-            e.currentTarget.src = 'https://www.google.com/s2/favicons?domain=chrome&sz=32';
+            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
           }}
         />
-        <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
-          {tile.title}
-        </span>
+        <span className="text-white text-center text-[1vh] font-medium line-clamp-2">{tile.title}</span>
       </a>
     );
   };
 
   const renderFolderContent = () => {
     if (!activeFolderContent) return null;
-  
+
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
         <div ref={folderContentRef} className="w-[80vw] h-[80vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative box-border">
@@ -328,36 +373,36 @@ export function Bookmarks() {
             </button>
             <h3 className="text-white text-xl font-medium">{activeFolderContent.title}</h3>
           </div>
-    
+
           <div className="overflow-y-auto overflow-x-hidden h-[85%] pt-4 box-border">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {activeFolderContent.children?.map(node => (
+              {activeFolderContent.children?.map((node) => (
                 <button
                   key={node.id}
-                  onClick={() => {if (node.children) {
-                    navigateToFolder(node.id);
-                  } else {
-                    // Change this line to open in same tab
-                    window.location.href = node.url || '';
-                  }}}
+                  onClick={() => {
+                    if (node.children) {
+                      navigateToFolder(node.id);
+                    } else {
+                      // Change this line to open in same tab
+                      window.location.href = node.url || "";
+                    }
+                  }}
                   className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors box-border"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                 >
                   {node.children ? (
                     <Folder className="w-8 h-8 mb-2 text-white" />
                   ) : (
                     <img
-                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ''}&sz=32`}
+                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=32`}
                       alt=""
                       className="w-8 h-8 mb-2"
                       onError={(e) => {
-                        e.currentTarget.src = 'https://www.google.com/s2/favicons?domain=chrome&sz=32';
+                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
                       }}
                     />
                   )}
-                  <span className="text-white text-center text-[1vh] font-medium line-clamp-2">
-                    {node.title}
-                  </span>
+                  <span className="font-bold text-white text-center text-sm line-clamp-2">{node.title}</span>
                 </button>
               ))}
             </div>
@@ -367,17 +412,16 @@ export function Bookmarks() {
     );
   };
 
-  const tiles = Array(MAX_TILES).fill(null).map((_, i) => preferences.tiles[i] || null);
+  const tiles = Array(MAX_TILES)
+    .fill(null)
+    .map((_, i) => preferences.tiles[i] || null);
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {tiles.map((tile, index) => renderTile(tile, index))}
-      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">{tiles.map((tile, index) => renderTile(tile, index))}</div>
 
       {isSelecting && renderSelector()}
       {activeFolderContent && renderFolderContent()}
     </div>
   );
 }
-

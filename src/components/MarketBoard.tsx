@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 // تعریف اینترفیس برای آیتم‌های بازار (طلا، ارز و رمزارز)
 interface MarketDataItem {
@@ -27,9 +27,9 @@ const MarketBoard: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://brsapi.ir/FreeTsetmcBourseApi/Api_Free_Gold_Currency_v2.json');
+      const response = await fetch("https://brsapi.ir/FreeTsetmcBourseApi/Api_Free_Gold_Currency_v2.json");
       if (!response.ok) {
-        throw new Error('خطا در دریافت اطلاعات از سرور');
+        throw new Error("خطا در دریافت اطلاعات از سرور");
       }
       const json: ApiResponse = await response.json();
       setData(json);
@@ -80,7 +80,7 @@ const MarketBoard: React.FC = () => {
                     <span
                       style={{
                         ...styles.itemChange,
-                        color: item.change_percent >= 0 ? '#4caf50' : '#f44336',
+                        color: item.change_percent >= 0 ? "#4caf50" : "#f44336"
                       }}
                     >
                       {item.change_percent}%
@@ -111,7 +111,7 @@ const MarketBoard: React.FC = () => {
                     <span
                       style={{
                         ...styles.itemChange,
-                        color: item.change_percent >= 0 ? '#4caf50' : '#f44336',
+                        color: item.change_percent >= 0 ? "#4caf50" : "#f44336"
                       }}
                     >
                       {item.change_percent}%
@@ -142,7 +142,7 @@ const MarketBoard: React.FC = () => {
                     <span
                       style={{
                         ...styles.itemChange,
-                        color: item.change_percent >= 0 ? '#4caf50' : '#f44336',
+                        color: item.change_percent >= 0 ? "#4caf50" : "#f44336"
                       }}
                     >
                       {item.change_percent}%
@@ -164,94 +164,94 @@ const MarketBoard: React.FC = () => {
 // استایل‌های inline برای شیشه‌ای و ریسپانسیو کردن نمایش
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    position: 'fixed',
+    position: "fixed",
     top: 0,
     left: 0,
-    width: '100%',
-    maxHeight: '100vh',
-    overflowY: 'auto',
-    background: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-    padding: '20px',
-    boxSizing: 'border-box',
-    zIndex: 1000,
+    width: "100%",
+    maxHeight: "100vh",
+    overflowY: "auto",
+    background: "rgba(255, 255, 255, 0.2)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
+    padding: "20px",
+    boxSizing: "border-box",
+    zIndex: 1000
   },
   title: {
-    textAlign: 'center',
-    marginBottom: '20px',
-    color: '#fff',
-    fontSize: '24px',
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#fff",
+    fontSize: "24px"
   },
   categoryContainer: {
-    marginBottom: '30px',
+    marginBottom: "30px"
   },
   categoryTitle: {
-    color: '#fff',
-    marginBottom: '10px',
-    fontSize: '20px',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.3)',
-    paddingBottom: '5px',
+    color: "#fff",
+    marginBottom: "10px",
+    fontSize: "20px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
+    paddingBottom: "5px"
   },
   cardsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
-    justifyContent: 'center',
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "10px",
+    justifyContent: "center"
   },
   card: {
-    background: 'rgba(255, 255, 255, 0.25)',
-    backdropFilter: 'blur(5px)',
-    WebkitBackdropFilter: 'blur(5px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    borderRadius: '10px',
-    padding: '10px',
-    width: 'calc(33.33% - 20px)',
-    boxSizing: 'border-box',
-    minWidth: '200px',
-    color: '#fff',
+    background: "rgba(255, 255, 255, 0.25)",
+    backdropFilter: "blur(5px)",
+    WebkitBackdropFilter: "blur(5px)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+    borderRadius: "10px",
+    padding: "10px",
+    width: "calc(33.33% - 20px)",
+    boxSizing: "border-box",
+    minWidth: "200px",
+    color: "#fff"
   },
   cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontWeight: 'bold',
-    marginBottom: '5px',
+    display: "flex",
+    justifyContent: "space-between",
+    fontWeight: "bold",
+    marginBottom: "5px"
   },
   cardBody: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '5px',
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "5px"
   },
   itemName: {
-    fontSize: '16px',
+    fontSize: "16px"
   },
   itemSymbol: {
-    fontSize: '14px',
-    opacity: 0.8,
+    fontSize: "14px",
+    opacity: 0.8
   },
   itemPrice: {
-    fontSize: '16px',
+    fontSize: "16px"
   },
   itemChange: {
-    fontSize: '16px',
+    fontSize: "16px"
   },
   itemTime: {
-    fontSize: '12px',
+    fontSize: "12px",
     opacity: 0.8,
-    textAlign: 'right',
+    textAlign: "right"
   },
   loading: {
-    color: '#fff',
-    textAlign: 'center',
-    padding: '20px',
+    color: "#fff",
+    textAlign: "center",
+    padding: "20px"
   },
   error: {
-    color: '#f44336',
-    textAlign: 'center',
-    padding: '20px',
-  },
+    color: "#f44336",
+    textAlign: "center",
+    padding: "20px"
+  }
 };
 
 export default MarketBoard;

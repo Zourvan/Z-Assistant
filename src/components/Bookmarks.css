@@ -1,0 +1,13 @@
+.sortable-fallback {
+    opacity: 0.8;
+    transform: rotate(3deg);
+    pointer-events: none;
+}
+
+.tile-handle {
+    cursor: grab;
+}
+
+.tile-handle:active {
+    cursor: grabbing;
+}
