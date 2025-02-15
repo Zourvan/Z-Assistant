@@ -1,6 +1,17 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo } from "react";
 import { SlidersHorizontal, Image, Upload, Link, X, Palette } from "lucide-react";
-import "./BackgroundSelector.css";
+import createDatabase from "./IndexedDatabase/IndexedDatabase";
+
+const backgroundsDB = createDatabase({
+  dbName: "backgroundSelectorDB",
+  storeName: "backgrounds",
+  version: 1,
+  keyPath: "id",
+  indexes: [
+    { name: "type", keyPath: "type", unique: false },
+    { name: "createdAt", keyPath: "createdAt", unique: false }
+  ]
+});
 
 interface BackgroundSelectorProps {
   onSelectBackground: (background: string) => void;
@@ -303,7 +314,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
 
   const loadSavedBackgrounds = useCallback(async () => {
     try {
-      const backgrounds = await dbOps.getAllBackgrounds();
+      const backgrounds = await backgroundsDB.getAllItems<StoredBackground>();
       setSavedBackgrounds(backgrounds);
     } catch (error) {
       console.error("Error loading backgrounds:", error);
@@ -434,7 +445,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
               createdAt: Date.now()
             };
 
-            await dbOps.saveBackground(newBackground);
+            await backgroundsDB.saveItem(newBackground);
             await loadSavedBackgrounds();
             handleSelectBackground(newBackground);
           }
@@ -471,7 +482,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
           createdAt: Date.now()
         };
 
-        await dbOps.saveBackground(newBackground);
+        await backgroundsDB.saveItem(newBackground);
         await loadSavedBackgrounds();
         handleSelectBackground(newBackground);
         setUrlInput("");
@@ -482,21 +493,17 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
     [urlInput, handleSelectBackground, loadSavedBackgrounds]
   );
 
-  const handleRemoveBackground = useCallback(
-    async (backgroundToRemove: StoredBackground) => {
+  const handleDeleteBackground = useCallback(
+    async (backgroundToDelete: StoredBackground) => {
       try {
-        await dbOps.deleteBackground(backgroundToRemove.id);
+        await backgroundsDB.deleteItem(backgroundToDelete.id);
         await loadSavedBackgrounds();
-
-        const currentBackground = localStorage.getItem(storageKey);
-        if (currentBackground === backgroundToRemove.url) {
-          handleSelectBackground(defaultBackgrounds[0]);
-        }
       } catch (error) {
-        console.error("Error removing background:", error);
+        console.error("Failed to delete background:", error);
+        alert("Failed to delete the background. Please try again.");
       }
     },
-    [defaultBackgrounds, storageKey, handleSelectBackground, loadSavedBackgrounds]
+    [loadSavedBackgrounds]
   );
 
   const handleTileNumberChange = useCallback(

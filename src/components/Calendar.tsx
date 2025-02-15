@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar } from "./BackgroundSelector";
@@ -29,7 +29,7 @@ export function Calendar() {
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const weekDays = calendarType === "gregorian" ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["ش", "ی", "د", "س", "چ", "پ", "ج"];
 
-  const isWeekend = (dayIndex) => {
+  const isWeekend = (dayIndex: number) => {
     if (calendarType === "gregorian") {
       // Saturday (6) and Sunday (0)
       return dayIndex === 0 || dayIndex === 6;
@@ -39,7 +39,7 @@ export function Calendar() {
     }
   };
 
-  const getDayIndex = (day) => {
+  const getDayIndex = (day: number) => {
     const date = dateLib.setDate(firstDayOfMonth, day);
     const dayOfWeek = dateLib.getDay(date);
     if (calendarType === "gregorian") {
@@ -84,7 +84,7 @@ export function Calendar() {
 
       <div className="grid grid-cols-7 gap-1 text-white">
         {weekDays.map((day, index) => (
-          <div key={day} className={`text-center text-sm font-medium p-2 ${isWeekend(index) ? "text-green-400" : ""}`}>
+          <div key={day} className={`text-center text-[1vw] font-bold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}>
             {day}
           </div>
         ))}
@@ -98,7 +98,7 @@ export function Calendar() {
           return (
             <div
               key={day}
-              className={`text-center p-2 rounded-full ${
+              className={`text-center p-[0.5vw] rounded-full ${
                 day === currentDay ? "bg-white/30 font-bold" : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30" : "hover:bg-white/10"
               }`}
             >

@@ -3,7 +3,16 @@ import { Plus, X } from "lucide-react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar } from "./BackgroundSelector";
+import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import "./Notes.css";
+
+const notesDB = createDatabase({
+  dbName: "notesManagerDB",
+  storeName: "notes",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }] // Optional: Index for querying
+});
 
 interface Note {
   id: string;
@@ -21,34 +30,32 @@ export function Notes({}: NotesProps) {
   const [newNote, setNewNote] = useState("");
 
   useEffect(() => {
-    chrome.storage.sync.get(["notes"], (result: { notes: React.SetStateAction<Note[]> }) => {
-      if (result.notes) {
-        setNotes(result.notes);
-      }
-    });
+    const loadNotes = async () => {
+      const storedNotes = await notesDB.getAllItems<Note>();
+      setNotes(storedNotes);
+    };
+
+    loadNotes();
   }, []);
 
-  useEffect(() => {
-    chrome.storage.sync.set({ notes });
-  }, [notes]);
-
-  const addNote = (e: React.FormEvent) => {
+  const addNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNote.trim()) return;
 
-    setNotes([
-      {
-        id: crypto.randomUUID(),
-        text: newNote.trim(),
-        createdAt: Date.now()
-      },
-      ...notes
-    ]);
-    setNewNote("");
+    const newNoteObj: Note = {
+      id: crypto.randomUUID(),
+      text: newNote.trim(),
+      createdAt: Date.now()
+    };
+
+    await notesDB.saveItem(newNoteObj); // Save item in IndexedDB
+    setNotes([newNoteObj, ...notes]); // Save in local list
+    setNewNote(""); // Reset the input
   };
 
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter((note) => note.id !== id));
+  const deleteNote = async (id: string) => {
+    await notesDB.deleteItem(id); // Delete item from IndexedDB
+    setNotes(notes.filter((note) => note.id !== id)); // Update local state
   };
 
   const formatDate = (timestamp: number) => {

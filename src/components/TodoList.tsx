@@ -1,57 +1,93 @@
 import React, { useState, useEffect } from "react";
-import { CheckCircle2, Circle, Plus, Trash2, X } from "lucide-react";
+import { CheckCircle2, Circle, Plus, X } from "lucide-react";
+import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import "./TodoList.css";
+
+// تنظیمات IndexedDB برای مدیریت تسک‌ها
+const todosDB = createDatabase({
+  dbName: "todosManagerDB",
+  storeName: "todos",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "completed", keyPath: "completed", unique: false }] // ایندکس برای حالت کامل یا ناتمام
+});
 
 interface Todo {
   id: string;
   text: string;
   completed: boolean;
-  emoji: string; // اضافه کردن فیلد اموجی
+  emoji: string;
 }
 
 export function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodo, setNewTodo] = useState("");
+  const [todos, setTodos] = useState<Todo[]>([]); // ذخیره لیست تسک‌ها
+  const [newTodo, setNewTodo] = useState(""); // تسک جدید
   const [newEmoji, setNewEmoji] = useState("😊"); // اموجی پیش‌فرض
 
+  // بارگذاری تسک‌ها از IndexedDB هنگام بارگذاری کامپوننت
   useEffect(() => {
-    chrome.storage.sync.get(["todos"], (result) => {
-      if (result.todos) {
-        setTodos(result.todos);
+    const loadTodos = async () => {
+      try {
+        const storedTodos = await todosDB.getAllItems<Todo>(); // دریافت لیست تسک‌ها
+        setTodos(storedTodos);
+      } catch (error) {
+        console.error("Failed to load todos:", error);
       }
-    });
+    };
+
+    loadTodos();
   }, []);
 
-  useEffect(() => {
-    chrome.storage.sync.set({ todos });
-  }, [todos]);
-
-  const addTodo = (e: React.FormEvent) => {
-    e.preventDefault();
+  // افزودن تسک جدید
+  const addTodo = async (e: React.FormEvent) => {
+    e.preventDefault(); // جلوگیری از پیش‌فرض فرم
     if (!newTodo.trim()) return;
 
-    setTodos([
-      ...todos,
-      {
-        id: crypto.randomUUID(),
-        text: newTodo.trim(),
-        completed: false,
-        emoji: newEmoji // ذخیره اموجی
+    const newTodoObj: Todo = {
+      id: crypto.randomUUID(),
+      text: newTodo.trim(),
+      completed: false,
+      emoji: newEmoji
+    };
+
+    try {
+      await todosDB.saveItem(newTodoObj); // ذخیره تسک در IndexedDB
+      setTodos([...todos, newTodoObj]); // افزودن به لیست محلی
+      setNewTodo(""); // پاک کردن ورودی
+      setNewEmoji("😊"); // بازنشانی اموجی
+    } catch (error) {
+      console.error("Failed to save todo:", error);
+    }
+  };
+
+  // تغییر وضعیت یک تسک (کامل یا ناتمام)
+  const toggleTodo = async (id: string) => {
+    const updatedTodos = todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo));
+
+    const updatedTodo = updatedTodos.find((todo) => todo.id === id);
+
+    if (updatedTodo) {
+      try {
+        await todosDB.saveItem(updatedTodo); // به‌روزرسانی تسک در IndexedDB
+        setTodos(updatedTodos); // به‌روزرسانی لیست محلی
+      } catch (error) {
+        console.error("Failed to update todo:", error);
       }
-    ]);
-    setNewTodo("");
-    setNewEmoji("😊"); // بازنشانی اموجی
+    }
   };
 
-  const toggleTodo = (id: string) => {
-    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
+  // حذف تسک
+  const deleteTodo = async (id: string) => {
+    try {
+      await todosDB.deleteItem(id); // حذف تسک از IndexedDB
+      setTodos(todos.filter((todo) => todo.id !== id)); // حذف از لیست محلی
+    } catch (error) {
+      console.error("Failed to delete todo:", error);
+    }
   };
 
-  const deleteTodo = (id: string) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
-  const isPersian = (text) => {
+  // تشخیص متن فارسی
+  const isPersian = (text: string) => {
     const persianRegex = /[\u0600-\u06FF]/;
     return persianRegex.test(text);
   };
@@ -60,6 +96,7 @@ export function TodoList() {
     <div className={` bg-white/20 backdrop-blur-md rounded-xl p-4 overflow-hidden`}>
       <h4 className="text-white text-lg font-medium mb-4">Tasks</h4>
 
+      {/* فرم افزودن تسک */}
       <form onSubmit={addTodo} className="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-2 bg-white/10">
         <input
           type="text"
@@ -81,6 +118,7 @@ export function TodoList() {
         </button>
       </form>
 
+      {/* لیست تسک‌ها */}
       <div className="space-y-2 max-h-[10vw] overflow-y-auto">
         {todos.map((todo) => (
           <div key={todo.id} className={`flex items-center gap-2 rounded-lg p-2 ${todo.completed ? "bg-green-500/10" : "bg-white/10"}`}>

@@ -1,5 +1,15 @@
 import { useEffect, useState, useRef } from "react";
+import dbOps from "./db";
+import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
+
+const bookmarkDB = createDatabase({
+  dbName: "bookmarkManagerDB",
+  storeName: "tiles",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }]
+});
 
 interface BookmarkNode {
   tileIcon: string;
@@ -42,20 +52,44 @@ export function Bookmarks() {
   const folderContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Load preferences and bookmarks
     const loadData = async () => {
-      chrome.storage.sync.get(["bookmarkPreferences"], (result) => {
-        if (result.bookmarkPreferences) {
-          setPreferences(result.bookmarkPreferences);
-        }
-      });
+      try {
+        // Load stored preferences from IndexedDB
+        const storedPreferences = await bookmarkDB.getPreferences<BookmarkPreferences>();
 
-      chrome.bookmarks.getTree((bookmarkNodes) => {
-        return setBookmarks(bookmarkNodes[0].children || []);
-      });
+        // If preferences exist in the database, set them to state
+        if (storedPreferences && Array.isArray(storedPreferences.tiles)) {
+          setPreferences(storedPreferences);
+        } else {
+          // Initialize default preferences if none exist
+          setPreferences({ tiles: [] });
+        }
+
+        // Load Chrome bookmarks
+        chrome.bookmarks.getTree((bookmarkNodes) => {
+          setBookmarks(bookmarkNodes[0].children || []);
+        });
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
     };
 
     loadData();
-  }, []);
+  }, []); // Empty dependency array to run only on mount
+
+  useEffect(() => {
+    const savePreferences = async () => {
+      try {
+        console.log(preferences);
+        await bookmarkDB.savePreferences(preferences);
+      } catch (error) {
+        console.error("Error saving preferences to IndexedDB", error);
+      }
+    };
+
+    savePreferences();
+  }, [preferences]);
 
   useEffect(() => {
     chrome.storage.sync.set({ bookmarkPreferences: preferences });
@@ -125,13 +159,24 @@ export function Bookmarks() {
     setPreferences({ ...preferences, tiles: newTiles });
     setIsSelecting(false);
     setSelectedTileIndex(null);
-    setCurrentFolder(null);
   };
 
-  const clearTile = (index: number) => {
-    const newTiles = [...preferences.tiles];
-    newTiles[index] = null;
-    setPreferences({ ...preferences, tiles: newTiles.filter(Boolean) });
+  const clearTile = async (index: number) => {
+    const tileToClear = preferences.tiles[index];
+    if (!tileToClear) return;
+
+    setPreferences((prevPreferences) => {
+      const newTiles = [...prevPreferences.tiles]; // ایجاد یک کپی از آرایه تایل‌ها
+      newTiles[index] = null; // جایگزین کردن مقدار خانه مورد نظر با null
+
+      return {
+        ...prevPreferences,
+        tiles: newTiles
+      };
+    });
+
+    // Delete the tile from IndexedDB
+    await bookmarkDB.deleteItem(tileToClear.id);
   };
 
   const navigateToFolder = (folderId: string) => {
@@ -422,7 +467,7 @@ export function Bookmarks() {
 
   const tiles = Array(MAX_TILES)
     .fill(null)
-    .map((_, i) => preferences.tiles[i] || null);
+    .map((_, i) => (Array.isArray(preferences.tiles) ? preferences.tiles[i] : null));
 
   return (
     <div className="relative">

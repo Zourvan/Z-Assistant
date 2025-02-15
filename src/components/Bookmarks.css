@@ -11,3 +11,19 @@
 .tile-handle:active {
     cursor: grabbing;
 }
+
+.group {
+    position: relative;
+}
+
+.action-menu {
+    position: absolute;
+    z-index: 3;
+}
+
+/* Make sure the tiles have lower z-index than the action menu */
+.bookmark-tile,
+.folder-tile {
+    position: relative;
+    z-index: 1;
+}
