@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
 
 interface BookmarkNode {
+  tileIcon: string;
+  tileColor: string;
   id: string;
   title: string;
   url?: string;
@@ -10,10 +12,12 @@ interface BookmarkNode {
 
 interface TileConfig {
   id: string;
-  type: "bookmark" | "folder";
+  type: string;
   nodeId: string;
   title: string;
   url?: string;
+  tileColor: string;
+  tileIcon: string;
 }
 
 interface BookmarkPreferences {
@@ -46,7 +50,7 @@ export function Bookmarks() {
       });
 
       chrome.bookmarks.getTree((bookmarkNodes) => {
-        setBookmarks(bookmarkNodes[0].children || []);
+        return setBookmarks(bookmarkNodes[0].children || []);
       });
     };
 
@@ -104,7 +108,9 @@ export function Bookmarks() {
       type: node.children ? "folder" : "bookmark",
       nodeId: node.id,
       title: node.title,
-      url: node.url
+      url: node.url,
+      tileColor: node.tileColor,
+      tileIcon: node.tileIcon
     };
 
     updateTile(newTile);
@@ -199,7 +205,9 @@ export function Bookmarks() {
                     id: crypto.randomUUID(),
                     type: "folder",
                     nodeId: currentFolder.id,
-                    title: currentFolder.title
+                    title: currentFolder.title,
+                    tileColor: "#F0F0F0",
+                    tileIcon: "Luci"
                   })
                 }
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
