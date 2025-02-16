@@ -91,7 +91,7 @@ export function Notes({}: NotesProps) {
         </div>
       </form>
 
-      <div className="space-y-3 max-h-[20vh] overflow-y-auto">
+      <div className="space-y-3 max-h-[20vh] overflow-y-auto custom-scrollbar">
         {notes.map((note) => (
           <div
             key={note.id}

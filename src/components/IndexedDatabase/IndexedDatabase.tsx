@@ -95,14 +95,20 @@ const createDatabase = (config: DatabaseConfig) => {
       });
     };
 
-    const deleteItem = async (id: IDBValidKey): Promise<IDBValidKey> => {
+    const deleteItem = async (id: IDBValidKey): Promise<IDBValidKey | undefined> => {
       const database = await getDB();
       return new Promise((resolve, reject) => {
         const transaction = database.transaction(config.storeName, "readwrite");
         const store = transaction.objectStore(config.storeName);
         const request = store.delete(id);
 
-        transaction.oncomplete = () => resolve(request.result);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+
+        transaction.oncomplete = () => {
+          // In case deleting doesn't provide a result, we resolve with undefined
+          resolve(request.result);
+        };
         transaction.onerror = () => reject(transaction.error);
       });
     };

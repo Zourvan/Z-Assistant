@@ -1,6 +1,11 @@
-import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
 import { SlidersHorizontal, Image, Upload, Link, X, Palette } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
+
+// Define the component's props object with ReactNode for children
+interface CalendarProviderProps {
+  children: ReactNode;
+}
 
 const backgroundsDB = createDatabase({
   dbName: "backgroundSelectorDB",
@@ -33,10 +38,6 @@ interface StoredBackground {
   createdAt: number;
 }
 
-const DB_NAME = "backgroundSelectorDB";
-const STORE_NAME = "backgrounds";
-const DB_VERSION = 1;
-
 const isDataUrl = (url: string) => url.startsWith("data:");
 const isColor = (str: string) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
 
@@ -54,89 +55,6 @@ const processImageUrl = (url: string, width = 1920, height = 1080) => {
   } catch {
     return url;
   }
-};
-
-// Database initialization function
-const initializeDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => {
-      console.error("Failed to open database:", request.error);
-      reject(request.error);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-
-      if (db.objectStoreNames.contains(STORE_NAME)) {
-        db.deleteObjectStore(STORE_NAME);
-      }
-
-      const store = db.createObjectStore(STORE_NAME, { keyPath: "id" });
-      store.createIndex("type", "type", { unique: false });
-      store.createIndex("createdAt", "createdAt", { unique: false });
-    };
-
-    request.onsuccess = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
-    };
-  });
-};
-
-// Database operations wrapper
-const createDatabaseOperations = () => {
-  let db: IDBDatabase | null = null;
-
-  const getDB = async (): Promise<IDBDatabase> => {
-    if (!db) {
-      db = await initializeDB();
-    }
-    return db;
-  };
-
-  const saveBackground = async (background: StoredBackground): Promise<void> => {
-    const database = await getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(background);
-
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
-    });
-  };
-
-  const getAllBackgrounds = async (): Promise<StoredBackground[]> => {
-    const database = await getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, "readonly");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAll();
-
-      transaction.oncomplete = () => resolve(request.result || []);
-      transaction.onerror = () => reject(transaction.error);
-    });
-  };
-
-  const deleteBackground = async (id: string): Promise<void> => {
-    const database = await getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(id);
-
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
-    });
-  };
-
-  return {
-    saveBackground,
-    getAllBackgrounds,
-    deleteBackground
-  };
 };
 
 const BackgroundThumbnail: React.FC<{
@@ -198,11 +116,11 @@ const BackgroundThumbnail: React.FC<{
 
 const CalendarContext = createContext({
   calendarType: "gregorian" as "gregorian" | "persian",
-  setCalendarType: (type: "gregorian" | "persian") => {}
+  setCalendarType: (_type: "gregorian" | "persian") => {}
 });
 
 // Create provider component
-export function CalendarProvider({ children }) {
+export function CalendarProvider({ children }: CalendarProviderProps) {
   const [calendarType, setCalendarType] = useState<"gregorian" | "persian">(() => {
     // Try to get saved preference from localStorage
     const saved = localStorage.getItem("calendarType");
@@ -232,11 +150,10 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
   const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
   const { calendarType, setCalendarType } = useCalendar();
-  const [selectedDay, setSelectedDay] = React.useState(null);
+  const [selectedDay, setSelectedDay] = React.useState<string | null>(null);
   const [firstDayOfWeek, setFirstDayOfWeek] = React.useState("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dbOps = createDatabaseOperations();
 
   const selectorRef = useRef<HTMLDivElement>(null);
 
@@ -570,7 +487,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
                     key={bg.id}
                     bg={bg}
                     onSelect={() => handleSelectBackground(bg)}
-                    onRemove={bg.isBlob ? () => handleRemoveBackground(bg) : undefined}
+                    onRemove={bg.isBlob ? () => handleDeleteBackground(bg) : undefined}
                   />
                 ))}
               </div>

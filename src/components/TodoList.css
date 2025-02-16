@@ -14,3 +14,40 @@
         /* Stack elements vertically on small screens */
     }
 }
+
+/* جلوگیری از اسکرول افقی */
+.custom-scrollbar {
+    overflow-x: hidden;
+    /* حذف اسکرول افقی */
+    overflow-y: auto;
+    /* فعال کردن اسکرول عمودی */
+    padding-right: 10px;
+    /* کمی فاصله از سمت راست */
+    scrollbar-width: thin;
+    /* باریک کردن اسکرول برای مرورگرهای مدرن */
+    scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+    /* تنظیم رنگ اسکرول */
+}
+
+/* استایل مخصوص اسکرول برای مرورگرهای وب‌کیت (Chrome, Edge, Safari) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    /* عرض اسکرول */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    /* پس‌زمینه اسکرول */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    /* رنگ اسکرول */
+    border-radius: 4px;
+    /* لبه‌های گرد */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+    /* تغییر رنگ اسکرول هنگام هاور */
+}

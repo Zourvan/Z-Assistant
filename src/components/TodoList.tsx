@@ -119,7 +119,7 @@ export function TodoList() {
       </form>
 
       {/* لیست تسک‌ها */}
-      <div className="space-y-2 max-h-[10vw] overflow-y-auto">
+      <div className="space-y-2 max-h-[10vw] overflow-y-auto custom-scrollbar">
         {todos.map((todo) => (
           <div key={todo.id} className={`flex items-center gap-2 rounded-lg p-2 ${todo.completed ? "bg-green-500/10" : "bg-white/10"}`}>
             <button onClick={() => toggleTodo(todo.id)} className="text-white hover:text-white/80 transition-colors">

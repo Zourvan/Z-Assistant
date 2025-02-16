@@ -16,14 +16,16 @@
     position: relative;
 }
 
-.action-menu {
-    position: absolute;
-    z-index: 3;
-}
-
 /* Make sure the tiles have lower z-index than the action menu */
 .bookmark-tile,
 .folder-tile {
+    pointer-events: none;
     position: relative;
     z-index: 1;
+}
+
+.action-menu {
+    position: absolute;
+    z-index: 9999;
+    /* مقدار بالا برای قرارگیری روی سایر المان‌ها */
 }
