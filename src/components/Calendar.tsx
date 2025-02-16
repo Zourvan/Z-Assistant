@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar } from "./BackgroundSelector";
@@ -50,11 +50,15 @@ export function Calendar() {
     }
   };
 
+  function convertToPersianNumbers(input: string): string {
+    return input.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
+  }
+
   const formatMonth = () => {
     if (calendarType === "gregorian") {
-      return dateFns.format(currentDate, "MMMM yyyy");
+      return dateFns.format(currentDate, "dd MMMM yyyy");
     } else {
-      return dateFnsJalali.format(currentDate, "MMMM yyyy");
+      return convertToPersianNumbers(dateFnsJalali.format(currentDate, "dd MMMM yyyy"));
     }
   };
 
@@ -69,16 +73,16 @@ export function Calendar() {
   };
 
   return (
-    <div className="bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg">
-      <div className="flex justify-between items-center mb-4">
+    <div className={`bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}>
+      <div className={`flex justify-between items-center mb-4 ${calendarType === "persian" ? "flex-row-reverse" : ""}`}>
         <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-white/10 text-white" aria-label="Previous month">
-          <ChevronLeft className="w-5 h-5" />
+          {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
         <h2 className="text-white text-lg font-medium text-center">{formatMonth()}</h2>
 
         <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-white/10 text-white" aria-label="Next month">
-          <ChevronRight className="w-5 h-5" />
+          {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>
       </div>
 

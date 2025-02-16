@@ -6,6 +6,7 @@ import { BackgroundSelector, CalendarProvider } from "./components/BackgroundSel
 import { TodoList } from "./components/TodoList";
 import { Notes } from "./components/Notes";
 import SocialLinks from "./components/SocialLinks";
+
 import "./App.css";
 
 // Helper function to get image from IndexedDB
@@ -124,6 +125,7 @@ function App() {
           </div>
 
           <BackgroundSelector onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
+
           <SocialLinks />
         </div>
       </div>

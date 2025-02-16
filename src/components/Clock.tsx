@@ -39,7 +39,7 @@ export function Clock() {
         fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit"
       }}
     >
-      <div className="text-[4vw] font-light mb-2">{formatTime()}</div>
+      <div className="text-[4vw] font-light">{formatTime()}</div>
       <div className="text-[2vw] opacity-80">{formatDate()}</div>
       <div className="text-[1vw] opacity-80">{formatDateInvert()}</div>
     </div>

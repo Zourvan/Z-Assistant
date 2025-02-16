@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
+import Select, { StylesConfig } from "react-select";
 import { SlidersHorizontal, Image, Upload, Link, X, Palette } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 
@@ -6,6 +7,23 @@ import createDatabase from "./IndexedDatabase/IndexedDatabase";
 interface CalendarProviderProps {
   children: ReactNode;
 }
+
+interface EmojiOption {
+  value: string;
+  label: string;
+}
+
+const daysOptions: EmojiOption[] = [
+  { value: "Saturday", label: "Saturday" },
+  { value: "Sunday", label: "Sunday" },
+  { value: "Monday", label: "Monday" },
+  { value: "Tuesday", label: "Tuesday" },
+  { value: "Wednesday", label: "Wednesday" },
+  { value: "Thursday", label: "Thursday" },
+  { value: "Friday", label: "Friday" }
+];
+
+type DayOfWeek = "Saturday" | "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
 
 const backgroundsDB = createDatabase({
   dbName: "backgroundSelectorDB",
@@ -17,6 +35,31 @@ const backgroundsDB = createDatabase({
     { name: "createdAt", keyPath: "createdAt", unique: false }
   ]
 });
+
+const customStyles: StylesConfig<EmojiOption, false> = {
+  menu: (provided) => ({
+    ...provided,
+    zIndex: 9999,
+    backgroundColor: "rgba(0, 0, 0, 100)", // Black with 50% transparency
+    color: "black" // Set text color to white for better visibility
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    color: "white", // Option text color
+    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent" // Highlight on focus
+  }),
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: "rgba(255, 255, 255, 0.1)", // Adjust the background color of the control
+    borderColor: "rgba(255, 255, 255, 0.3)", // Adjust the border color of the control
+    color: "white", // Control text color
+    display: "flex"
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "white"
+  })
+};
 
 interface BackgroundSelectorProps {
   onSelectBackground: (background: string) => void;
@@ -151,7 +194,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
   const [isUploading, setIsUploading] = useState(false);
   const { calendarType, setCalendarType } = useCalendar();
   const [selectedDay, setSelectedDay] = React.useState<string | null>(null);
-  const [firstDayOfWeek, setFirstDayOfWeek] = React.useState("Saturday");
+  const [firstDayOfWeek, setFirstDayOfWeek] = React.useState<DayOfWeek>("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -550,18 +593,38 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
 
             {/* سطر انتخاب روز اول هفته */}
             <div className="flex flex-col w-full">
-              <label className="text-white text-sm mb-2">First Day of the Week</label>
-              <select
-                value={firstDayOfWeek}
-                onChange={(e) => setFirstDayOfWeek(e.target.value)}
-                className="w-full bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-full text-sm text-white outline-none cursor-pointer backdrop-blur-sm"
-              >
-                {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
-                  <option key={day} value={day} className="bg-transparent text-white cursor-pointer">
-                    {day}
-                  </option>
-                ))}
-              </select>
+              <label className="text-white text-sm mb-0.5">First Day of the Week</label>
+              <Select
+                className="basic-single"
+                classNamePrefix="select"
+                defaultValue={daysOptions[0]}
+                isDisabled={false}
+                isLoading={false}
+                isClearable={false}
+                isRtl={false}
+                isSearchable={false}
+                name="emoji"
+                options={daysOptions}
+                menuPortalTarget={document.body} // منو در body رندر می‌شود
+                menuPosition="absolute" // استفاده از موقعیت پیش‌فرض
+                menuShouldScrollIntoView={false}
+                styles={customStyles} // Apply custom styles
+                onChange={(selectedOption) => {
+                  if (selectedOption) {
+                    setFirstDayOfWeek(selectedOption.value as DayOfWeek);
+                  }
+                }}
+              />
+
+              <div
+                style={{
+                  color: "hsl(0, 100%, 40%)",
+                  display: "inline-block",
+                  fontSize: 12,
+                  fontStyle: "italic",
+                  marginTop: "1em"
+                }}
+              ></div>
             </div>
           </div>
 
