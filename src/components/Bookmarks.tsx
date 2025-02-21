@@ -1,17 +1,16 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
-
 import "./BackgroundSelector.css";
+import Sortable from "sortablejs"; // Import SortableJS
+import { throttle } from "lodash"; // Import throttle
 
-const bookmarkDB = createDatabase({
-  dbName: "bookmarkManagerDB",
-  storeName: "tiles",
-  version: 1,
-  keyPath: "id",
-  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }]
-});
+// Constants
+const MAX_TILES = 60;
+const ASPECT_RATIO = "aspect-ratio";
+
+// --- Interfaces and Types ---
 
 interface BookmarkNode {
   tileIcon: string;
@@ -33,13 +32,9 @@ interface TileConfig {
 }
 
 interface BookmarkPreferences {
-  tiles: TileConfig[];
+  tiles: (TileConfig | null)[];
 }
 
-const MAX_TILES = 30;
-const ASPECT_RATIO = "aspect-ratio";
-
-// کامپوننتی برای رندر منوی action در یک پورتال
 interface ActionMenuPortalProps {
   tile: TileConfig;
   buttonRect: DOMRect;
@@ -50,7 +45,33 @@ interface ActionMenuPortalProps {
   onClose: () => void;
 }
 
-function ActionMenuPortal({ tile, buttonRect, index, onEdit, onClear, onColor, onClose }: ActionMenuPortalProps) {
+// --- Database Setup ---
+
+const bookmarkDB = createDatabase({
+  dbName: "bookmarkManagerDB",
+  storeName: "tiles",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }]
+});
+
+// --- Helper Functions ---
+
+// Transforms a Chrome BookmarkTreeNode to our custom BookmarkNode format.
+function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): BookmarkNode {
+  return {
+    id: node.id,
+    title: node.title,
+    url: node.url,
+    tileIcon: "default", // Default icon
+    tileColor: "#F0F0F0", // Default color
+    children: node.children?.map((child) => transformBookmarkNode(child))
+  };
+}
+
+// --- Action Menu Component (Portal) ---
+
+function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose }: ActionMenuPortalProps) {
   const style = {
     position: "absolute" as const,
     top: buttonRect.bottom + window.scrollY,
@@ -58,9 +79,8 @@ function ActionMenuPortal({ tile, buttonRect, index, onEdit, onClear, onColor, o
     zIndex: 10000
   };
 
-  // اضافه کردن کلاس action-menu به ریشه منو
-  const menu = (
-    <div style={style} className="action-menu py-1 w-32 bg-black/100 backdrop-blur-md rounded-lg shadow-lg">
+  return ReactDOM.createPortal(
+    <div style={style} className="action-menu py-0.5 w-24 bg-black/100 backdrop-blur-md rounded-lg shadow-lg">
       <button
         id={`edit-button-${tile.id}`}
         onClick={(e) => {
@@ -69,9 +89,9 @@ function ActionMenuPortal({ tile, buttonRect, index, onEdit, onClear, onColor, o
           onEdit();
           onClose();
         }}
-        className="w-full px-4 py-2 text-left text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+        className="w-full px-2 py-1 text-left text-white hover:bg-white/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Settings className="w-4 h-4" />
+        <Settings className="w-3 h-3" />
         <span>Edit</span>
       </button>
       <button
@@ -82,9 +102,9 @@ function ActionMenuPortal({ tile, buttonRect, index, onEdit, onClear, onColor, o
           onClear();
           onClose();
         }}
-        className="w-full px-4 py-2 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-2"
+        className="w-full px-2 py-1 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="w-3 h-3" />
         <span>Clear</span>
       </button>
       <button
@@ -95,18 +115,20 @@ function ActionMenuPortal({ tile, buttonRect, index, onEdit, onClear, onColor, o
           onColor();
           onClose();
         }}
-        className="w-full px-4 py-2 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-2"
+        className="w-full px-2 py-1 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Palette className="w-4 h-4" />
+        <Palette className="w-3 h-3" />
         <span>Color</span>
       </button>
-    </div>
+    </div>,
+    document.body
   );
-
-  return ReactDOM.createPortal(menu, document.body);
 }
 
+// --- Main Bookmarks Component ---
+
 export function Bookmarks() {
+  // --- State ---
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
   const [preferences, setPreferences] = useState<BookmarkPreferences>({ tiles: [] });
   const [isSelecting, setIsSelecting] = useState(false);
@@ -117,20 +139,24 @@ export function Bookmarks() {
   const [folderHistory, setFolderHistory] = useState<BookmarkNode[]>([]);
   const [menuButtonRect, setMenuButtonRect] = useState<DOMRect | null>(null);
 
+  // --- Refs ---
   const selectorRef = useRef<HTMLDivElement>(null);
   const folderContentRef = useRef<HTMLDivElement>(null);
+  const tileGridRef = useRef<HTMLDivElement>(null); // Ref for the tile grid container
+  const sortableRef = useRef<Sortable | null>(null); // Ref for the Sortable instance
 
+  // --- Effects ---
+
+  // Load initial data (bookmarks and preferences).
   useEffect(() => {
     const loadData = async () => {
       try {
         const storedPreferences = await bookmarkDB.getPreferences<BookmarkPreferences>();
-        if (storedPreferences && Array.isArray(storedPreferences.tiles)) {
-          setPreferences(storedPreferences);
-        } else {
-          setPreferences({ tiles: [] });
-        }
+        setPreferences(storedPreferences && Array.isArray(storedPreferences.tiles) ? storedPreferences : { tiles: [] });
+
         chrome.bookmarks.getTree((bookmarkNodes) => {
-          setBookmarks(bookmarkNodes[0].children || []);
+          const transformedNodes = bookmarkNodes[0].children?.map(transformBookmarkNode) || [];
+          setBookmarks(transformedNodes);
         });
       } catch (error) {
         console.error("Error loading data:", error);
@@ -140,6 +166,7 @@ export function Bookmarks() {
     loadData();
   }, []);
 
+  // Save preferences to IndexedDB whenever they change.
   useEffect(() => {
     const savePreferences = async () => {
       try {
@@ -152,10 +179,12 @@ export function Bookmarks() {
     savePreferences();
   }, [preferences]);
 
+  // Save preferences to Chrome storage (sync).
   useEffect(() => {
     chrome.storage.sync.set({ bookmarkPreferences: preferences });
   }, [preferences]);
 
+  // Handle clicks outside the selector and folder content to close them.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isSelecting && selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
@@ -169,11 +198,10 @@ export function Bookmarks() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSelecting, activeFolderContent]);
 
+  // Handle clicks outside the action menu to close it.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openMenuId && !(event.target as Element).closest(".action-menu")) {
@@ -184,6 +212,63 @@ export function Bookmarks() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
+
+  // Memoize handleSortEnd using useCallback.  This is crucial for performance
+  // and to prevent unnecessary re-renders and re-initializations of Sortable.
+  const handleSortEndCallback = useCallback(
+    throttle(async () => {
+      if (!tileGridRef.current) {
+        return;
+      }
+
+      const tileElements = Array.from(tileGridRef.current.children);
+      const newTiles: (TileConfig | null)[] = [];
+
+      //Build the new tiles array
+      for (const tileElement of tileElements) {
+        const indexStr = tileElement.getAttribute("data-tile-index");
+        if (indexStr) {
+          const index = parseInt(indexStr, 10);
+          const existingTile = preferences.tiles[index]; //Finds the original tile.
+          newTiles.push(existingTile); //Add the tile (or null)
+        } else {
+          console.error("Tile element missing data-tile-index attribute");
+          newTiles.push(null); //Should never occur, but good practice to avoid errors
+        }
+      }
+
+      //Pad the array if there are empty tiles at the end.
+      while (newTiles.length < MAX_TILES) {
+        newTiles.push(null);
+      }
+      console.log("Before setPreferences:", preferences.tiles); // Log before
+      // Set the *entire* newTiles array.
+      setPreferences((prevPreferences) => ({
+        ...prevPreferences,
+        tiles: newTiles
+      }));
+      console.log("After setPreferences:", newTiles); //Log after
+    }, 200),
+    [preferences.tiles, tileGridRef]
+  ); //tileGridRef added as dependency
+
+  // Initialize SortableJS on the tile grid.  Use useCallback for onEnd.
+  useEffect(() => {
+    if (tileGridRef.current) {
+      sortableRef.current = new Sortable(tileGridRef.current, {
+        animation: 150,
+        onEnd: handleSortEndCallback // Use the memoized handler
+      });
+    }
+
+    // Cleanup function to destroy the Sortable instance.
+    return () => {
+      sortableRef.current?.destroy();
+      sortableRef.current = null;
+    };
+  }, [handleSortEndCallback]); //  handleSortEndCallback is a dependency
+
+  // --- Tile Interaction Functions ---
 
   const openSelector = (index: number) => {
     setSelectedTileIndex(index);
@@ -200,8 +285,8 @@ export function Bookmarks() {
       nodeId: node.id,
       title: node.title,
       url: node.url,
-      tileColor: node.tileColor,
-      tileIcon: node.tileIcon
+      tileColor: node.tileColor || "#F0F0F0",
+      tileIcon: node.tileIcon || "default"
     };
 
     updateTile(newTile);
@@ -231,25 +316,28 @@ export function Bookmarks() {
     await bookmarkDB.deleteItem(tileToClear.id);
   };
 
+  // --- Navigation Functions ---
   const navigateToFolder = (folderId: string) => {
     chrome.bookmarks.getSubTree(folderId, (nodes) => {
       if (nodes[0]) {
+        const transformedNode = transformBookmarkNode(nodes[0]);
+        //Distinguish between selector and folder content
         if (isSelecting) {
           if (currentFolder) {
             setFolderHistory((prev) => [...prev, currentFolder]);
           }
-          setCurrentFolder(nodes[0]);
+          setCurrentFolder(transformedNode);
         } else {
           if (activeFolderContent) {
             setFolderHistory((prev) => [...prev, activeFolderContent]);
           }
-          setActiveFolderContent(nodes[0]);
+          setActiveFolderContent(transformedNode);
         }
       }
     });
   };
-
   const navigateBack = () => {
+    //Distinguish between selector and folder content
     if (isSelecting) {
       if (folderHistory.length > 0) {
         const previousFolder = folderHistory[folderHistory.length - 1];
@@ -276,21 +364,25 @@ export function Bookmarks() {
     setFolderHistory([]);
   };
 
+  // --- Rendering Functions ---
+
   const renderSelector = () => {
     const nodes = currentFolder?.children || bookmarks;
 
     return (
       <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
-        <div ref={selectorRef} className="w-[80vw] h-[80vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
-          <div className="flex items-center justify-between gap-4 mb-6 sticky top-0 bg-black/50 p-4 z-10">
+        <div ref={selectorRef} className="w-[70vw] h-[70vh] max-w-[1120px] bg-white/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between gap-2 mb-4 sticky top-0 bg-black/50 p-2 z-10">
             <button
               onClick={currentFolder ? navigateBack : closeSelector}
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 text-white"
+              className="flex items-center gap-1 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3 h-3" />
               {currentFolder ? "Back" : "Cancel"}
             </button>
-            <h3 className="text-white text-xl font-medium flex-grow">{currentFolder ? currentFolder.title : "Select a bookmark or folder"}</h3>
+            <h3 className="text-white text-lg font-medium flex-grow">{currentFolder ? currentFolder.title : "Select"}</h3>
+            {/* Confirm Button (only when inside a folder) */}
             {currentFolder && (
               <button
                 onClick={() =>
@@ -303,33 +395,34 @@ export function Bookmarks() {
                     tileIcon: "Luci"
                   })
                 }
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm"
               >
                 Confirm
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {/* Bookmark/Folder Grid */}
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
             {nodes.map((node) => (
               <button
                 key={node.id}
                 onClick={() => (node.children ? navigateToFolder(node.id) : selectNode(node))}
-                className={`flex flex-col items-center justify-center p-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
               >
                 {node.children ? (
-                  <Folder className="w-8 h-8 mb-2 text-white" />
+                  <Folder className="w-6 h-6 mb-1 text-white" />
                 ) : (
                   <img
-                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=32`}
+                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
                     alt=""
-                    className="w-8 h-8 mb-2"
+                    className="w-6 h-6 mb-1"
                     onError={(e) => {
-                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
+                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
                     }}
                   />
                 )}
-                <span className="text-white text-center text-[2vh] font-medium line-clamp-2">{node.title}</span>
+                <span className="text-white text-center text-[1vh] font-medium line-clamp-2">{node.title}</span>
               </button>
             ))}
           </div>
@@ -343,20 +436,22 @@ export function Bookmarks() {
 
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div ref={folderContentRef} className="w-[80vw] h-[80vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative">
-          <div className="flex items-center justify-between gap-4 sticky top-0 bg-black/50 p-4 z-20">
+        <div ref={folderContentRef} className="w-[70vw] h-[70vh] max-w-[1400px] bg-white/10 p-4 rounded-xl backdrop-blur-md relative">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between gap-2 sticky top-0 bg-black/50 p-2 z-20">
             <button
               onClick={navigateBack}
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-3 py-1.5 text-white"
+              className="flex items-center gap-1 bg-white/20 hover:bg-white/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3 h-3" />
               Back
             </button>
-            <h3 className="text-white text-xl font-medium">{activeFolderContent.title}</h3>
+            <h3 className="text-white text-lg font-medium">{activeFolderContent.title}</h3>
           </div>
 
-          <div className="overflow-y-auto h-[85%] pt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {/* Content Grid */}
+          <div className="overflow-y-auto h-[85%] pt-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
               {activeFolderContent.children?.map((node) => (
                 <button
                   key={node.id}
@@ -367,21 +462,21 @@ export function Bookmarks() {
                       window.location.href = node.url || "";
                     }
                   }}
-                  className="flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                  className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
                 >
                   {node.children ? (
-                    <Folder className="w-8 h-8 mb-2 text-white" />
+                    <Folder className="w-6 h-6 mb-1 text-white" />
                   ) : (
                     <img
-                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=32`}
+                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
                       alt=""
-                      className="w-8 h-8 mb-2"
+                      className="w-6 h-6 mb-1"
                       onError={(e) => {
-                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
+                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
                       }}
                     />
                   )}
-                  <span className="font-bold text-white text-center text-sm line-clamp-2">{node.title}</span>
+                  <span className="font-bold text-white text-center text-[1vh] line-clamp-2">{node.title}</span>
                 </button>
               ))}
             </div>
@@ -398,62 +493,69 @@ export function Bookmarks() {
       e.preventDefault();
       e.stopPropagation();
       if (menuButtonRef.current) {
-        const rect = menuButtonRef.current.getBoundingClientRect();
-        setMenuButtonRect(rect);
+        setMenuButtonRect(menuButtonRef.current.getBoundingClientRect());
       }
       setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
     };
 
-    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/20 backdrop-blur-md rounded-xl group`;
+    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl group`;
 
+    // --- Empty Tile ---
     if (!tile) {
       return (
         <div
           id={`tile-empty-${index}`}
-          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-xl group`}
+          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 bg-white/10 backdrop-blur-md rounded-xl group`}
           key={`tile-empty-${index}`}
+          data-tile-index={index} // Add data attribute for Sortable
         >
-          <button onClick={() => openSelector(index)} className="flex flex-col items-center p-3 hover:bg-white/10 rounded-lg transition-colors">
+          <button onClick={() => openSelector(index)} className="flex flex-col items-center p-2 hover:bg-white/10 rounded-lg transition-colors">
             <Plus className="w-6 h-6 text-white/60 mb-1" />
           </button>
         </div>
       );
     }
 
-    const handleEdit = () => {
-      openSelector(index);
-    };
-
-    const handleClear = () => {
-      clearTile(index);
-    };
-
-    const handleColor = () => {
-      console.log("Change color");
-    };
-
+    // --- Common Action Menu Button ---
     const actionMenuButton = (
       <button
         ref={menuButtonRef}
         id={`menu-button-${tile.id}`}
         onClick={handleMenuButtonClick}
-        className="p-0.75 bg-white/0 hover:bg-white/20 rounded-md transition-colors action-menu"
+        className="p-0.5 bg-white/0 hover:bg-white/20 rounded-md transition-colors action-menu"
         title="Menu"
       >
-        <MoreHorizontal strokeWidth={0.5} className="w-4 h-4 text-white" />
+        <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
       </button>
     );
 
+    const handleEdit = () => {
+      openSelector(index);
+    };
+    const handleClear = () => {
+      clearTile(index);
+    };
+    const handleColor = () => {
+      console.log("Change color");
+    };
+
+    // --- Folder Tile ---
     if (tile.type === "folder") {
       return (
-        <button
+        <div
           key={`folder-tile-${tile.nodeId}`}
           id={`folder-tile-${tile.nodeId}`}
-          onClick={() => navigateToFolder(tile.nodeId)}
           className={`${commonClasses} hover:bg-white/30 transition-colors`}
           style={{ position: "relative", zIndex: 1 }}
+          data-tile-index={index} // Add data attribute for Sortable
         >
-          <div className="absolute top-2 right-2">{actionMenuButton}</div>
+          <button
+            onClick={() => navigateToFolder(tile.nodeId)}
+            className="h-full w-full absolute inset-0" // Clickable area
+          >
+            {/* Empty button for click handling */}
+          </button>
+          <div className="absolute top-1 right-1">{actionMenuButton}</div>
           {openMenuId === tile.id && menuButtonRect && (
             <ActionMenuPortal
               tile={tile}
@@ -465,27 +567,34 @@ export function Bookmarks() {
               onClose={() => setOpenMenuId(null)}
             />
           )}
-          <Folder className="w-8 h-8 mb-2 text-white" />
-          <span className="text-white text-center text-[0.8vw] font-medium line-clamp-2">{tile.title}</span>
-        </button>
+          <Folder className="w-6 h-6 mb-1 text-white relative z-10" />
+          <span className="text-white text-center text-[0.6vw] font-medium line-clamp-2 relative z-10">{tile.title}</span>
+        </div>
       );
     }
 
+    // --- Bookmark Tile ---
     return (
-      <a
+      <div
         key={`bookmark-tile-${tile.nodeId}`}
         id={`bookmark-tile-${tile.nodeId}`}
-        href={tile.url}
         className={`${commonClasses} hover:bg-white/30 transition-colors`}
-        target="_self"
-        onClick={(e) => {
-          e.preventDefault();
-          window.location.href = tile.url || "";
-        }}
-        rel="noopener noreferrer"
         style={{ position: "relative", zIndex: 1 }}
+        data-tile-index={index} // Add data attribute for Sortable
       >
-        <div className="absolute top-2 right-2">{actionMenuButton}</div>
+        <a
+          href={tile.url}
+          target="_self"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = tile.url || "";
+          }}
+          rel="noopener noreferrer"
+          className="h-full w-full absolute inset-0" // Clickable area
+        >
+          {/*Empty a for click handling */}
+        </a>
+        <div className="absolute top-1 right-1">{actionMenuButton}</div>
         {openMenuId === tile.id && menuButtonRect && (
           <ActionMenuPortal
             tile={tile}
@@ -500,15 +609,17 @@ export function Bookmarks() {
         <img
           src={`https://www.google.com/s2/favicons?domain=${tile.url ? new URL(tile.url).hostname : ""}&sz=16`}
           alt=""
-          className="w-8 h-8 mb-2"
+          className="w-6 h-6 mb-1 relative z-10"
           onError={(e) => {
-            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
+            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
           }}
         />
-        <span className="text-white text-center text-[1vh] font-medium line-clamp-2">{tile.title}</span>
-      </a>
+        <span className="text-white text-center text-[0.8vh] font-medium line-clamp-2 relative z-10">{tile.title}</span>
+      </div>
     );
   };
+
+  // --- Main Tile Grid Rendering ---
 
   const tiles = Array(MAX_TILES)
     .fill(null)
@@ -516,7 +627,9 @@ export function Bookmarks() {
 
   return (
     <div className="relative">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">{tiles.map((tile, index) => renderTile(tile, index))}</div>
+      <div ref={tileGridRef} className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+        {tiles.map((tile, index) => renderTile(tile, index))}
+      </div>
       {isSelecting && renderSelector()}
       {activeFolderContent && renderFolderContent()}
     </div>
