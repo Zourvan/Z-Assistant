@@ -3,15 +3,23 @@ import Select, { StylesConfig } from "react-select";
 import { SlidersHorizontal, Image, Upload, Link, X, Palette } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 
-// Define the component's props object with ReactNode for children
+//
+// ─── TYPE DEFINITIONS ─────────────────────────────────────────────────────────────
+//
+
+// For CalendarProvider children
 interface CalendarProviderProps {
   children: ReactNode;
 }
 
+// Option type for react-select
 interface EmojiOption {
   value: string;
   label: string;
 }
+
+// Days options and DayOfWeek type
+export type DayOfWeek = "Saturday" | "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
 
 const daysOptions: EmojiOption[] = [
   { value: "Saturday", label: "Saturday" },
@@ -23,8 +31,34 @@ const daysOptions: EmojiOption[] = [
   { value: "Friday", label: "Friday" }
 ];
 
-type DayOfWeek = "Saturday" | "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+// Props for BackgroundSelector component
+interface BackgroundSelectorProps {
+  onSelectBackground: (background: string) => void;
+  onCalendarTypeChange?: (type: "gregorian" | "persian") => void;
+  storageKey?: string;
+  calendarType: "gregorian" | "persian";
+}
 
+// Calendar settings type used for saving in localStorage
+interface CalendarSettings {
+  type: "gregorian" | "persian";
+  tileNumber: number;
+}
+
+// Type for stored background data
+export interface StoredBackground {
+  id: string;
+  url: string;
+  isBlob: boolean;
+  type: "image" | "color";
+  createdAt: number;
+}
+
+//
+// ─── CONFIGURATIONS & DATABASE ─────────────────────────────────────────────────────
+//
+
+// IndexedDB instance for backgrounds
 const backgroundsDB = createDatabase({
   dbName: "backgroundSelectorDB",
   storeName: "backgrounds",
@@ -36,23 +70,24 @@ const backgroundsDB = createDatabase({
   ]
 });
 
+// Custom styles for react-select
 const customStyles: StylesConfig<EmojiOption, false> = {
   menu: (provided) => ({
     ...provided,
     zIndex: 9999,
-    backgroundColor: "rgba(0, 0, 0, 100)", // Black with 50% transparency
-    color: "black" // Set text color to white for better visibility
+    backgroundColor: "rgba(0, 0, 0, 100)", // Black with transparency
+    color: "black"
   }),
   option: (provided, state) => ({
     ...provided,
-    color: "white", // Option text color
-    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent" // Highlight on focus
+    color: "white",
+    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent"
   }),
   control: (provided) => ({
     ...provided,
-    backgroundColor: "rgba(255, 255, 255, 0.1)", // Adjust the background color of the control
-    borderColor: "rgba(255, 255, 255, 0.3)", // Adjust the border color of the control
-    color: "white", // Control text color
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    color: "white",
     display: "flex"
   }),
   singleValue: (provided) => ({
@@ -61,29 +96,17 @@ const customStyles: StylesConfig<EmojiOption, false> = {
   })
 };
 
-interface BackgroundSelectorProps {
-  onSelectBackground: (background: string) => void;
-  onCalendarTypeChange?: (type: "gregorian" | "persian") => void;
-  storageKey?: string;
-  calendarType: "gregorian" | "persian";
-}
+//
+// ─── HELPER FUNCTIONS ─────────────────────────────────────────────────────────────
+//
 
-interface CalendarSettings {
-  type: "gregorian" | "persian";
-  tileNumber: number;
-}
-
-interface StoredBackground {
-  id: string;
-  url: string;
-  isBlob: boolean;
-  type: "image" | "color";
-  createdAt: number;
-}
-
+// Check if a URL is a data URL
 const isDataUrl = (url: string) => url.startsWith("data:");
+
+// Check if a string is a valid hex color
 const isColor = (str: string) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
 
+// Process an image URL with given width and height parameters
 const processImageUrl = (url: string, width = 1920, height = 1080) => {
   if (isDataUrl(url) || isColor(url)) {
     return url;
@@ -99,6 +122,10 @@ const processImageUrl = (url: string, width = 1920, height = 1080) => {
     return url;
   }
 };
+
+//
+// ─── SUB-COMPONENT: BackgroundThumbnail ──────────────────────────────────────────
+//
 
 const BackgroundThumbnail: React.FC<{
   bg: StoredBackground;
@@ -157,15 +184,19 @@ const BackgroundThumbnail: React.FC<{
   );
 };
 
+//
+// ─── CONTEXT & PROVIDER ──────────────────────────────────────────────────────────
+//
+
+// Create CalendarContext with default values
 const CalendarContext = createContext({
   calendarType: "gregorian" as "gregorian" | "persian",
   setCalendarType: (_type: "gregorian" | "persian") => {}
 });
 
-// Create provider component
+// CalendarProvider component which provides calendar settings via context
 export function CalendarProvider({ children }: CalendarProviderProps) {
   const [calendarType, setCalendarType] = useState<"gregorian" | "persian">(() => {
-    // Try to get saved preference from localStorage
     const saved = localStorage.getItem("calendarType");
     return saved === "persian" || saved === "gregorian" ? saved : "gregorian";
   });
@@ -178,6 +209,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   return <CalendarContext.Provider value={{ calendarType, setCalendarType: updateCalendarType }}>{children}</CalendarContext.Provider>;
 }
 
+// Custom hook to use CalendarContext
 export function useCalendar() {
   const context = useContext(CalendarContext);
   if (!context) {
@@ -186,33 +218,28 @@ export function useCalendar() {
   return context;
 }
 
+//
+// ─── MAIN COMPONENT: BackgroundSelector ──────────────────────────────────────────
+//
+
 export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelectBackground, storageKey = "selectedBackground" }) => {
+  // ─── STATE & REFS ──────────────────────────────────────────────
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"images" | "colors">("images");
   const [urlInput, setUrlInput] = useState("");
   const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
-  const { calendarType, setCalendarType } = useCalendar();
-  const [selectedDay, setSelectedDay] = React.useState<string | null>(null);
-  const [firstDayOfWeek, setFirstDayOfWeek] = React.useState<DayOfWeek>("Saturday");
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState<DayOfWeek>("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
+  // Access calendar context
+  const { calendarType, setCalendarType } = useCalendar();
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, setIsOpen]);
-
+  // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
     () =>
       [
@@ -272,33 +299,20 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
     []
   );
 
-  const loadSavedBackgrounds = useCallback(async () => {
-    try {
-      const backgrounds = await backgroundsDB.getAllItems<StoredBackground>();
-      setSavedBackgrounds(backgrounds);
-    } catch (error) {
-      console.error("Error loading backgrounds:", error);
-      setSavedBackgrounds([]);
-    }
+  // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
+  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number) => {
+    const settings: CalendarSettings = {
+      type,
+      tileNumber: tiles
+    };
+    localStorage.setItem("calendarSettings", JSON.stringify(settings));
+    localStorage.setItem("calendarType", type);
+    localStorage.setItem("tileNumber", JSON.stringify(tiles));
   }, []);
 
   useEffect(() => {
-    loadSavedBackgrounds();
-  }, [loadSavedBackgrounds]);
-
-  useEffect(() => {
-    const lastSelected = localStorage.getItem(storageKey);
-    if (lastSelected) {
-      try {
-        const parsed = JSON.parse(lastSelected);
-        if (!parsed.isBlob || parsed.url.startsWith("data:")) {
-          onSelectBackground(parsed.url);
-        }
-      } catch {
-        onSelectBackground(lastSelected);
-      }
-    }
-  }, [storageKey, onSelectBackground]);
+    saveCalendarSettings(calendarType, tileNumber);
+  }, [tileNumber, calendarType, saveCalendarSettings]);
 
   useEffect(() => {
     const loadCalendarSettings = async () => {
@@ -317,21 +331,6 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
     loadCalendarSettings();
   }, []);
 
-  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number) => {
-    const settings: CalendarSettings = {
-      type,
-      tileNumber: tiles
-    };
-    console.log();
-    localStorage.setItem("calendarSettings", JSON.stringify(settings));
-    localStorage.setItem("calendarType", type);
-    localStorage.setItem("tileNumber", JSON.stringify(tiles));
-  }, []);
-
-  useEffect(() => {
-    saveCalendarSettings(calendarType, tileNumber);
-  }, [tileNumber, calendarType, saveCalendarSettings]);
-
   useEffect(() => {
     const loadCalendarSettings = () => {
       try {
@@ -341,14 +340,12 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
           setCalendarType(settings.type);
           setTileNumber(settings.tileNumber);
         } else {
-          // Set default values if no settings exist
           setCalendarType("gregorian");
           setTileNumber(10);
           saveCalendarSettings("gregorian", 10);
         }
       } catch (error) {
         console.error("Error loading calendar settings:", error);
-        // Set default values on error
         setCalendarType("gregorian");
         setTileNumber(10);
         saveCalendarSettings("gregorian", 10);
@@ -357,6 +354,17 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
 
     loadCalendarSettings();
   }, [saveCalendarSettings]);
+
+  // ─── EVENT HANDLERS & CALLBACKS ───────────────────────────────
+  const loadSavedBackgrounds = useCallback(async () => {
+    try {
+      const backgrounds = await backgroundsDB.getAllItems<StoredBackground>();
+      setSavedBackgrounds(backgrounds);
+    } catch (error) {
+      console.error("Error loading backgrounds:", error);
+      setSavedBackgrounds([]);
+    }
+  }, []);
 
   const handleSelectBackground = useCallback(
     (background: StoredBackground) => {
@@ -477,6 +485,37 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
     [calendarType, saveCalendarSettings]
   );
 
+  // ─── OTHER EFFECTS ──────────────────────────────────────────────
+  // Handle click outside of the selector to close the modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Load saved background from localStorage on mount
+  useEffect(() => {
+    const lastSelected = localStorage.getItem(storageKey);
+    if (lastSelected) {
+      try {
+        const parsed = JSON.parse(lastSelected);
+        if (!parsed.isBlob || parsed.url.startsWith("data:")) {
+          onSelectBackground(parsed.url);
+        }
+      } catch {
+        onSelectBackground(lastSelected);
+      }
+    }
+  }, [storageKey, onSelectBackground]);
+
+  // ─── RENDER ─────────────────────────────────────────────────────
   return (
     <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container">
       <button
@@ -486,19 +525,18 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
         <SlidersHorizontal className="w-5 h-5 text-white" />
       </button>
 
-      {isOpen ? (
+      {isOpen && (
         <div
           ref={selectorRef}
           className="mt-2 bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
           style={{
-            width: "35vw", // افزایش عرض کادر
-            height: "80vh", // افزایش ارتفاع کادر
+            width: "35vw",
+            height: "80vh",
             minWidth: "250px",
-            minHeight: "500px" // افزایش حداقل اندازه
-            // overflow: "hidden",
+            minHeight: "500px"
           }}
         >
-          {/* تب‌ها */}
+          {/* ─── TABS ─── */}
           <div className="flex gap-2 mb-4 flex-shrink-0">
             <button
               onClick={() => setActiveTab("images")}
@@ -520,10 +558,10 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
             </button>
           </div>
 
-          {/* محتوای تب‌ها */}
+          {/* ─── TAB CONTENT ─── */}
           {activeTab === "images" ? (
             <div className="flex flex-col flex-grow overflow-hidden">
-              {/* لیست تصاویر */}
+              {/* Image List */}
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
                 {[...defaultBackgrounds, ...savedBackgrounds.filter((bg) => bg.type === "image")].map((bg) => (
                   <BackgroundThumbnail
@@ -535,9 +573,9 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
                 ))}
               </div>
 
-              {/* آپلود فایل و دریافت URL */}
+              {/* Upload & URL form */}
               <div className="space-y-4 flex-shrink-0">
-                {/* آپلود فایل */}
+                {/* Upload File */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
@@ -548,7 +586,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*,.gif" onChange={handleFileUpload} className="hidden" />
 
-                {/* فرم دریافت URL */}
+                {/* URL Submission Form */}
                 <form onSubmit={handleUrlSubmit} className="flex flex-col gap-3 sm:flex-row sm:gap-2">
                   <input
                     type="text"
@@ -567,7 +605,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
               </div>
             </div>
           ) : (
-            // تب رنگ‌ها
+            // Colors Tab Content
             <div className="grid grid-cols-4 gap-4 overflow-auto flex-grow">
               {colorOptions.map((color) => (
                 <BackgroundThumbnail key={color.id} bg={color} onSelect={() => handleSelectBackground(color)} />
@@ -575,23 +613,24 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
             </div>
           )}
 
+          {/* ─── SETTINGS SECTION ─── */}
           <div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
-            {/* سطر انتخاب روزهای هفته */}
+            {/* Day selector */}
             <div className="flex justify-between items-center gap-2">
               {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
                 <button
                   key={day}
-                  onClick={() => setSelectedDay(day)} // تغییر روز انتخاب شده
+                  onClick={() => setSelectedDay(day)}
                   className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
                     selectedDay === day ? "bg-green-500 text-white" : "bg-white/30 text-white"
                   } hover:bg-white/40 transition-colors`}
                 >
-                  {day.slice(0, 2)} {/* نمایش دو حرف اول روز */}
+                  {day.slice(0, 2)}
                 </button>
               ))}
             </div>
 
-            {/* سطر انتخاب روز اول هفته */}
+            {/* First Day of the Week selector */}
             <div className="flex flex-col w-full">
               <label className="text-white text-sm mb-0.5">First Day of the Week</label>
               <Select
@@ -605,17 +644,16 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
                 isSearchable={false}
                 name="emoji"
                 options={daysOptions}
-                menuPortalTarget={document.body} // منو در body رندر می‌شود
-                menuPosition="absolute" // استفاده از موقعیت پیش‌فرض
+                menuPortalTarget={document.body}
+                menuPosition="absolute"
                 menuShouldScrollIntoView={false}
-                styles={customStyles} // Apply custom styles
+                styles={customStyles}
                 onChange={(selectedOption) => {
                   if (selectedOption) {
                     setFirstDayOfWeek(selectedOption.value as DayOfWeek);
                   }
                 }}
               />
-
               <div
                 style={{
                   color: "hsl(0, 100%, 40%)",
@@ -628,9 +666,9 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
             </div>
           </div>
 
-          {/* تنظیمات پایین */}
+          {/* Bottom Settings */}
           <div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
-            {/* دکمه‌ها */}
+            {/* Calendar Type Buttons */}
             <div className="flex w-full gap-2">
               <button
                 className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
@@ -650,7 +688,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
               </button>
             </div>
 
-            {/* ورودی Tile Number */}
+            {/* Tile Number Input */}
             <div className="flex flex-col w-full">
               <label className="text-white text-sm mb-2">Tile Number</label>
               <input
@@ -664,9 +702,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
-
-export default BackgroundSelector;

@@ -95,6 +95,18 @@ const createDatabase = (config: DatabaseConfig) => {
       });
     };
 
+    const getItem = async <T,>(id: IDBValidKey): Promise<T | null> => {
+      const database = await getDB();
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction(config.storeName, "readonly");
+        const store = transaction.objectStore(config.storeName);
+        const request = store.get(id);
+
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    };
+
     const deleteItem = async (id: IDBValidKey): Promise<IDBValidKey | undefined> => {
       const database = await getDB();
       return new Promise((resolve, reject) => {
@@ -142,7 +154,8 @@ const createDatabase = (config: DatabaseConfig) => {
         transaction.onerror = () => reject(transaction.error);
       });
     };
-    return { savePreferences, getPreferences, saveItem, saveItems, getAllItems, deleteItem };
+
+    return { savePreferences, getPreferences, saveItem, saveItems, getAllItems, getItem, deleteItem };
   };
 
   return createDBOperations();

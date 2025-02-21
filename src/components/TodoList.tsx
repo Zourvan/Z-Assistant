@@ -16,14 +16,15 @@ const todosDB = createDatabase({
 interface EmojiOption {
   value: string;
   label: string;
+  color: string;
 }
 
 const emojiOptions: EmojiOption[] = [
-  { value: "🚀", label: "🚀" },
-  { value: "🔥", label: "🔥" },
-  { value: "🧩", label: "🧩" },
-  { value: "✨", label: "✨" },
-  { value: "📅", label: "📅" }
+  { value: "🚀", label: "🚀", color: "rgba(76, 175, 80, 0.7)" },
+  { value: "🔥", label: "🔥", color: "rgba(244, 67, 54, 0.7)" },
+  { value: "🧩", label: "🧩", color: "rgba(255, 193, 7, 0.7)" },
+  { value: "✨", label: "✨", color: "rgba(33, 150, 243, 0.7)" },
+  { value: "📅", label: "📅", color: "rgba(156, 39, 176, 0.7)" }
 ];
 
 const customStyles: StylesConfig<EmojiOption, false> = {
@@ -236,7 +237,6 @@ export function TodoList() {
                   menuPortalTarget={document.body}
                   menuPosition="absolute"
                   menuShouldScrollIntoView={false}
-                  styles={customStyles}
                   onChange={(selectedOption) => {
                     if (selectedOption) {
                       updateEditingEmoji(selectedOption.value);

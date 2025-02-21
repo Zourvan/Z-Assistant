@@ -1,5 +1,6 @@
 import React from "react";
 import { Instagram, Linkedin, Github, Globe } from "lucide-react";
+// Note: Make sure this CSS file exists or move the styles inline
 import "./SocialLinks.css";
 
 interface SocialLink {
@@ -41,11 +42,13 @@ const socialLinks: SocialLink[] = [
   }
 ];
 
+//rounded-xl p-2 shadow-lg flex flex-col gap-2 scale-70
+
 const SocialLinks = () => {
   return (
-    <div className="fixed bottom-0 right-0 p-4 z-50 ">
+    <div className="fixed bottom-0 right-0 p-4 z-10 pointer-events-none">
       <div className="flex flex-row-reverse items-end gap-4">
-        <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 scale-70">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 transform scale-70 pointer-events-auto">
           {socialLinks.map((link) => (
             <a
               key={link.id}
@@ -63,7 +66,7 @@ const SocialLinks = () => {
           ))}
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 shadow-lg">
+        <div className="bg-white/10 backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto">
           <p className="text-gray-200 text-sm font-medium flex items-center gap-1">
             Nima has built it with
             <span className="text-red-500 animate-pulse">♥</span>
