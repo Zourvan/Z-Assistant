@@ -73,15 +73,15 @@ export function Calendar() {
   };
 
   return (
-    <div className={`bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}>
+    <div className={`bg-black/20 backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}>
       <div className={`flex justify-between items-center mb-4 ${calendarType === "persian" ? "flex-row-reverse" : ""}`}>
-        <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-white/10 text-white" aria-label="Previous month">
+        <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Previous month">
           {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
         <h2 className="text-white text-lg font-medium text-center">{formatMonth()}</h2>
 
-        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-white/10 text-white" aria-label="Next month">
+        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Next month">
           {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>
       </div>
@@ -103,7 +103,7 @@ export function Calendar() {
             <div
               key={day}
               className={`text-center p-[0.5vw] rounded-full ${
-                day === currentDay ? "bg-white/30 font-bold" : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30" : "hover:bg-white/10"
+                day === currentDay ? "bg-white/30 font-bold" : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30" : "hover:bg-white/0"
               }`}
             >
               {calendarType === "persian" ? day.toLocaleString("fa-IR") : day}

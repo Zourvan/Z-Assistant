@@ -28,7 +28,7 @@ const daysOptions: EmojiOption[] = [
   { value: "Tuesday", label: "Tuesday" },
   { value: "Wednesday", label: "Wednesday" },
   { value: "Thursday", label: "Thursday" },
-  { value: "Friday", label: "Friday" }
+  { value: "Friday", label: "Friday" },
 ];
 
 // Props for BackgroundSelector component
@@ -66,8 +66,8 @@ const backgroundsDB = createDatabase({
   keyPath: "id",
   indexes: [
     { name: "type", keyPath: "type", unique: false },
-    { name: "createdAt", keyPath: "createdAt", unique: false }
-  ]
+    { name: "createdAt", keyPath: "createdAt", unique: false },
+  ],
 });
 
 // Custom styles for react-select
@@ -76,24 +76,24 @@ const customStyles: StylesConfig<EmojiOption, false> = {
     ...provided,
     zIndex: 9999,
     backgroundColor: "rgba(0, 0, 0, 100)", // Black with transparency
-    color: "black"
+    color: "black",
   }),
   option: (provided, state) => ({
     ...provided,
     color: "white",
-    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent"
+    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent",
   }),
   control: (provided) => ({
     ...provided,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderColor: "rgba(255, 255, 255, 0.3)",
     color: "white",
-    display: "flex"
+    display: "flex",
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "white"
-  })
+    color: "white",
+  }),
 };
 
 //
@@ -191,7 +191,7 @@ const BackgroundThumbnail: React.FC<{
 // Create CalendarContext with default values
 const CalendarContext = createContext({
   calendarType: "gregorian" as "gregorian" | "persian",
-  setCalendarType: (_type: "gregorian" | "persian") => {}
+  setCalendarType: (_type: "gregorian" | "persian") => {},
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -274,26 +274,26 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
         "/static/background/g-17.gif",
         "/static/background/g-18.gif",
         "/static/background/g-19.gif",
-        "/static/background/g-20.gif"
+        "/static/background/g-20.gif",
       ].map((url) => ({
         id: url,
         url,
         isBlob: false,
         type: "image" as const,
-        createdAt: Date.now()
+        createdAt: Date.now(),
       })),
     []
   );
 
   const colorOptions = useMemo(
     () =>
-      ["#000000", "#eeeeee", "#1E40AF", "#047857", "#B45309", "#9F1239", "#4C1D95", "#831843", "#3730A3", "#064E3B", "#701A75", "#7C2D12"].map(
+      ["#222222", "#eeeeee", "#1E40AF", "#047857", "#B45309", "#9F1239", "#4C1D95", "#831843", "#3730A3", "#064E3B", "#701A75", "#7C2D12"].map(
         (color) => ({
           id: color,
           url: color,
           isBlob: false,
           type: "color" as const,
-          createdAt: Date.now()
+          createdAt: Date.now(),
         })
       ),
     []
@@ -303,7 +303,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
   const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number) => {
     const settings: CalendarSettings = {
       type,
-      tileNumber: tiles
+      tileNumber: tiles,
     };
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
     localStorage.setItem("calendarType", type);
@@ -375,7 +375,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
         storageKey,
         JSON.stringify({
           ...background,
-          url: finalUrl
+          url: finalUrl,
         })
       );
       setIsOpen(false);
@@ -410,7 +410,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
               url: dataUrl,
               isBlob: true,
               type: "image",
-              createdAt: Date.now()
+              createdAt: Date.now(),
             };
 
             await backgroundsDB.saveItem(newBackground);
@@ -447,7 +447,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
           url: urlInput,
           isBlob: false,
           type: "image",
-          createdAt: Date.now()
+          createdAt: Date.now(),
         };
 
         await backgroundsDB.saveItem(newBackground);
@@ -520,7 +520,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
     <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-white/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
+        className="bg-black/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
       >
         <SlidersHorizontal className="w-5 h-5 text-white" />
       </button>
@@ -528,12 +528,12 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
       {isOpen && (
         <div
           ref={selectorRef}
-          className="mt-2 bg-white/20 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
+          className="mt-2 bg-black backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
           style={{
             width: "35vw",
             height: "80vh",
             minWidth: "250px",
-            minHeight: "500px"
+            minHeight: "500px",
           }}
         >
           {/* ─── TABS ─── */}
@@ -660,7 +660,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
                   display: "inline-block",
                   fontSize: 12,
                   fontStyle: "italic",
-                  marginTop: "1em"
+                  marginTop: "1em",
                 }}
               ></div>
             </div>

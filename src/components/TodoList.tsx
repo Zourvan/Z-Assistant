@@ -10,7 +10,7 @@ const todosDB = createDatabase({
   storeName: "todos",
   version: 1,
   keyPath: "id",
-  indexes: [{ name: "completed", keyPath: "completed", unique: false }]
+  indexes: [{ name: "completed", keyPath: "completed", unique: false }],
 });
 
 interface EmojiOption {
@@ -24,7 +24,7 @@ const emojiOptions: EmojiOption[] = [
   { value: "🔥", label: "🔥", color: "rgba(244, 67, 54, 0.7)" },
   { value: "🧩", label: "🧩", color: "rgba(255, 193, 7, 0.7)" },
   { value: "✨", label: "✨", color: "rgba(33, 150, 243, 0.7)" },
-  { value: "📅", label: "📅", color: "rgba(156, 39, 176, 0.7)" }
+  { value: "📅", label: "📅", color: "rgba(156, 39, 176, 0.7)" },
 ];
 
 const customStyles: StylesConfig<EmojiOption, false> = {
@@ -32,24 +32,24 @@ const customStyles: StylesConfig<EmojiOption, false> = {
     ...provided,
     zIndex: 9999,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    color: "white"
+    color: "white",
   }),
   option: (provided, state) => ({
     ...provided,
     color: "white",
-    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent"
+    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent",
   }),
   control: (provided) => ({
     ...provided,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderColor: "rgba(255, 255, 255, 0.3)",
     color: "white",
-    display: "flex"
+    display: "flex",
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "white"
-  })
+    color: "white",
+  }),
 };
 
 interface Todo {
@@ -92,7 +92,7 @@ export function TodoList() {
       id: crypto.randomUUID(),
       text: newTodo.trim(),
       completed: false,
-      emoji: newEmoji
+      emoji: newEmoji,
     };
 
     try {
@@ -172,10 +172,10 @@ export function TodoList() {
   };
 
   return (
-    <div className={` bg-white/20 backdrop-blur-md rounded-xl p-4 overflow-hidden`}>
+    <div className={` bg-black/20 backdrop-blur-md rounded-xl p-4 overflow-hidden`}>
       <h4 className="text-white text-lg font-medium mb-0.5">Tasks</h4>
 
-      <form onSubmit={addTodo} className="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-2 bg-white/10">
+      <form onSubmit={addTodo} className="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-2 bg-black/10">
         <input
           type="text"
           value={newTodo}
@@ -207,7 +207,7 @@ export function TodoList() {
           }}
         />
 
-        <button type="submit" className="bg-white/20 hover:bg-white/30 text-white rounded-lg p-1.5 transition-colors min-w-[30px]">
+        <button type="submit" className="bg-black/20 hover:bg-black/30 text-white rounded-lg p-1.5 transition-colors min-w-[30px]">
           <Plus className="w-5 h-5" />
         </button>
       </form>
@@ -247,7 +247,7 @@ export function TodoList() {
                   type="text"
                   value={editingTodo.text}
                   onChange={(e) => updateEditingText(e.target.value)}
-                  className={`flex-1 bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
+                  className={`flex-1 bg-black/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
                     isPersian(editingTodo.text) ? "rtl" : "ltr"
                   }`}
                 />

@@ -27,7 +27,7 @@ export function Clock() {
 
   const formatDateInvert = () => {
     if (calendarType === "persian") {
-      return time.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+      return time.toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" });
     }
     return time.toLocaleDateString("fa-IR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
@@ -36,11 +36,11 @@ export function Clock() {
     <div
       className="text-white text-center"
       style={{
-        fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit"
+        fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit",
       }}
     >
       <div className="text-[4vw] font-light">{formatTime()}</div>
-      <div className="text-[2vw] opacity-80">{formatDate()}</div>
+      <div className="text-[2vw] opacity-80 ">{formatDate()}</div>
       <div className="text-[1vw] opacity-80">{formatDateInvert()}</div>
     </div>
   );
