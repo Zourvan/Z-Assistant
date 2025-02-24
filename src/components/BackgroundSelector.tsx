@@ -530,7 +530,7 @@ export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelect
           ref={selectorRef}
           className="mt-2 bg-black backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
           style={{
-            width: "35vw",
+            width: "50vw",
             height: "80vh",
             minWidth: "250px",
             minHeight: "500px",

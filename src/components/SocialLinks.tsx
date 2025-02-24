@@ -56,7 +56,7 @@ const SocialLinks = () => {
               target="_blank"
               rel="noopener noreferrer"
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 
-                                ${link.color} hover:text-white bg-black/20 text-gray-200
+                                ${link.color} hover:text-white bg-white/20 text-gray-200
                                 transform hover:scale-110 hover:shadow-lg`}
               aria-label={link.name}
               title={link.name}
@@ -69,7 +69,7 @@ const SocialLinks = () => {
         <div className="bg-black/10 backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto">
           <p className="text-gray-200 text-sm font-medium flex items-center gap-1">
             Nima has built it with
-            <span className="text-red-500 animate-pulse">♥</span>
+            <span className="text-red-500 animate-pulse text-xl">♥</span>
           </p>
         </div>
       </div>

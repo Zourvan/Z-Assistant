@@ -79,7 +79,7 @@ export function Calendar() {
           {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
-        <h2 className="text-white text-lg font-medium text-center">{formatMonth()}</h2>
+        <h2 className="text-white text-xl font-medium text-center">{formatMonth()}</h2>
 
         <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Next month">
           {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
@@ -88,7 +88,7 @@ export function Calendar() {
 
       <div className="grid grid-cols-7 gap-1 text-white">
         {weekDays.map((day, index) => (
-          <div key={day} className={`text-center text-[1vw] font-bold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}>
+          <div key={day} className={`text-center text-[2vh] font-extrabold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}>
             {day}
           </div>
         ))}
@@ -102,8 +102,8 @@ export function Calendar() {
           return (
             <div
               key={day}
-              className={`text-center p-[0.5vw] rounded-full ${
-                day === currentDay ? "bg-white/30 font-bold" : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30" : "hover:bg-white/0"
+              className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
+                day === currentDay ? "bg-white/30 " : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30 " : "hover:bg-white/0"
               }`}
             >
               {calendarType === "persian" ? day.toLocaleString("fa-IR") : day}

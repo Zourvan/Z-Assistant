@@ -20,9 +20,34 @@ export function Clock() {
 
   const formatDate = () => {
     if (calendarType === "persian") {
-      return time.toLocaleDateString("fa-IR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      // تعریف interface برای اجزای تاریخ
+      interface DateParts {
+        weekday?: string;
+        year?: string;
+        month?: string;
+        day?: string;
+        literal?: string;
+      }
+
+      const formatter = new Intl.DateTimeFormat("fa-IR", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      // استفاده از interface تعریف شده
+      const dateObj: DateParts = {};
+      formatter.formatToParts(time).forEach((part) => {
+        if (part.type === "weekday" || part.type === "year" || part.type === "month" || part.type === "day") {
+          dateObj[part.type] = part.value;
+        }
+      });
+
+      // استفاده از nullish coalescing برای مقادیر undefined احتمالی
+      return `${dateObj.weekday ?? ""} - ${dateObj.day ?? ""} ${dateObj.month ?? ""} ${dateObj.year ?? ""}`;
     }
-    return time.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+    return time.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   };
 
   const formatDateInvert = () => {
@@ -39,9 +64,9 @@ export function Clock() {
         fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit",
       }}
     >
-      <div className="text-[4vw] font-light">{formatTime()}</div>
-      <div className="text-[2vw] opacity-80 ">{formatDate()}</div>
-      <div className="text-[1vw] opacity-80">{formatDateInvert()}</div>
+      <div className="text-[6vh] font-light">{formatTime()}</div>
+      <div className="text-[5vh] opacity-80 ">{formatDate()}</div>
+      <div className="text-[3vh] opacity-80">{formatDateInvert()}</div>
     </div>
   );
 }
