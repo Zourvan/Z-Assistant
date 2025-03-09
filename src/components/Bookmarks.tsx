@@ -539,17 +539,21 @@ export function Bookmarks() {
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
               {activeFolderContent.children?.map((node) => (
                 <button
-                  key={node.id}
-                  onClick={() => {
-                    if (node.children) {
-                      navigateToFolder(node.id);
+                key={node.id}
+                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                  if (node.children) {
+                    navigateToFolder(node.id);
+                  } else {
+                    if (event.ctrlKey) {
+                      window.open(node.url || "", '_blank');
                     } else {
                       window.location.href = node.url || "";
                     }
-                  }}
-                  className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
-                >
-                  {node.children ? (
+                  }
+                }}
+                className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+              >
+                {node.children ? (
                     <Folder className="w-10 h-10 mb-1 text-white" />
                   ) : (
                     <img
@@ -661,11 +665,15 @@ export function Bookmarks() {
         style={{ position: "relative", zIndex: 1, backgroundColor: tileBackgroundColor }} // Set background color
         data-tile-index={index}
         data-url={tile.url}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
           e.preventDefault();
           const url = (e.currentTarget as HTMLDivElement).dataset.url;
           if (url) {
-            window.location.href = url;
+            if (e.ctrlKey) {
+              window.open(url, '_blank');
+            } else {
+              window.location.href = url;
+            }
           }
         }}
       >
