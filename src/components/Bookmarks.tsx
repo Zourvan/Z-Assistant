@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
-import "./BackgroundSelector.css";
+import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
 

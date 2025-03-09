@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useCalendar } from "./BackgroundSelector";
+import { useCalendar } from "./Settings";
 
 export function Clock() {
   const { calendarType } = useCalendar();

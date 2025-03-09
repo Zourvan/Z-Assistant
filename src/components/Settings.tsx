@@ -32,7 +32,7 @@ const daysOptions: EmojiOption[] = [
 ];
 
 // Props for BackgroundSelector component
-interface BackgroundSelectorProps {
+interface SettingsProps {
   onSelectBackground: (background: string) => void;
   onCalendarTypeChange?: (type: "gregorian" | "persian") => void;
   storageKey?: string;
@@ -219,10 +219,10 @@ export function useCalendar() {
 }
 
 //
-// ─── MAIN COMPONENT: BackgroundSelector ──────────────────────────────────────────
+// ─── MAIN COMPONENT: Settings ──────────────────────────────────────────
 //
 
-export const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ onSelectBackground, storageKey = "selectedBackground" }) => {
+export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageKey = "selectedBackground" }) => {
   // ─── STATE & REFS ──────────────────────────────────────────────
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"images" | "colors">("images");

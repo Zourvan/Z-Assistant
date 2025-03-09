@@ -3,7 +3,7 @@ import { Plus, X, Edit2, CheckCircle2 } from "lucide-react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import Select, { components, StylesConfig, OptionProps, SingleValueProps } from "react-select";
-import { useCalendar } from "./BackgroundSelector";
+import { useCalendar } from "./Settings";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import "./Notes.css";
 

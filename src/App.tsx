@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Clock } from "./components/Clock";
 import { Calendar } from "./components/Calendar";
 import { Bookmarks } from "./components/Bookmarks";
-import { BackgroundSelector, CalendarProvider } from "./components/BackgroundSelector";
+import { Settings, CalendarProvider } from "./components/Settings";
 import { TodoList } from "./components/TodoList";
 import { Notes } from "./components/Notes";
 import SocialLinks from "./components/SocialLinks";
@@ -124,7 +124,7 @@ function App() {
             </div>
           </div>
 
-          <BackgroundSelector onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
+          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
 
           <SocialLinks />
         </div>

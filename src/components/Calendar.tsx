@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
-import { useCalendar } from "./BackgroundSelector";
+import { useCalendar } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function Calendar() {
