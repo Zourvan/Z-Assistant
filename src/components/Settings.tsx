@@ -56,7 +56,7 @@ export interface StoredBackground {
   id: string;
   url: string;
   isBlob: boolean;
-  type: "image" | "color";
+  type: "image" | "color" | "gif";
   createdAt: number;
   thumbnailUrl?: string;
 }
@@ -165,15 +165,15 @@ const generateThumbnail = (src: string, maxWidth = 200, maxHeight = 200): Promis
     }
 
     // Create an HTMLImageElement instead of using the Image constructor
-    const img = document.createElement('img');
+    const img = document.createElement("img");
     img.crossOrigin = "anonymous";
-    
+
     img.onload = () => {
       try {
         // Calculate new dimensions while maintaining aspect ratio
         let width = img.width;
         let height = img.height;
-        
+
         if (width > height) {
           if (width > maxWidth) {
             height = Math.round(height * (maxWidth / width));
@@ -185,32 +185,32 @@ const generateThumbnail = (src: string, maxWidth = 200, maxHeight = 200): Promis
             height = maxHeight;
           }
         }
-        
+
         // Create canvas and draw resized image
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
+
+        const ctx = canvas.getContext("2d");
         if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
+          reject(new Error("Failed to get canvas context"));
           return;
         }
-        
+
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // Generate thumbnail as data URL
-        const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.7);
         resolve(thumbnailDataUrl);
       } catch (err) {
         reject(err);
       }
     };
-    
+
     img.onerror = () => {
-      reject(new Error('Failed to load image'));
+      reject(new Error("Failed to load image"));
     };
-    
+
     img.src = src;
   });
 };
@@ -226,7 +226,7 @@ const BackgroundThumbnail: React.FC<{
 }> = ({ bg, onSelect, onRemove }) => {
   const [isLoading, setIsLoading] = useState(bg.type === "image");
   const [error, setError] = useState(false);
-  
+
   // Use thumbnailUrl from the background object if it exists, otherwise use url
   const displayUrl = bg.thumbnailUrl || bg.url;
 
@@ -298,7 +298,7 @@ const CalendarContext = createContext({
   textColor: "#FFFFFF",
   setTextColor: (_color: string) => {},
   backgroundColor: "rgba(0, 0, 0, 0.2)",
-  setBackgroundColor: (_color: string) => {}
+  setBackgroundColor: (_color: string) => {},
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -321,16 +321,16 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     const saved = localStorage.getItem("weekendColor");
     return saved || "#1B4D3E";
   });
-  
+
   const [firstDayOfWeek, setFirstDayOfWeek] = useState<DayOfWeek>(() => {
     try {
       const saved = localStorage.getItem("firstDayOfWeek");
-      return saved as DayOfWeek || "Saturday";
+      return (saved as DayOfWeek) || "Saturday";
     } catch {
       return "Saturday";
     }
   });
-  
+
   const [tileNumber, setTileNumber] = useState<number>(() => {
     try {
       const saved = localStorage.getItem("tileNumber");
@@ -339,12 +339,12 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
       return 10;
     }
   });
-  
+
   const [textColor, setTextColor] = useState<string>(() => {
     const saved = localStorage.getItem("textColor");
     return saved || "#FFFFFF";
   });
-  
+
   const [backgroundColor, setBackgroundColor] = useState<string>(() => {
     const saved = localStorage.getItem("backgroundColor");
     return saved || "rgba(0, 0, 0, 0.2)";
@@ -364,31 +364,31 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     setWeekendColor(color);
     localStorage.setItem("weekendColor", color);
   };
-  
+
   const updateFirstDayOfWeek = (day: DayOfWeek) => {
     setFirstDayOfWeek(day);
     localStorage.setItem("firstDayOfWeek", day);
   };
-  
+
   const updateTileNumber = (tiles: number) => {
     setTileNumber(tiles);
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
   };
-  
+
   const updateTextColor = (color: string) => {
     setTextColor(color);
     localStorage.setItem("textColor", color);
   };
-  
+
   const updateBackgroundColor = (color: string) => {
     setBackgroundColor(color);
     localStorage.setItem("backgroundColor", color);
   };
 
   return (
-    <CalendarContext.Provider 
-      value={{ 
-        calendarType, 
+    <CalendarContext.Provider
+      value={{
+        calendarType,
         setCalendarType: updateCalendarType,
         weekendDays,
         setWeekendDays: updateWeekendDays,
@@ -401,7 +401,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         textColor,
         setTextColor: updateTextColor,
         backgroundColor,
-        setBackgroundColor: updateBackgroundColor
+        setBackgroundColor: updateBackgroundColor,
       }}
     >
       {children}
@@ -439,52 +439,819 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Access calendar context
-  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek, tileNumber, setTileNumber, textColor, setTextColor, backgroundColor, setBackgroundColor } = useCalendar();
+  const {
+    calendarType,
+    setCalendarType,
+    weekendDays,
+    setWeekendDays,
+    weekendColor,
+    setWeekendColor,
+    firstDayOfWeek,
+    setFirstDayOfWeek,
+    tileNumber,
+    setTileNumber,
+    textColor,
+    setTextColor,
+    backgroundColor,
+    setBackgroundColor,
+  } = useCalendar();
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
-    () =>
-      [
-        "/static/background/img-1.jpg",
-        "/static/background/img-2.jpg",
-        "/static/background/img-3.jpg",
-        "/static/background/img-4.jpg",
-        "/static/background/img-5.jpg",
-        "/static/background/img-6.jpg",
-        "/static/background/img-7.jpg",
-        "/static/background/img-8.jpg",
-        "/static/background/img-9.jpg",
-        "/static/background/img-10.jpg",
-        "/static/background/img-11.jpg",
-        "/static/background/img-12.jpg",
-        "/static/background/g-1.gif",
-        "/static/background/g-2.gif",
-        "/static/background/g-3.gif",
-        "/static/background/g-4.gif",
-        "/static/background/g-5.gif",
-        "/static/background/g-6.gif",
-        "/static/background/g-7.gif",
-        "/static/background/g-8.gif",
-        "/static/background/g-9.gif",
-        "/static/background/g-10.gif",
-        "/static/background/g-11.gif",
-        "/static/background/g-12.gif",
-        "/static/background/g-13.gif",
-        "/static/background/g-14.gif",
-        "/static/background/g-15.gif",
-        "/static/background/g-16.gif",
-        "/static/background/g-17.gif",
-        "/static/background/g-18.gif",
-        "/static/background/g-19.gif",
-        "/static/background/g-20.gif",
-      ].map((url) => ({
-        id: url,
-        url,
-        thumbnailUrl: processImageUrl(url, 200, 200), // Generate thumbnail URL with smaller dimensions
+    () => [
+      {
+        id: "img-1",
+        url: "/static/background/img-1.jpg",
+        thumbnailUrl: "/static/background/img-1_thumb.jpg",
+        type: "image",
         isBlob: false,
-        type: "image" as const,
         createdAt: Date.now(),
-      })),
+      },
+      {
+        id: "img-2",
+        url: "/static/background/img-10.jpg",
+        thumbnailUrl: "/static/background/img-10_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-3",
+        url: "/static/background/img-11.jpg",
+        thumbnailUrl: "/static/background/img-11_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-4",
+        url: "/static/background/img-12.jpg",
+        thumbnailUrl: "/static/background/img-12_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-5",
+        url: "/static/background/img-13.jpg",
+        thumbnailUrl: "/static/background/img-13_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-6",
+        url: "/static/background/img-14.jpg",
+        thumbnailUrl: "/static/background/img-14_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-7",
+        url: "/static/background/img-15.jpg",
+        thumbnailUrl: "/static/background/img-15_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-8",
+        url: "/static/background/img-16.jpg",
+        thumbnailUrl: "/static/background/img-16_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-9",
+        url: "/static/background/img-17.jpg",
+        thumbnailUrl: "/static/background/img-17_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-10",
+        url: "/static/background/img-18.jpg",
+        thumbnailUrl: "/static/background/img-18_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-11",
+        url: "/static/background/img-19.jpg",
+        thumbnailUrl: "/static/background/img-19_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-12",
+        url: "/static/background/img-2.jpg",
+        thumbnailUrl: "/static/background/img-2_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-13",
+        url: "/static/background/img-20.jpg",
+        thumbnailUrl: "/static/background/img-20_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-14",
+        url: "/static/background/img-21.jpg",
+        thumbnailUrl: "/static/background/img-21_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-15",
+        url: "/static/background/img-22.jpg",
+        thumbnailUrl: "/static/background/img-22_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-16",
+        url: "/static/background/img-23.jpg",
+        thumbnailUrl: "/static/background/img-23_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-17",
+        url: "/static/background/img-24.jpg",
+        thumbnailUrl: "/static/background/img-24_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-18",
+        url: "/static/background/img-25.jpg",
+        thumbnailUrl: "/static/background/img-25_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-19",
+        url: "/static/background/img-26.jpg",
+        thumbnailUrl: "/static/background/img-26_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-20",
+        url: "/static/background/img-27.jpg",
+        thumbnailUrl: "/static/background/img-27_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-21",
+        url: "/static/background/img-28.jpg",
+        thumbnailUrl: "/static/background/img-28_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-22",
+        url: "/static/background/img-29.jpg",
+        thumbnailUrl: "/static/background/img-29_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-23",
+        url: "/static/background/img-3.jpg",
+        thumbnailUrl: "/static/background/img-3_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-24",
+        url: "/static/background/img-30.jpg",
+        thumbnailUrl: "/static/background/img-30_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-25",
+        url: "/static/background/img-31.jpg",
+        thumbnailUrl: "/static/background/img-31_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-26",
+        url: "/static/background/img-32.jpg",
+        thumbnailUrl: "/static/background/img-32_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-27",
+        url: "/static/background/img-33.jpg",
+        thumbnailUrl: "/static/background/img-33_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-28",
+        url: "/static/background/img-34.jpg",
+        thumbnailUrl: "/static/background/img-34_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-29",
+        url: "/static/background/img-35.jpg",
+        thumbnailUrl: "/static/background/img-35_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-30",
+        url: "/static/background/img-36.jpg",
+        thumbnailUrl: "/static/background/img-36_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-31",
+        url: "/static/background/img-37.jpg",
+        thumbnailUrl: "/static/background/img-37_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-32",
+        url: "/static/background/img-38.jpg",
+        thumbnailUrl: "/static/background/img-38_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-33",
+        url: "/static/background/img-39.jpg",
+        thumbnailUrl: "/static/background/img-39_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-34",
+        url: "/static/background/img-4.jpg",
+        thumbnailUrl: "/static/background/img-4_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-35",
+        url: "/static/background/img-40.jpg",
+        thumbnailUrl: "/static/background/img-40_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-36",
+        url: "/static/background/img-41.jpg",
+        thumbnailUrl: "/static/background/img-41_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-37",
+        url: "/static/background/img-42.jpg",
+        thumbnailUrl: "/static/background/img-42_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-38",
+        url: "/static/background/img-43.jpg",
+        thumbnailUrl: "/static/background/img-43_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-39",
+        url: "/static/background/img-44.jpg",
+        thumbnailUrl: "/static/background/img-44_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-40",
+        url: "/static/background/img-45.jpg",
+        thumbnailUrl: "/static/background/img-45_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-41",
+        url: "/static/background/img-46.jpg",
+        thumbnailUrl: "/static/background/img-46_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-42",
+        url: "/static/background/img-47.jpg",
+        thumbnailUrl: "/static/background/img-47_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-43",
+        url: "/static/background/img-48.jpg",
+        thumbnailUrl: "/static/background/img-48_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-44",
+        url: "/static/background/img-49.jpg",
+        thumbnailUrl: "/static/background/img-49_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-45",
+        url: "/static/background/img-5.jpg",
+        thumbnailUrl: "/static/background/img-5_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-46",
+        url: "/static/background/img-50.jpg",
+        thumbnailUrl: "/static/background/img-50_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-47",
+        url: "/static/background/img-51.jpg",
+        thumbnailUrl: "/static/background/img-51_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-48",
+        url: "/static/background/img-52.jpg",
+        thumbnailUrl: "/static/background/img-52_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-49",
+        url: "/static/background/img-53.jpg",
+        thumbnailUrl: "/static/background/img-53_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-50",
+        url: "/static/background/img-54.jpg",
+        thumbnailUrl: "/static/background/img-54_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-51",
+        url: "/static/background/img-55.jpg",
+        thumbnailUrl: "/static/background/img-55_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-52",
+        url: "/static/background/img-56.jpg",
+        thumbnailUrl: "/static/background/img-56_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-53",
+        url: "/static/background/img-57.jpg",
+        thumbnailUrl: "/static/background/img-57_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-54",
+        url: "/static/background/img-58.jpg",
+        thumbnailUrl: "/static/background/img-58_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-55",
+        url: "/static/background/img-59.jpg",
+        thumbnailUrl: "/static/background/img-59_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-56",
+        url: "/static/background/img-6.jpg",
+        thumbnailUrl: "/static/background/img-6_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-57",
+        url: "/static/background/img-60.jpg",
+        thumbnailUrl: "/static/background/img-60_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-58",
+        url: "/static/background/img-61.jpg",
+        thumbnailUrl: "/static/background/img-61_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-59",
+        url: "/static/background/img-62.jpg",
+        thumbnailUrl: "/static/background/img-62_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-60",
+        url: "/static/background/img-63.jpg",
+        thumbnailUrl: "/static/background/img-63_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-61",
+        url: "/static/background/img-64.jpg",
+        thumbnailUrl: "/static/background/img-64_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-62",
+        url: "/static/background/img-65.jpg",
+        thumbnailUrl: "/static/background/img-65_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-63",
+        url: "/static/background/img-66.jpg",
+        thumbnailUrl: "/static/background/img-66_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-64",
+        url: "/static/background/img-67.jpg",
+        thumbnailUrl: "/static/background/img-67_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-65",
+        url: "/static/background/img-68.jpg",
+        thumbnailUrl: "/static/background/img-68_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-66",
+        url: "/static/background/img-69.jpg",
+        thumbnailUrl: "/static/background/img-69_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-67",
+        url: "/static/background/img-7.jpg",
+        thumbnailUrl: "/static/background/img-7_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-68",
+        url: "/static/background/img-70.jpg",
+        thumbnailUrl: "/static/background/img-70_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-69",
+        url: "/static/background/img-71.jpg",
+        thumbnailUrl: "/static/background/img-71_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-70",
+        url: "/static/background/img-72.jpg",
+        thumbnailUrl: "/static/background/img-72_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-71",
+        url: "/static/background/img-8.jpg",
+        thumbnailUrl: "/static/background/img-8_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "img-72",
+        url: "/static/background/img-9.jpg",
+        thumbnailUrl: "/static/background/img-9_thumb.jpg",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-1",
+        url: "/static/background/g-1.gif",
+        thumbnailUrl: "/static/background/g-1_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-2",
+        url: "/static/background/g-10.gif",
+        thumbnailUrl: "/static/background/g-10_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-3",
+        url: "/static/background/g-11.gif",
+        thumbnailUrl: "/static/background/g-11_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-4",
+        url: "/static/background/g-12.gif",
+        thumbnailUrl: "/static/background/g-12_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-5",
+        url: "/static/background/g-13.gif",
+        thumbnailUrl: "/static/background/g-13_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-6",
+        url: "/static/background/g-14.gif",
+        thumbnailUrl: "/static/background/g-14_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-7",
+        url: "/static/background/g-15.gif",
+        thumbnailUrl: "/static/background/g-15_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-8",
+        url: "/static/background/g-16.gif",
+        thumbnailUrl: "/static/background/g-16_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-9",
+        url: "/static/background/g-17.gif",
+        thumbnailUrl: "/static/background/g-17_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-10",
+        url: "/static/background/g-18.gif",
+        thumbnailUrl: "/static/background/g-18_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-11",
+        url: "/static/background/g-19.gif",
+        thumbnailUrl: "/static/background/g-19_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-12",
+        url: "/static/background/g-2.gif",
+        thumbnailUrl: "/static/background/g-2_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-13",
+        url: "/static/background/g-20.gif",
+        thumbnailUrl: "/static/background/g-20_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-14",
+        url: "/static/background/g-21.gif",
+        thumbnailUrl: "/static/background/g-21_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-15",
+        url: "/static/background/g-22.gif",
+        thumbnailUrl: "/static/background/g-22_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-16",
+        url: "/static/background/g-23.gif",
+        thumbnailUrl: "/static/background/g-23_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-17",
+        url: "/static/background/g-24.gif",
+        thumbnailUrl: "/static/background/g-24_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-18",
+        url: "/static/background/g-25.gif",
+        thumbnailUrl: "/static/background/g-25_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-19",
+        url: "/static/background/g-26.gif",
+        thumbnailUrl: "/static/background/g-26_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-20",
+        url: "/static/background/g-27.gif",
+        thumbnailUrl: "/static/background/g-27_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-21",
+        url: "/static/background/g-3.gif",
+        thumbnailUrl: "/static/background/g-3_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-22",
+        url: "/static/background/g-4.gif",
+        thumbnailUrl: "/static/background/g-4_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-23",
+        url: "/static/background/g-5.gif",
+        thumbnailUrl: "/static/background/g-5_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-24",
+        url: "/static/background/g-6.gif",
+        thumbnailUrl: "/static/background/g-6_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-25",
+        url: "/static/background/g-7.gif",
+        thumbnailUrl: "/static/background/g-7_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-26",
+        url: "/static/background/g-8.gif",
+        thumbnailUrl: "/static/background/g-8_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+      {
+        id: "gif-27",
+        url: "/static/background/g-9.gif",
+        thumbnailUrl: "/static/background/g-9_thumb.gif",
+        type: "image",
+        isBlob: false,
+        createdAt: Date.now(),
+      },
+    ],
     []
   );
 
@@ -503,25 +1270,28 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   );
 
   // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
-  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek, txtColor: string, bgColor: string) => {
-    const settings: CalendarSettings = {
-      type,
-      tileNumber: tiles,
-      weekendDays: weekend,
-      weekendColor: color,
-      firstDayOfWeek: firstDay,
-      textColor: txtColor,
-      backgroundColor: bgColor
-    };
-    localStorage.setItem("calendarSettings", JSON.stringify(settings));
-    localStorage.setItem("calendarType", type);
-    localStorage.setItem("tileNumber", JSON.stringify(tiles));
-    localStorage.setItem("weekendDays", JSON.stringify(weekend));
-    localStorage.setItem("weekendColor", color);
-    localStorage.setItem("firstDayOfWeek", firstDay);
-    localStorage.setItem("textColor", txtColor);
-    localStorage.setItem("backgroundColor", bgColor);
-  }, []);
+  const saveCalendarSettings = useCallback(
+    (type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek, txtColor: string, bgColor: string) => {
+      const settings: CalendarSettings = {
+        type,
+        tileNumber: tiles,
+        weekendDays: weekend,
+        weekendColor: color,
+        firstDayOfWeek: firstDay,
+        textColor: txtColor,
+        backgroundColor: bgColor,
+      };
+      localStorage.setItem("calendarSettings", JSON.stringify(settings));
+      localStorage.setItem("calendarType", type);
+      localStorage.setItem("tileNumber", JSON.stringify(tiles));
+      localStorage.setItem("weekendDays", JSON.stringify(weekend));
+      localStorage.setItem("weekendColor", color);
+      localStorage.setItem("firstDayOfWeek", firstDay);
+      localStorage.setItem("textColor", txtColor);
+      localStorage.setItem("backgroundColor", bgColor);
+    },
+    []
+  );
 
   useEffect(() => {
     saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor);
@@ -572,25 +1342,27 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const loadSavedBackgrounds = useCallback(async () => {
     try {
       const backgrounds = await backgroundsDB.getAllItems<StoredBackground>();
-      
+
       // Ensure all backgrounds have thumbnails
-      const updatedBackgrounds = await Promise.all(backgrounds.map(async (bg) => {
-        // Skip if already has thumbnail or is a color
-        if (bg.thumbnailUrl || bg.type === "color") {
+      const updatedBackgrounds = await Promise.all(
+        backgrounds.map(async (bg) => {
+          // Skip if already has thumbnail or is a color
+          if (bg.thumbnailUrl || bg.type === "color") {
+            return bg;
+          }
+
+          try {
+            // Generate thumbnail for images without thumbnails
+            bg.thumbnailUrl = await generateThumbnail(bg.url);
+            await backgroundsDB.saveItem(bg); // Update in database
+          } catch (error) {
+            console.error("Failed to generate thumbnail:", error);
+          }
+
           return bg;
-        }
-        
-        try {
-          // Generate thumbnail for images without thumbnails
-          bg.thumbnailUrl = await generateThumbnail(bg.url);
-          await backgroundsDB.saveItem(bg); // Update in database
-        } catch (error) {
-          console.error("Failed to generate thumbnail:", error);
-        }
-        
-        return bg;
-      }));
-      
+        })
+      );
+
       setSavedBackgrounds(updatedBackgrounds);
     } catch (error) {
       console.error("Error loading backgrounds:", error);
@@ -604,7 +1376,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const finalUrl = background.type === "image" && !isDataUrl(background.url) ? processImageUrl(background.url) : background.url;
 
       onSelectBackground(finalUrl);
-      
+
       // Save both the original URL and thumbnail URL to localStorage
       localStorage.setItem(
         storageKey,
@@ -643,7 +1415,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             try {
               // Generate thumbnail for the image
               const thumbnailUrl = await generateThumbnail(dataUrl);
-              
+
               const newBackground: StoredBackground = {
                 id: `bg-${Date.now()}`,
                 url: dataUrl,
@@ -666,7 +1438,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 type: "image",
                 createdAt: Date.now(),
               };
-              
+
               await backgroundsDB.saveItem(newBackground);
               await loadSavedBackgrounds();
               handleSelectBackground(newBackground);
@@ -692,18 +1464,18 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
       try {
         // Check URL validity without using constructor
-        const validUrl = urlInput.startsWith('http://') || urlInput.startsWith('https://');
+        const validUrl = urlInput.startsWith("http://") || urlInput.startsWith("https://");
         if (!validUrl || !/\.(jpg|jpeg|png|gif|webp)$/i.test(urlInput)) {
           alert("Please enter a valid image URL");
           return;
         }
 
         setIsUploading(true);
-        
+
         try {
           // Generate thumbnail from URL
           const thumbnailUrl = await generateThumbnail(urlInput);
-          
+
           const newBackground: StoredBackground = {
             id: `bg-${Date.now()}`,
             url: urlInput,
@@ -727,7 +1499,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             type: "image",
             createdAt: Date.now(),
           };
-          
+
           await backgroundsDB.saveItem(newBackground);
           await loadSavedBackgrounds();
           handleSelectBackground(newBackground);
@@ -773,7 +1545,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const bookmarkData = await bookmarksDB.getAllItems();
       const noteData = await notesDB.getAllItems();
       const todoData = await todosDB.getAllItems();
-      
+
       // Create combined data object including settings
       const exportData = {
         timestamp: Date.now(),
@@ -785,15 +1557,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         backgrounds: backgroundData,
         bookmarks: bookmarkData,
         notes: noteData,
-        todos: todoData
+        todos: todoData,
       };
-      
+
       // Create and download the file
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `z-assistant-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `z-assistant-data-${new Date().toISOString().split("T")[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -816,74 +1588,73 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           if (text) {
             try {
               const importData = JSON.parse(text);
-              
+
               // Validate data structure
-              if (!importData.settings || !importData.backgrounds || 
-                  !importData.bookmarks || !importData.notes || !importData.todos) {
+              if (!importData.settings || !importData.backgrounds || !importData.bookmarks || !importData.notes || !importData.todos) {
                 throw new Error("Invalid import file format");
               }
-              
+
               // Confirm with user
               if (!confirm("This will override your current settings and data. Continue?")) {
                 return;
               }
-              
+
               // Apply settings
               setCalendarType(importData.settings.calendarType);
               setTileNumber(importData.settings.tileNumber);
               if (importData.settings.selectedBackground) {
                 localStorage.setItem(storageKey, importData.settings.selectedBackground);
               }
-              
+
               // Import all data types
               // First clear existing data
               const backgroundItems = await backgroundsDB.getAllItems<StoredBackground>();
               for (const item of backgroundItems) {
                 await backgroundsDB.deleteItem(item.id);
               }
-              
+
               // Then import new data
               for (const bg of importData.backgrounds) {
                 await backgroundsDB.saveItem(bg);
               }
-              
+
               // Import bookmarks
               const bookmarkItems = await bookmarksDB.getAllItems();
               for (const item of bookmarkItems) {
-                await bookmarksDB.deleteItem((item as {id: string}).id);
+                await bookmarksDB.deleteItem((item as { id: string }).id);
               }
               for (const bookmark of importData.bookmarks) {
                 await bookmarksDB.saveItem(bookmark);
               }
-              
+
               // Import notes
               const noteItems = await notesDB.getAllItems();
               for (const item of noteItems) {
-                await notesDB.deleteItem((item as {id: string}).id);
+                await notesDB.deleteItem((item as { id: string }).id);
               }
               for (const note of importData.notes) {
                 await notesDB.saveItem(note);
               }
-              
+
               // Import todos
               const todoItems = await todosDB.getAllItems();
               for (const item of todoItems) {
-                await todosDB.deleteItem((item as {id: string}).id);
+                await todosDB.deleteItem((item as { id: string }).id);
               }
               for (const todo of importData.todos) {
                 await todosDB.saveItem(todo);
               }
-              
+
               // Reload backgrounds
               await loadSavedBackgrounds();
-              
+
               // Apply selected background if available
               if (importData.backgrounds.length > 0) {
                 onSelectBackground(importData.backgrounds[0].url);
               }
-              
+
               alert("Data successfully imported!");
-              
+
               // Reload the page to apply all changes
               window.location.reload();
             } catch (error) {
@@ -909,14 +1680,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     const newWeekendDays = weekendDays.includes(day)
       ? weekendDays.filter((d: DayOfWeek) => d !== day) // Remove day if already selected
       : weekendDays.length >= 3
-      ? weekendDays // If already at 3 days, don't add more
-      : [...weekendDays, day]; // Otherwise add the day
-      
+        ? weekendDays // If already at 3 days, don't add more
+        : [...weekendDays, day]; // Otherwise add the day
+
     if (weekendDays.length >= 3 && !weekendDays.includes(day)) {
       alert("You can select a maximum of 3 weekend days");
       return;
     }
-    
+
     setWeekendDays(newWeekendDays);
   };
 
@@ -975,7 +1746,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             minWidth: "250px",
             minHeight: "500px",
             backgroundColor,
-            color: textColor
+            color: textColor,
           }}
         >
           {/* ─── MAIN TABS ─── */}
@@ -1084,13 +1855,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               )}
             </>
           ) : (
-            // ─── SETTINGS TAB CONTENT ─── 
+            // ─── SETTINGS TAB CONTENT ───
             <div className="flex flex-col gap-4 overflow-auto flex-grow custom-scrollbar">
               {/* ─── SETTINGS SECTION ─── */}
               <div className="flex flex-col gap-4 w-full">
                 {/* Weekend Days Selector & Color */}
                 <div className="flex flex-col w-full gap-2">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>Weekend Days (select up to 3)</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                    Weekend Days (select up to 3)
+                  </label>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex justify-between gap-1">
                       {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
@@ -1106,14 +1879,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         </button>
                       ))}
                     </div>
-                    
+
                     <div className="relative" title="Weekend Color">
-                      <div 
+                      <div
                         className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
                         style={{ backgroundColor: weekendColor }}
                         onClick={() => setIsWeekendPickerOpen(!isWeekendPickerOpen)}
                       ></div>
-                      
+
                       {isWeekendPickerOpen && (
                         <div className="absolute right-0 mt-2 z-10">
                           <div className="fixed inset-0" onClick={() => setIsWeekendPickerOpen(false)} style={{ zIndex: -1 }}></div>
@@ -1130,22 +1903,24 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Text & Background Color Pickers */}
                 <div className="flex flex-col w-full gap-4">
                   {/* Text & Background Colors & Reset in one row */}
                   <div className="flex items-center gap-3">
                     {/* Text Color */}
                     <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>Text Color</label>
+                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>
+                        Text Color
+                      </label>
                       <div className="flex ml-auto items-center gap-2">
                         <div className="relative" title="Text Color">
-                          <div 
+                          <div
                             className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
                             style={{ backgroundColor: textColor }}
                             onClick={() => setIsTextPickerOpen(!isTextPickerOpen)}
                           ></div>
-                          
+
                           {isTextPickerOpen && (
                             <div className="absolute right-0 mt-2 z-10">
                               <div className="fixed inset-0" onClick={() => setIsTextPickerOpen(false)} style={{ zIndex: -1 }}></div>
@@ -1160,26 +1935,28 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                             </div>
                           )}
                         </div>
-                        <div 
-                          className="w-8 h-8 rounded flex items-center justify-center" 
+                        <div
+                          className="w-8 h-8 rounded flex items-center justify-center"
                           style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
                         >
                           T
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Background Color */}
                     <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>Background Color</label>
+                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>
+                        Background Color
+                      </label>
                       <div className="flex ml-auto items-center gap-2">
                         <div className="relative" title="Background Color">
-                          <div 
+                          <div
                             className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
                             style={{ backgroundColor }}
                             onClick={() => setIsPickerOpen(!isPickerOpen)}
                           ></div>
-                          
+
                           {isPickerOpen && (
                             <div className="absolute right-0 mt-2 z-10">
                               <div className="fixed inset-0" onClick={() => setIsPickerOpen(false)} style={{ zIndex: -1 }}></div>
@@ -1194,48 +1971,48 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                             </div>
                           )}
                         </div>
-                        <div 
-                          className="w-8 h-8 rounded flex items-center justify-center" 
+                        <div
+                          className="w-8 h-8 rounded flex items-center justify-center"
                           style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
                         >
                           Bg
                         </div>
                       </div>
                     </div>
-                                      {/* Reset Colors Button */}
-                  <button 
-                    className="px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors whitespace-nowrap"
-                    style={{ color: textColor }}
-                    onClick={() => {
-                      // Reset to default values
-                      const defaultTextColor = "#FFFFFF";
-                      const defaultBgColor = "rgba(0, 0, 0, 0.2)";
-                      
-                      // Update states
-                      setTextColor(defaultTextColor);
-                      setBackgroundColor(defaultBgColor);
-                      
-                      // Save to localStorage
-                      localStorage.setItem("textColor", defaultTextColor);
-                      localStorage.setItem("backgroundColor", defaultBgColor);
-                      
-                      console.log("Reset colors to defaults");
-                    }}
-                  >
-                    Reset Colors
-                  </button>
+                    {/* Reset Colors Button */}
+                    <button
+                      className="px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors whitespace-nowrap"
+                      style={{ color: textColor }}
+                      onClick={() => {
+                        // Reset to default values
+                        const defaultTextColor = "#FFFFFF";
+                        const defaultBgColor = "rgba(0, 0, 0, 0.2)";
+
+                        // Update states
+                        setTextColor(defaultTextColor);
+                        setBackgroundColor(defaultBgColor);
+
+                        // Save to localStorage
+                        localStorage.setItem("textColor", defaultTextColor);
+                        localStorage.setItem("backgroundColor", defaultBgColor);
+
+                        console.log("Reset colors to defaults");
+                      }}
+                    >
+                      Reset Colors
+                    </button>
                   </div>
-
-
                 </div>
 
                 {/* First Day of the Week selector */}
                 <div className="flex flex-col w-full">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>First Day of the Week</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                    First Day of the Week
+                  </label>
                   <Select
                     className="basic-single"
                     classNamePrefix="select"
-                    defaultValue={daysOptions.find(option => option.value === firstDayOfWeek)}
+                    defaultValue={daysOptions.find((option) => option.value === firstDayOfWeek)}
                     isDisabled={false}
                     isLoading={false}
                     isClearable={false}
@@ -1279,7 +2056,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
                 {/* Tile Number Input */}
                 <div className="flex flex-col w-full">
-                  <label className="text-sm mb-2" style={{ color: textColor }}>Tile Number</label>
+                  <label className="text-sm mb-2" style={{ color: textColor }}>
+                    Tile Number
+                  </label>
                   <input
                     type="number"
                     value={tileNumber}
@@ -1290,17 +2069,19 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     style={{ color: textColor }}
                   />
                 </div>
-                
+
                 {/* Export/Import Buttons */}
                 <div className="flex flex-col w-full gap-1 mt-1">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>Data Management</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                    Data Management
+                  </label>
                   <div className="flex w-full gap-2">
                     <button
                       className="flex-1 px-4 py-2 rounded-lg text-sm bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
                       onClick={handleExportData}
                       style={{ color: textColor }}
                     >
-                      <Download className="w-4 h-4" style={{ color: textColor }} /> 
+                      <Download className="w-4 h-4" style={{ color: textColor }} />
                       Export Data
                     </button>
                     <button
@@ -1311,14 +2092,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       <FileUp className="w-4 h-4" style={{ color: textColor }} />
                       Import Data
                     </button>
-                    <input 
-                      type="file" 
-                      ref={dataFileInputRef} 
-                      accept=".json" 
-                      onChange={handleImportData} 
-                      className="hidden"
-                      id="import-data-input"
-                    />
+                    <input type="file" ref={dataFileInputRef} accept=".json" onChange={handleImportData} className="hidden" id="import-data-input" />
                   </div>
                 </div>
               </div>
