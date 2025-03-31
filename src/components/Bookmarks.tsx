@@ -5,9 +5,9 @@ import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } 
 import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
+import { useCalendar } from "./Settings";
 
 // Constants
-const MAX_TILES = 56;
 const ASPECT_RATIO = "aspect-ratio";
 
 // --- Interfaces and Types ---
@@ -188,6 +188,9 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose 
 
 // --- Main Bookmarks Component ---
 export function Bookmarks() {
+  // Get tileNumber from CalendarContext
+  const { tileNumber } = useCalendar();
+  
   // --- State ---
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
   const [preferences, setPreferences] = useState<BookmarkPreferences>({ tiles: [] });
@@ -208,6 +211,7 @@ export function Bookmarks() {
   const folderContentRef = useRef<HTMLDivElement>(null);
   const tileGridRef = useRef<HTMLDivElement>(null);
   const sortableRef = useRef<Sortable | null>(null);
+  const menuButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // --- Effects ---
   // (Load initial data, save preferences, handle clicks outside - No changes here)
@@ -266,6 +270,12 @@ export function Bookmarks() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSelecting, activeFolderContent]);
 
+  // Ensure menuButtonRefs array has the correct length based on tileNumber
+  useEffect(() => {
+    // Reset the refs array with the right length when tileNumber changes
+    menuButtonRefs.current = Array(tileNumber).fill(null);
+  }, [tileNumber]);
+
   // Handle clicks outside the action menu to close it.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -299,7 +309,7 @@ export function Bookmarks() {
         }
       }
 
-      while (newTiles.length < MAX_TILES) {
+      while (newTiles.length < tileNumber) {
         newTiles.push(null);
       }
       console.log("Before setPreferences:", preferences.tiles);
@@ -309,7 +319,7 @@ export function Bookmarks() {
       }));
       console.log("After setPreferences:", newTiles);
     }, 200),
-    [preferences.tiles, tileGridRef]
+    [preferences.tiles, tileGridRef, tileNumber]
   );
 
   useEffect(() => {
@@ -576,13 +586,13 @@ export function Bookmarks() {
   };
 
   const renderTile = (tile: TileConfig | null, index: number) => {
-    const menuButtonRef = useRef<HTMLButtonElement>(null);
-
+    // Don't create a new ref inside the function; use the array of refs
     const handleMenuButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      if (menuButtonRef.current) {
-        setMenuButtonRect(menuButtonRef.current.getBoundingClientRect());
+      const currentButtonRef = menuButtonRefs.current[index];
+      if (currentButtonRef) {
+        setMenuButtonRect(currentButtonRef.getBoundingClientRect());
       }
       setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
     };
@@ -610,7 +620,7 @@ export function Bookmarks() {
     // --- Common Action Menu Button ---
     const actionMenuButton = (
       <button
-        ref={menuButtonRef}
+        ref={el => menuButtonRefs.current[index] = el}
         id={`menu-button-${tile.id}`}
         onClick={handleMenuButtonClick}
         className="p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
@@ -703,7 +713,7 @@ export function Bookmarks() {
   };
 
   // --- Main Tile Grid Rendering ---
-  const tiles = Array(MAX_TILES)
+  const tiles = Array(tileNumber)
     .fill(null)
     .map((_, i) => (preferences?.tiles ? preferences.tiles[i] : null));
 

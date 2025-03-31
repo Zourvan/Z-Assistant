@@ -289,7 +289,9 @@ const CalendarContext = createContext({
   weekendColor: "#1B4D3E",
   setWeekendColor: (_color: string) => {},
   firstDayOfWeek: "Saturday" as DayOfWeek,
-  setFirstDayOfWeek: (_day: DayOfWeek) => {}
+  setFirstDayOfWeek: (_day: DayOfWeek) => {},
+  tileNumber: 10,
+  setTileNumber: (_tiles: number) => {}
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -321,6 +323,15 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
       return "Saturday";
     }
   });
+  
+  const [tileNumber, setTileNumber] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("tileNumber");
+      return saved ? JSON.parse(saved) : 10;
+    } catch {
+      return 10;
+    }
+  });
 
   const updateCalendarType = (type: "gregorian" | "persian") => {
     setCalendarType(type);
@@ -341,6 +352,11 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     setFirstDayOfWeek(day);
     localStorage.setItem("firstDayOfWeek", day);
   };
+  
+  const updateTileNumber = (tiles: number) => {
+    setTileNumber(tiles);
+    localStorage.setItem("tileNumber", JSON.stringify(tiles));
+  };
 
   return (
     <CalendarContext.Provider 
@@ -352,7 +368,9 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         weekendColor,
         setWeekendColor: updateWeekendColor,
         firstDayOfWeek,
-        setFirstDayOfWeek: updateFirstDayOfWeek
+        setFirstDayOfWeek: updateFirstDayOfWeek,
+        tileNumber,
+        setTileNumber: updateTileNumber
       }}
     >
       {children}
@@ -379,7 +397,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [activeTab, setActiveTab] = useState<"images" | "colors">("images");
   const [mainTab, setMainTab] = useState<"settings" | "backgrounds">("settings");
   const [urlInput, setUrlInput] = useState("");
-  const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
 
@@ -388,7 +405,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Access calendar context
-  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek } = useCalendar();
+  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek, tileNumber, setTileNumber } = useCalendar();
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
@@ -695,14 +712,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   );
 
   const handleTileNumberChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = Number(event.target.value);
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = parseInt(e.target.value);
       if (value >= 10 && value <= 100) {
         setTileNumber(value);
         saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek); // Save settings immediately when tile number changes
       }
     },
-    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek]
+    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek, setTileNumber]
   );
 
   const handleExportData = useCallback(async () => {
