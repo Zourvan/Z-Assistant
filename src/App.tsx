@@ -90,9 +90,12 @@ function App() {
     <CalendarProvider>
       {/* <MarketBoard /> */}
       <div
-        className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-50" : "opacity-100"}`}
+        className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
         style={{
-          backgroundImage: background !== "none" ? `url(${background})` : "none"
+          backgroundImage: background !== "none" ? `url(${background})` : "none",
+          filter: isLoading
+            ? "saturate(1) contrast(1)" // در حال لود شدن
+            : "saturate(1.2) contrast(1.25)", // تنظیم شدت رنگ‌ها بعد از لود
         }}
       >
         {isLoading && (
