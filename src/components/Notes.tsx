@@ -114,7 +114,7 @@ const customStyles: StylesConfig<{ value: string; label: string; color: string }
 };
 
 export function Notes({}: NotesProps) {
-  const { calendarType } = useCalendar();
+  const { calendarType, textColor, backgroundColor } = useCalendar();
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -198,131 +198,104 @@ export function Notes({}: NotesProps) {
   };
 
   return (
-    <div className="bg-black/20 backdrop-blur-md rounded-xl p-4">
-      <h2 className="text-white text-lg font-medium mb-2">Notes</h2>
-
-      <form onSubmit={addNote} className="mb-2">
-        <div className="flex gap-1 mb-1 items-start">
-          <textarea
+    <div className="backdrop-blur-md rounded-xl p-4 shadow-lg" style={{ backgroundColor, color: textColor }}>
+      <h2 className="text-[3.5vh] font-light mb-4" style={{ color: textColor }}>Notes</h2>
+      
+      <form onSubmit={addNote} className="mb-4 flex gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            placeholder="Write a note..."
-            className={`w-64 bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[80px] resize-none ${
-              isPersian(newNote) ? "rtl" : "ltr"
-            }`}
+            placeholder="Add a note..."
+            className="w-full px-3 py-2 bg-white/10 rounded-lg placeholder-white/40 focus:outline-none"
+            style={{ color: textColor }}
           />
-          <div className="flex flex-col gap-2">
-            <button
-              type="submit"
-              className="flex items-center justify-center w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded-lg transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-            <Select
-              value={selectedColor}
-              onChange={(option) => {
-                if (option) setSelectedColor(option);
-              }}
-              options={colorOptions}
-              components={{ Option: ColourOption, SingleValue: ColourValue }}
-              styles={customStyles}
-              isSearchable={false}
-              menuPlacement="auto"
-            />
-          </div>
         </div>
+        <Select
+          options={colorOptions}
+          value={selectedColor}
+          onChange={(option) => option && setSelectedColor(option)}
+          components={{ Option: ColourOption, SingleValue: ColourValue }}
+          styles={customStyles}
+          menuPortalTarget={document.body}
+        />
+        <button type="submit" className="px-3 py-2 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors">
+          <Plus className="w-5 h-5" style={{ color: textColor }} />
+        </button>
       </form>
 
-      <div className="space-y-3 max-h-[20vh] overflow-y-auto custom-scrollbar">
+      <div className="space-y-3 overflow-auto max-h-[calc(100vh-15rem)] custom-scrollbar">
         {notes.map((note) => (
           <div
             key={note.id}
-            className="bg-black/10 rounded-lg p-3 group relative"
+            className={`p-3 rounded-lg ${
+              isPersian(note.text) ? "rtl" : "ltr"
+            }`}
             style={{
-              fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit",
               backgroundColor: note.color,
+              color: textColor
             }}
           >
             {editingNoteId === note.id ? (
-              <>
+              <div className="flex flex-col gap-2">
                 <textarea
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
-                  className={`w-full bg-black/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-white/30 ${
-                    isPersian(editingText) ? "rtl" : "ltr"
-                  }`}
+                  className="w-full px-2 py-1 bg-white/20 rounded-lg focus:outline-none resize-none"
+                  rows={3}
+                  style={{ color: textColor }}
                 />
-                <div className="mt-2 flex justify-center gap-2 items-center">
-                  <Select
-                    value={editingColor}
-                    onChange={(option) => {
-                      if (option) setEditingColor(option);
-                    }}
-                    options={colorOptions}
-                    components={{ Option: ColourOption, SingleValue: ColourValue }}
-                    styles={customStyles}
-                    isSearchable={false}
-                    menuPlacement="auto"
-                    menuPosition="fixed"
-                    menuPortalTarget={document.body}
-                  />
-                  <button
-                    onClick={saveEditedNote}
-                    className="flex items-center justify-center w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded transition-all"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={cancelEditing}
-                    className="flex items-center justify-center w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded transition-all"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className={`text-white whitespace-pre-wrap break-words mb-1 ${isPersian(note.text) ? "rtl" : "ltr"}`}>{note.text}</div>
                 <div className="flex justify-between items-center">
-                  {isPersian(note.text) ? (
-                    <>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => deleteNote(note.id)}
-                          className="text-white opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => startEditing(note)}
-                          className="text-white opacity-0 group-hover:opacity-100 hover:text-blue-400 transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="text-white/50 text-sm">{formatDate(note.createdAt)}</div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-white/50 text-sm">{formatDate(note.createdAt)}</div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEditing(note)}
-                          className="text-white opacity-0 group-hover:opacity-100 hover:text-blue-400 transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => deleteNote(note.id)}
-                          className="text-white opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex gap-1 items-center">
+                    <Select
+                      options={colorOptions}
+                      value={editingColor}
+                      onChange={(option) => option && setEditingColor(option)}
+                      components={{ Option: ColourOption, SingleValue: ColourValue }}
+                      styles={customStyles}
+                      menuPortalTarget={document.body}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={cancelEditing}
+                      className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
+                    >
+                      <X className="w-4 h-4" style={{ color: textColor }} />
+                    </button>
+                    <button
+                      onClick={saveEditedNote}
+                      className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
+                    >
+                      <CheckCircle2 className="w-4 h-4" style={{ color: textColor }} />
+                    </button>
+                  </div>
                 </div>
-              </>
+              </div>
+            ) : (
+              <div className="flex justify-between gap-2">
+                <div className="flex flex-col flex-1">
+                  <p className="break-words">{note.text}</p>
+                  <span className="text-xs opacity-70 mt-1">
+                    {formatDate(note.createdAt)}
+                  </span>
+                </div>
+                <div className="flex gap-2 items-start shrink-0">
+                  <button
+                    onClick={() => startEditing(note)}
+                    className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" style={{ color: textColor }} />
+                  </button>
+                  <button
+                    onClick={() => deleteNote(note.id)}
+                    className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
+                  >
+                    <X className="w-3.5 h-3.5" style={{ color: textColor }} />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         ))}

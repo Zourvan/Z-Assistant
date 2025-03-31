@@ -39,13 +39,15 @@ interface SettingsProps {
   calendarType: "gregorian" | "persian";
 }
 
-// Calendar settings type used for saving in localStorage
+// Interface for CalendarSettings
 interface CalendarSettings {
   type: "gregorian" | "persian";
   tileNumber: number;
   weekendDays: DayOfWeek[];
   weekendColor: string;
   firstDayOfWeek: DayOfWeek;
+  textColor: string;
+  backgroundColor: string;
 }
 
 // Type for stored background data
@@ -291,7 +293,11 @@ const CalendarContext = createContext({
   firstDayOfWeek: "Saturday" as DayOfWeek,
   setFirstDayOfWeek: (_day: DayOfWeek) => {},
   tileNumber: 10,
-  setTileNumber: (_tiles: number) => {}
+  setTileNumber: (_tiles: number) => {},
+  textColor: "#FFFFFF",
+  setTextColor: (_color: string) => {},
+  backgroundColor: "rgba(0, 0, 0, 0.2)",
+  setBackgroundColor: (_color: string) => {}
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -332,6 +338,16 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
       return 10;
     }
   });
+  
+  const [textColor, setTextColor] = useState<string>(() => {
+    const saved = localStorage.getItem("textColor");
+    return saved || "#FFFFFF";
+  });
+  
+  const [backgroundColor, setBackgroundColor] = useState<string>(() => {
+    const saved = localStorage.getItem("backgroundColor");
+    return saved || "rgba(0, 0, 0, 0.2)";
+  });
 
   const updateCalendarType = (type: "gregorian" | "persian") => {
     setCalendarType(type);
@@ -357,6 +373,16 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     setTileNumber(tiles);
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
   };
+  
+  const updateTextColor = (color: string) => {
+    setTextColor(color);
+    localStorage.setItem("textColor", color);
+  };
+  
+  const updateBackgroundColor = (color: string) => {
+    setBackgroundColor(color);
+    localStorage.setItem("backgroundColor", color);
+  };
 
   return (
     <CalendarContext.Provider 
@@ -370,7 +396,11 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         firstDayOfWeek,
         setFirstDayOfWeek: updateFirstDayOfWeek,
         tileNumber,
-        setTileNumber: updateTileNumber
+        setTileNumber: updateTileNumber,
+        textColor,
+        setTextColor: updateTextColor,
+        backgroundColor,
+        setBackgroundColor: updateBackgroundColor
       }}
     >
       {children}
@@ -405,7 +435,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Access calendar context
-  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek, tileNumber, setTileNumber } = useCalendar();
+  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek, tileNumber, setTileNumber, textColor, setTextColor, backgroundColor, setBackgroundColor } = useCalendar();
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
@@ -469,13 +499,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   );
 
   // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
-  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek) => {
+  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek, txtColor: string, bgColor: string) => {
     const settings: CalendarSettings = {
       type,
       tileNumber: tiles,
       weekendDays: weekend,
       weekendColor: color,
-      firstDayOfWeek: firstDay
+      firstDayOfWeek: firstDay,
+      textColor: txtColor,
+      backgroundColor: bgColor
     };
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
     localStorage.setItem("calendarType", type);
@@ -483,11 +515,13 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     localStorage.setItem("weekendDays", JSON.stringify(weekend));
     localStorage.setItem("weekendColor", color);
     localStorage.setItem("firstDayOfWeek", firstDay);
+    localStorage.setItem("textColor", txtColor);
+    localStorage.setItem("backgroundColor", bgColor);
   }, []);
 
   useEffect(() => {
-    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek);
-  }, [tileNumber, calendarType, weekendDays, weekendColor, firstDayOfWeek, saveCalendarSettings]);
+    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor);
+  }, [tileNumber, calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, saveCalendarSettings]);
 
   useEffect(() => {
     const loadCalendarSettings = async () => {
@@ -500,6 +534,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           if (settings.weekendDays) setWeekendDays(settings.weekendDays);
           if (settings.weekendColor) setWeekendColor(settings.weekendColor);
           if (settings.firstDayOfWeek) setFirstDayOfWeek(settings.firstDayOfWeek);
+          if (settings.textColor) setTextColor(settings.textColor);
+          if (settings.backgroundColor) setBackgroundColor(settings.backgroundColor);
         } else {
           // Set defaults
           setCalendarType("gregorian");
@@ -507,7 +543,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           setWeekendDays(["Friday"]);
           setWeekendColor("#1B4D3E");
           setFirstDayOfWeek("Saturday");
-          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday");
+          setTextColor("#FFFFFF");
+          setBackgroundColor("rgba(0, 0, 0, 0.2)");
+          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)");
         }
       } catch (error) {
         console.error("Error loading calendar settings:", error);
@@ -517,7 +555,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         setWeekendDays(["Friday"]);
         setWeekendColor("#1B4D3E");
         setFirstDayOfWeek("Saturday");
-        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday");
+        setTextColor("#FFFFFF");
+        setBackgroundColor("rgba(0, 0, 0, 0.2)");
+        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)");
       }
     };
 
@@ -716,10 +756,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const value = parseInt(e.target.value);
       if (value >= 10 && value <= 100) {
         setTileNumber(value);
-        saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek); // Save settings immediately when tile number changes
+        saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor); // Save settings immediately when tile number changes
       }
     },
-    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek, setTileNumber]
+    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, setTileNumber]
   );
 
   const handleExportData = useCallback(async () => {
@@ -756,7 +796,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       console.error("Error exporting data:", e);
       alert("Error exporting data. Please try again.");
     }
-  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek]);
+  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor]);
 
   const handleImportData = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -916,19 +956,22 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-black/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
+        style={{ backgroundColor, color: textColor }}
       >
-        <SlidersHorizontal className="w-5 h-5 text-white" />
+        <SlidersHorizontal className="w-5 h-5" style={{ color: textColor }} />
       </button>
 
       {isOpen && (
         <div
           ref={selectorRef}
-          className="mt-2 bg-black backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
+          className="mt-2 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
           style={{
             width: "50vw",
             height: "80vh",
             minWidth: "250px",
             minHeight: "500px",
+            backgroundColor,
+            color: textColor
           }}
         >
           {/* ─── MAIN TABS ─── */}
@@ -937,18 +980,20 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               onClick={() => setMainTab("settings")}
               className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
                 mainTab === "settings" ? "bg-white/30" : "hover:bg-white/20"
-              } transition-colors text-white`}
+              } transition-colors`}
+              style={{ color: textColor }}
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4" style={{ color: textColor }} />
               Settings
             </button>
             <button
               onClick={() => setMainTab("backgrounds")}
               className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
                 mainTab === "backgrounds" ? "bg-white/30" : "hover:bg-white/20"
-              } transition-colors text-white`}
+              } transition-colors`}
+              style={{ color: textColor }}
             >
-              <Image className="w-4 h-4" />
+              <Image className="w-4 h-4" style={{ color: textColor }} />
               Backgrounds
             </button>
           </div>
@@ -961,18 +1006,20 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                   onClick={() => setActiveTab("images")}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
                     activeTab === "images" ? "bg-white/30" : "hover:bg-white/20"
-                  } transition-colors text-white`}
+                  } transition-colors`}
+                  style={{ color: textColor }}
                 >
-                  <Image className="w-4 h-4" />
+                  <Image className="w-4 h-4" style={{ color: textColor }} />
                   Images
                 </button>
                 <button
                   onClick={() => setActiveTab("colors")}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
                     activeTab === "colors" ? "bg-white/30" : "hover:bg-white/20"
-                  } transition-colors text-white`}
+                  } transition-colors`}
+                  style={{ color: textColor }}
                 >
-                  <Palette className="w-4 h-4" />
+                  <Palette className="w-4 h-4" style={{ color: textColor }} />
                   Colors
                 </button>
               </div>
@@ -1039,7 +1086,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               <div className="flex flex-col gap-4 w-full">
                 {/* Weekend Days Selector & Color */}
                 <div className="flex flex-col w-full gap-2">
-                  <label className="text-white text-sm mb-0.5">Weekend Days (select up to 3)</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>Weekend Days (select up to 3)</label>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex justify-between gap-1">
                       {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
@@ -1047,8 +1094,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                           key={day}
                           onClick={() => handleWeekendDayToggle(day as DayOfWeek)}
                           className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
-                            weekendDays.includes(day as DayOfWeek) ? "bg-green-500 text-white" : "bg-white/30 text-white"
+                            weekendDays.includes(day as DayOfWeek) ? "bg-green-500" : "bg-white/30"
                           } hover:bg-white/40 transition-colors`}
+                          style={{ color: textColor }}
                         >
                           {day.slice(0, 2)}
                         </button>
@@ -1064,10 +1112,94 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     />
                   </div>
                 </div>
+                
+                {/* Text & Background Color Pickers */}
+                <div className="flex flex-col w-full gap-4">
+                  {/* Text & Background Colors in one row */}
+                  <div className="flex items-center gap-4">
+                    {/* Text Color */}
+                    <div className="flex items-center gap-2 flex-1">
+                      <label className="text-sm" style={{ color: textColor }}>Text Color</label>
+                      <div className="flex ml-auto items-center gap-2">
+                        <input
+                          type="color"
+                          value={textColor}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setTextColor(newColor);
+                            console.log("Saving text color:", newColor);
+                          }}
+                          className="w-10 h-10 rounded cursor-pointer bg-transparent"
+                          title="Text Color"
+                        />
+                        <div 
+                          className="w-8 h-8 rounded flex items-center justify-center" 
+                          style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
+                        >
+                          T
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Background Color */}
+                    <div className="flex items-center gap-2 flex-1">
+                      <label className="text-sm" style={{ color: textColor }}>Background Color</label>
+                      <div className="flex ml-auto items-center gap-2">
+                        <input
+                          type="color"
+                          value={backgroundColor.startsWith("rgba") ? "#000000" : backgroundColor}
+                          onChange={(e) => {
+                            const newColor = e.target.value;
+                            setBackgroundColor(newColor);
+                            console.log("Saving background color:", newColor);
+                          }}
+                          className="w-10 h-10 rounded cursor-pointer bg-transparent"
+                          title="Background Color"
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={backgroundColor.startsWith("rgba") ? 
+                            parseFloat(backgroundColor.split(',')[3].replace(')', '')) * 100 : 100}
+                          onChange={(e) => {
+                            const opacity = parseInt(e.target.value) / 100;
+                            let newColor;
+                            
+                            if (backgroundColor.startsWith("rgba")) {
+                              // Extract RGB values from current rgba
+                              const parts = backgroundColor.split(',');
+                              const r = parts[0].split('(')[1];
+                              const g = parts[1];
+                              const b = parts[2];
+                              newColor = `rgba(${r},${g},${b},${opacity})`;
+                            } else {
+                              // Convert hex to rgba
+                              const hex = backgroundColor.replace("#", "");
+                              const r = parseInt(hex.substring(0, 2), 16);
+                              const g = parseInt(hex.substring(2, 4), 16);
+                              const b = parseInt(hex.substring(4, 6), 16);
+                              newColor = `rgba(${r},${g},${b},${opacity})`;
+                            }
+                            
+                            setBackgroundColor(newColor);
+                            console.log("Saving background color with opacity:", newColor);
+                          }}
+                          className="w-16 h-4"
+                        />
+                        <div 
+                          className="w-8 h-8 rounded" 
+                          style={{ backgroundColor: backgroundColor }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* First Day of the Week selector */}
                 <div className="flex flex-col w-full">
-                  <label className="text-white text-sm mb-0.5">First Day of the Week</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>First Day of the Week</label>
                   <Select
                     className="basic-single"
                     classNamePrefix="select"
@@ -1089,32 +1221,25 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       }
                     }}
                   />
-                  <div
-                    style={{
-                      color: "hsl(0, 100%, 40%)",
-                      display: "inline-block",
-                      fontSize: 12,
-                      fontStyle: "italic",
-                      marginTop: "1em",
-                    }}
-                  ></div>
                 </div>
 
                 {/* Calendar Type Buttons */}
                 <div className="flex w-full gap-2">
                   <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm ${
                       calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
                     }`}
                     onClick={() => setCalendarType("gregorian")}
+                    style={{ color: textColor }}
                   >
                     Gregorian
                   </button>
                   <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm ${
                       calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
                     }`}
                     onClick={() => setCalendarType("persian")}
+                    style={{ color: textColor }}
                   >
                     Persian
                   </button>
@@ -1122,33 +1247,36 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
                 {/* Tile Number Input */}
                 <div className="flex flex-col w-full">
-                  <label className="text-white text-sm mb-2">Tile Number</label>
+                  <label className="text-sm mb-2" style={{ color: textColor }}>Tile Number</label>
                   <input
                     type="number"
                     value={tileNumber}
                     onChange={handleTileNumberChange}
                     min="10"
                     max="100"
-                    className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white outline-none placeholder-white/50"
+                    className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm outline-none"
+                    style={{ color: textColor }}
                   />
                 </div>
                 
                 {/* Export/Import Buttons */}
                 <div className="flex flex-col w-full gap-2 mt-4">
-                  <label className="text-white text-sm mb-0.5">Data Management</label>
+                  <label className="text-sm mb-0.5" style={{ color: textColor }}>Data Management</label>
                   <div className="flex w-full gap-2">
                     <button
-                      className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 rounded-lg text-sm bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
                       onClick={handleExportData}
+                      style={{ color: textColor }}
                     >
-                      <Download className="w-4 h-4" /> 
+                      <Download className="w-4 h-4" style={{ color: textColor }} /> 
                       Export Data
                     </button>
                     <button
-                      className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
                       onClick={() => dataFileInputRef.current?.click()}
+                      style={{ color: textColor }}
                     >
-                      <FileUp className="w-4 h-4" />
+                      <FileUp className="w-4 h-4" style={{ color: textColor }} />
                       Import Data
                     </button>
                     <input 

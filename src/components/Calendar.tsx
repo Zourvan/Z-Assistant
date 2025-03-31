@@ -16,13 +16,15 @@ const persianDayMap: Record<string, string> = {
 };
 
 export function Calendar() {
-  const { calendarType, weekendDays, weekendColor, firstDayOfWeek } = useCalendar();
+  const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // Debug logs
   console.log("Calendar Component - weekendDays:", weekendDays);
   console.log("Calendar Component - weekendColor:", weekendColor);
   console.log("Calendar Component - firstDayOfWeek:", firstDayOfWeek);
+  console.log("Calendar Component - textColor:", textColor);
+  console.log("Calendar Component - backgroundColor:", backgroundColor);
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
@@ -156,20 +158,33 @@ export function Calendar() {
   };
 
   return (
-    <div className={`bg-black/20 backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}>
+    <div 
+      className={`backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}
+      style={{ backgroundColor, color: textColor }}
+    >
       <div className={`flex justify-between items-center mb-4 ${calendarType === "persian" ? "flex-row-reverse" : ""}`}>
-        <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Previous month">
+        <button 
+          onClick={handlePreviousMonth} 
+          className="p-2 rounded-full hover:bg-black/10" 
+          style={{ color: textColor }}
+          aria-label="Previous month"
+        >
           {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
-        <h2 className="text-white text-xl font-medium text-center">{formatMonth()}</h2>
+        <h2 className="text-xl font-medium text-center" style={{ color: textColor }}>{formatMonth()}</h2>
 
-        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Next month">
+        <button 
+          onClick={handleNextMonth} 
+          className="p-2 rounded-full hover:bg-black/10" 
+          style={{ color: textColor }}
+          aria-label="Next month"
+        >
           {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-white">
+      <div className="grid grid-cols-7 gap-1">
         {/* Week day headers */}
         {weekDayLabels.map((label, index) => {
           const dayName = orderedDayNames[index];
@@ -179,7 +194,7 @@ export function Calendar() {
             <div 
               key={`header-${index}`} 
               className="text-center text-[2vh] font-extrabold p-2"
-              style={isWeekendDay ? { color: weekendColor } : {}}
+              style={{ color: isWeekendDay ? weekendColor : textColor }}
             >
               {label}
             </div>
@@ -197,7 +212,10 @@ export function Calendar() {
                 className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
                   item.isCurrentDay ? "bg-white/30 " : item.isWeekendDay ? "hover:bg-opacity-50 " : "hover:bg-white/0"
                 }`}
-                style={item.isWeekendDay ? { backgroundColor: `${weekendColor}33` } : {}}
+                style={{
+                  color: textColor,
+                  backgroundColor: item.isWeekendDay ? `${weekendColor}33` : 'transparent'
+                }}
               >
                 {item.displayText}
               </div>

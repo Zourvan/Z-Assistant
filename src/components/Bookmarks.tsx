@@ -189,7 +189,7 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose 
 // --- Main Bookmarks Component ---
 export function Bookmarks() {
   // Get tileNumber from CalendarContext
-  const { tileNumber } = useCalendar();
+  const { tileNumber, textColor, backgroundColor } = useCalendar();
   
   // --- State ---
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
@@ -606,12 +606,13 @@ export function Bookmarks() {
       return (
         <div
           id={`tile-empty-${index}`}
-          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 bg-black/10 backdrop-blur-md rounded-xl group cursor-pointer`}
+          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl group cursor-pointer`}
           key={`tile-empty-${index}`}
           data-tile-index={index}
+          style={{ backgroundColor }}
         >
           <button onClick={() => openSelector(index)} className="flex flex-col items-center p-2 hover:bg-black/10 rounded-lg transition-colors">
-            <Plus className="w-6 h-6 text-white/60 mb-1" />
+            <Plus className="w-6 h-6 mb-1" style={{ color: textColor }} />
           </button>
         </div>
       );

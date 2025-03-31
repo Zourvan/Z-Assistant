@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Select, { StylesConfig } from "react-select";
 import { CheckCircle2, Circle, Plus, X, Edit2 } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
+import { useCalendar } from "./Settings";
 import "./TodoList.css";
 
 // تنظیمات IndexedDB برای مدیریت تسک‌ها
@@ -66,6 +67,7 @@ interface EditingTodo {
 }
 
 export function TodoList() {
+  const { textColor, backgroundColor } = useCalendar();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodo, setNewTodo] = useState("");
   const [newEmoji, setNewEmoji] = useState("🚀");
@@ -172,8 +174,8 @@ export function TodoList() {
   };
 
   return (
-    <div className={` bg-black/20 backdrop-blur-md rounded-xl p-4 overflow-hidden`}>
-      <h4 className="text-white text-lg font-medium mb-0.5">Tasks</h4>
+    <div className="backdrop-blur-md rounded-xl p-4 shadow-lg overflow-hidden" style={{ backgroundColor, color: textColor }}>
+      <h4 className="text-lg font-medium mb-2">Tasks</h4>
 
       <form onSubmit={addTodo} className="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-2 bg-black/10">
         <input
@@ -181,9 +183,10 @@ export function TodoList() {
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
           placeholder="Add a new task..."
-          className={`flex-1 min-w-[80px] bg-white/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
+          className={`flex-1 min-w-[80px] bg-white/20 placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
             isPersian(newTodo) ? "rtl" : "ltr"
           }`}
+          style={{ color: textColor }}
         />
         <Select
           className="basic-single"
@@ -212,9 +215,13 @@ export function TodoList() {
         </button>
       </form>
 
-      <div className="space-y-2 max-h-[10vw] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar">
         {todos.map((todo) => (
-          <div key={todo.id} className={`flex items-center gap-2 rounded-lg p-2 ${todo.completed ? "bg-green-500/10" : "bg-white/10"}`}>
+          <div 
+            key={todo.id} 
+            className={`flex items-center gap-2 rounded-lg p-2 ${todo.completed ? "bg-green-500/10" : "bg-white/10"}`}
+            style={{ color: textColor }}
+          >
             {editingTodo?.id !== todo.id && (
               <button onClick={() => toggleTodo(todo.id)} className="text-white hover:text-white/80 transition-colors">
                 {todo.completed ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
@@ -250,6 +257,7 @@ export function TodoList() {
                   className={`flex-1 bg-black/20 text-white placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
                     isPersian(editingTodo.text) ? "rtl" : "ltr"
                   }`}
+                  style={{ color: textColor }}
                 />
                 <button onClick={saveEditedTodo} className="text-white hover:text-green-500 transition-colors">
                   <CheckCircle2 className="w-4 h-4" />
@@ -260,7 +268,7 @@ export function TodoList() {
               </>
             ) : (
               <>
-                <span className={`flex-1 text-white ${todo.completed ? "line-through opacity-50" : ""} ${isPersian(todo.text) ? "rtl" : "ltr"}`}>
+                <span className={`flex-1 text-white ${todo.completed ? "line-through opacity-50" : ""} ${isPersian(todo.text) ? "rtl" : "ltr"}`} style={{ color: textColor }}>
                   {todo.emoji} {todo.text}
                 </span>
                 <button onClick={() => startEditing(todo)} className="text-white hover:text-blue-400 transition-colors">

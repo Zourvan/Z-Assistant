@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useCalendar } from "./Settings";
 
 export function Clock() {
-  const { calendarType } = useCalendar();
+  const { calendarType, textColor, backgroundColor } = useCalendar();
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -59,13 +59,15 @@ export function Clock() {
 
   return (
     <div
-      className="text-white text-center"
+      className="text-center backdrop-blur-md rounded-xl p-4 shadow-lg"
       style={{
         fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit",
+        backgroundColor: backgroundColor,
+        color: textColor
       }}
     >
       <div className="text-[6vh] font-light">{formatTime()}</div>
-      <div className="text-[4.5vh] opacity-80 ">{formatDate()}</div>
+      <div className="text-[4.5vh] opacity-80">{formatDate()}</div>
       <div className="text-[3vh] opacity-80">{formatDateInvert()}</div>
     </div>
   );
