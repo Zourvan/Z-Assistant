@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
-import { useCalendar } from "./Settings";
+import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function Calendar() {
-  const { calendarType } = useCalendar();
+  const { calendarType, weekendDays, weekendColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // Debug logs
+  console.log("Calendar Component - weekendDays:", weekendDays);
+  console.log("Calendar Component - weekendColor:", weekendColor);
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
@@ -28,16 +32,37 @@ export function Calendar() {
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   const weekDays = calendarType === "gregorian" ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["ش", "ی", "د", "س", "چ", "پ", "ج"];
-
-  const isWeekend = (dayIndex: number) => {
-    if (calendarType === "gregorian") {
-      // Saturday (6) and Sunday (0)
-      return dayIndex === 0 || dayIndex === 6;
-    } else {
-      // Thursday (4) and Friday (5) for Persian calendar
-      return dayIndex === 5 || dayIndex === 6;
-    }
+  
+  // Map day index (0-6) to day name for weekend check
+  const dayIndexToName: Record<number, DayOfWeek> = {
+    0: "Sunday",
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday",
+    6: "Saturday"
   };
+
+  // Check if a day index is a weekend based on settings
+  const isWeekend = (dayIndex: number) => {
+    const dayName = dayIndexToName[dayIndex];
+    const result = weekendDays.includes(dayName);
+    
+    // Add debugging information
+    console.log(`isWeekend check - Day Index: ${dayIndex}, Day Name: ${dayName}, Is Weekend: ${result}`);
+    return result;
+  };
+
+  // Add a debugging function to check all days
+  useEffect(() => {
+    console.log("Calendar days status:");
+    for (let i = 0; i < 7; i++) {
+      const dayName = dayIndexToName[i];
+      const isWeekendDay = weekendDays.includes(dayName);
+      console.log(`Day ${i} (${dayName}): ${isWeekendDay ? "Weekend" : "Weekday"}`);
+    }
+  }, [weekendDays]);
 
   const getDayIndex = (day: number) => {
     const date = dateLib.setDate(firstDayOfMonth, day);
@@ -88,7 +113,11 @@ export function Calendar() {
 
       <div className="grid grid-cols-7 gap-1 text-white">
         {weekDays.map((day, index) => (
-          <div key={day} className={`text-center text-[2vh] font-extrabold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}>
+          <div 
+            key={day} 
+            className={`text-center text-[2vh] font-extrabold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}
+            style={isWeekend(index) ? { color: weekendColor } : {}}
+          >
             {day}
           </div>
         ))}
@@ -103,8 +132,9 @@ export function Calendar() {
             <div
               key={day}
               className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
-                day === currentDay ? "bg-white/30 " : isWeekend(dayIndex) ? "bg-green-500/20 hover:bg-green-500/30 " : "hover:bg-white/0"
+                day === currentDay ? "bg-white/30 " : isWeekend(dayIndex) ? "hover:bg-opacity-50 " : "hover:bg-white/0"
               }`}
+              style={isWeekend(dayIndex) ? { backgroundColor: `${weekendColor}33` } : {}}
             >
               {calendarType === "persian" ? day.toLocaleString("fa-IR") : day}
             </div>

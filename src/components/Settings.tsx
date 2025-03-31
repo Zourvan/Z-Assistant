@@ -43,6 +43,8 @@ interface SettingsProps {
 interface CalendarSettings {
   type: "gregorian" | "persian";
   tileNumber: number;
+  weekendDays: DayOfWeek[];
+  weekendColor: string;
 }
 
 // Type for stored background data
@@ -52,6 +54,7 @@ export interface StoredBackground {
   isBlob: boolean;
   type: "image" | "color";
   createdAt: number;
+  thumbnailUrl?: string;
 }
 
 //
@@ -148,6 +151,66 @@ const processImageUrl = (url: string, width = 1920, height = 1080) => {
   }
 };
 
+// Generate thumbnail from image source (data URL, file or URL)
+const generateThumbnail = (src: string, maxWidth = 200, maxHeight = 200): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (isColor(src)) {
+      // For color backgrounds, just return the original color
+      resolve(src);
+      return;
+    }
+
+    // Create an HTMLImageElement instead of using the Image constructor
+    const img = document.createElement('img');
+    img.crossOrigin = "anonymous";
+    
+    img.onload = () => {
+      try {
+        // Calculate new dimensions while maintaining aspect ratio
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round(height * (maxWidth / width));
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round(width * (maxHeight / height));
+            height = maxHeight;
+          }
+        }
+        
+        // Create canvas and draw resized image
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Generate thumbnail as data URL
+        const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        resolve(thumbnailDataUrl);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    
+    img.onerror = () => {
+      reject(new Error('Failed to load image'));
+    };
+    
+    img.src = src;
+  });
+};
+
 //
 // ─── SUB-COMPONENT: BackgroundThumbnail ──────────────────────────────────────────
 //
@@ -159,6 +222,9 @@ const BackgroundThumbnail: React.FC<{
 }> = ({ bg, onSelect, onRemove }) => {
   const [isLoading, setIsLoading] = useState(bg.type === "image");
   const [error, setError] = useState(false);
+  
+  // Use thumbnailUrl from the background object if it exists, otherwise use url
+  const displayUrl = bg.thumbnailUrl || bg.url;
 
   return (
     <div className="relative group aspect-square">
@@ -180,7 +246,7 @@ const BackgroundThumbnail: React.FC<{
               </div>
             ) : (
               <img
-                src={bg.url}
+                src={displayUrl}
                 alt="Background option"
                 className={`w-full h-full object-cover transition-opacity duration-300 ${isLoading ? "opacity-0" : "opacity-100"}`}
                 loading="lazy"
@@ -217,6 +283,10 @@ const BackgroundThumbnail: React.FC<{
 const CalendarContext = createContext({
   calendarType: "gregorian" as "gregorian" | "persian",
   setCalendarType: (_type: "gregorian" | "persian") => {},
+  weekendDays: ["Friday"] as DayOfWeek[],
+  setWeekendDays: (_days: DayOfWeek[]) => {},
+  weekendColor: "#1B4D3E",
+  setWeekendColor: (_color: string) => {}
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -226,12 +296,49 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     return saved === "persian" || saved === "gregorian" ? saved : "gregorian";
   });
 
+  const [weekendDays, setWeekendDays] = useState<DayOfWeek[]>(() => {
+    try {
+      const saved = localStorage.getItem("weekendDays");
+      return saved ? JSON.parse(saved) : ["Friday"];
+    } catch {
+      return ["Friday"];
+    }
+  });
+
+  const [weekendColor, setWeekendColor] = useState<string>(() => {
+    const saved = localStorage.getItem("weekendColor");
+    return saved || "#1B4D3E";
+  });
+
   const updateCalendarType = (type: "gregorian" | "persian") => {
     setCalendarType(type);
     localStorage.setItem("calendarType", type);
   };
 
-  return <CalendarContext.Provider value={{ calendarType, setCalendarType: updateCalendarType }}>{children}</CalendarContext.Provider>;
+  const updateWeekendDays = (days: DayOfWeek[]) => {
+    setWeekendDays(days);
+    localStorage.setItem("weekendDays", JSON.stringify(days));
+  };
+
+  const updateWeekendColor = (color: string) => {
+    setWeekendColor(color);
+    localStorage.setItem("weekendColor", color);
+  };
+
+  return (
+    <CalendarContext.Provider 
+      value={{ 
+        calendarType, 
+        setCalendarType: updateCalendarType,
+        weekendDays,
+        setWeekendDays: updateWeekendDays,
+        weekendColor,
+        setWeekendColor: updateWeekendColor
+      }}
+    >
+      {children}
+    </CalendarContext.Provider>
+  );
 }
 
 // Custom hook to use CalendarContext
@@ -251,18 +358,19 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   // ─── STATE & REFS ──────────────────────────────────────────────
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"images" | "colors">("images");
+  const [mainTab, setMainTab] = useState<"settings" | "backgrounds">("settings");
   const [urlInput, setUrlInput] = useState("");
   const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [firstDayOfWeek, setFirstDayOfWeek] = useState<DayOfWeek>("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const dataFileInputRef = useRef<HTMLInputElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Access calendar context
-  const { calendarType, setCalendarType } = useCalendar();
+  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor } = useCalendar();
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
@@ -303,6 +411,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       ].map((url) => ({
         id: url,
         url,
+        thumbnailUrl: processImageUrl(url, 200, 200), // Generate thumbnail URL with smaller dimensions
         isBlob: false,
         type: "image" as const,
         createdAt: Date.now(),
@@ -325,19 +434,23 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   );
 
   // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
-  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number) => {
+  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string) => {
     const settings: CalendarSettings = {
       type,
       tileNumber: tiles,
+      weekendDays: weekend,
+      weekendColor: color
     };
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
     localStorage.setItem("calendarType", type);
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
+    localStorage.setItem("weekendDays", JSON.stringify(weekend));
+    localStorage.setItem("weekendColor", color);
   }, []);
 
   useEffect(() => {
-    saveCalendarSettings(calendarType, tileNumber);
-  }, [tileNumber, calendarType, saveCalendarSettings]);
+    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor);
+  }, [tileNumber, calendarType, weekendDays, weekendColor, saveCalendarSettings]);
 
   useEffect(() => {
     const loadCalendarSettings = async () => {
@@ -347,44 +460,54 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           const settings = JSON.parse(savedSettings) as CalendarSettings;
           setCalendarType(settings.type);
           setTileNumber(settings.tileNumber);
+          if (settings.weekendDays) setWeekendDays(settings.weekendDays);
+          if (settings.weekendColor) setWeekendColor(settings.weekendColor);
+        } else {
+          // Set defaults
+          setCalendarType("gregorian");
+          setTileNumber(10);
+          setWeekendDays(["Friday"]);
+          setWeekendColor("#1B4D3E");
+          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E");
         }
       } catch (error) {
         console.error("Error loading calendar settings:", error);
+        // Set defaults
+        setCalendarType("gregorian");
+        setTileNumber(10);
+        setWeekendDays(["Friday"]);
+        setWeekendColor("#1B4D3E");
+        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E");
       }
     };
 
     loadCalendarSettings();
   }, []);
 
-  useEffect(() => {
-    const loadCalendarSettings = () => {
-      try {
-        const savedSettings = localStorage.getItem("calendarSettings");
-        if (savedSettings) {
-          const settings = JSON.parse(savedSettings) as CalendarSettings;
-          setCalendarType(settings.type);
-          setTileNumber(settings.tileNumber);
-        } else {
-          setCalendarType("gregorian");
-          setTileNumber(10);
-          saveCalendarSettings("gregorian", 10);
-        }
-      } catch (error) {
-        console.error("Error loading calendar settings:", error);
-        setCalendarType("gregorian");
-        setTileNumber(10);
-        saveCalendarSettings("gregorian", 10);
-      }
-    };
-
-    loadCalendarSettings();
-  }, [saveCalendarSettings]);
-
   // ─── EVENT HANDLERS & CALLBACKS ───────────────────────────────
   const loadSavedBackgrounds = useCallback(async () => {
     try {
       const backgrounds = await backgroundsDB.getAllItems<StoredBackground>();
-      setSavedBackgrounds(backgrounds);
+      
+      // Ensure all backgrounds have thumbnails
+      const updatedBackgrounds = await Promise.all(backgrounds.map(async (bg) => {
+        // Skip if already has thumbnail or is a color
+        if (bg.thumbnailUrl || bg.type === "color") {
+          return bg;
+        }
+        
+        try {
+          // Generate thumbnail for images without thumbnails
+          bg.thumbnailUrl = await generateThumbnail(bg.url);
+          await backgroundsDB.saveItem(bg); // Update in database
+        } catch (error) {
+          console.error("Failed to generate thumbnail:", error);
+        }
+        
+        return bg;
+      }));
+      
+      setSavedBackgrounds(updatedBackgrounds);
     } catch (error) {
       console.error("Error loading backgrounds:", error);
       setSavedBackgrounds([]);
@@ -393,9 +516,12 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
   const handleSelectBackground = useCallback(
     (background: StoredBackground) => {
+      // Always use the original full-size image for the actual background
       const finalUrl = background.type === "image" && !isDataUrl(background.url) ? processImageUrl(background.url) : background.url;
 
       onSelectBackground(finalUrl);
+      
+      // Save both the original URL and thumbnail URL to localStorage
       localStorage.setItem(
         storageKey,
         JSON.stringify({
@@ -430,23 +556,43 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         reader.onload = async (e) => {
           const dataUrl = e.target?.result as string;
           if (dataUrl) {
-            const newBackground: StoredBackground = {
-              id: `bg-${Date.now()}`,
-              url: dataUrl,
-              isBlob: true,
-              type: "image",
-              createdAt: Date.now(),
-            };
+            try {
+              // Generate thumbnail for the image
+              const thumbnailUrl = await generateThumbnail(dataUrl);
+              
+              const newBackground: StoredBackground = {
+                id: `bg-${Date.now()}`,
+                url: dataUrl,
+                thumbnailUrl: thumbnailUrl,
+                isBlob: true,
+                type: "image",
+                createdAt: Date.now(),
+              };
 
-            await backgroundsDB.saveItem(newBackground);
-            await loadSavedBackgrounds();
-            handleSelectBackground(newBackground);
+              await backgroundsDB.saveItem(newBackground);
+              await loadSavedBackgrounds();
+              handleSelectBackground(newBackground);
+            } catch (error) {
+              console.error("Failed to generate thumbnail:", error);
+              // Fallback without thumbnail
+              const newBackground: StoredBackground = {
+                id: `bg-${Date.now()}`,
+                url: dataUrl,
+                isBlob: true,
+                type: "image",
+                createdAt: Date.now(),
+              };
+              
+              await backgroundsDB.saveItem(newBackground);
+              await loadSavedBackgrounds();
+              handleSelectBackground(newBackground);
+            }
           }
         };
         reader.readAsDataURL(file);
 
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      } catch (error) {
+        if (imageFileInputRef.current) imageFileInputRef.current.value = "";
+      } catch (e) {
         alert("Error uploading image");
       } finally {
         setIsUploading(false);
@@ -461,26 +607,52 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       if (!urlInput.trim()) return;
 
       try {
-        new URL(urlInput);
-        if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(urlInput)) {
+        // Check URL validity without using constructor
+        const validUrl = urlInput.startsWith('http://') || urlInput.startsWith('https://');
+        if (!validUrl || !/\.(jpg|jpeg|png|gif|webp)$/i.test(urlInput)) {
           alert("Please enter a valid image URL");
           return;
         }
 
-        const newBackground: StoredBackground = {
-          id: `bg-${Date.now()}`,
-          url: urlInput,
-          isBlob: false,
-          type: "image",
-          createdAt: Date.now(),
-        };
+        setIsUploading(true);
+        
+        try {
+          // Generate thumbnail from URL
+          const thumbnailUrl = await generateThumbnail(urlInput);
+          
+          const newBackground: StoredBackground = {
+            id: `bg-${Date.now()}`,
+            url: urlInput,
+            thumbnailUrl: thumbnailUrl,
+            isBlob: false,
+            type: "image",
+            createdAt: Date.now(),
+          };
 
-        await backgroundsDB.saveItem(newBackground);
-        await loadSavedBackgrounds();
-        handleSelectBackground(newBackground);
-        setUrlInput("");
-      } catch {
+          await backgroundsDB.saveItem(newBackground);
+          await loadSavedBackgrounds();
+          handleSelectBackground(newBackground);
+          setUrlInput("");
+        } catch (error) {
+          console.error("Failed to generate thumbnail:", error);
+          // Fallback without thumbnail
+          const newBackground: StoredBackground = {
+            id: `bg-${Date.now()}`,
+            url: urlInput,
+            isBlob: false,
+            type: "image",
+            createdAt: Date.now(),
+          };
+          
+          await backgroundsDB.saveItem(newBackground);
+          await loadSavedBackgrounds();
+          handleSelectBackground(newBackground);
+          setUrlInput("");
+        }
+      } catch (error) {
         alert("Please enter a valid URL");
+      } finally {
+        setIsUploading(false);
       }
     },
     [urlInput, handleSelectBackground, loadSavedBackgrounds]
@@ -504,10 +676,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const value = Number(event.target.value);
       if (value >= 10 && value <= 100) {
         setTileNumber(value);
-        saveCalendarSettings(calendarType, value); // Save settings immediately when tile number changes
+        saveCalendarSettings(calendarType, value, weekendDays, weekendColor); // Save settings immediately when tile number changes
       }
     },
-    [calendarType, saveCalendarSettings]
+    [calendarType, saveCalendarSettings, weekendDays, weekendColor]
   );
 
   const handleExportData = useCallback(async () => {
@@ -540,11 +712,11 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       a.download = `z-assistant-data-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error exporting data:", error);
+    } catch (e) {
+      console.error("Error exporting data:", e);
       alert("Error exporting data. Please try again.");
     }
-  }, [calendarType, tileNumber, storageKey]);
+  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor]);
 
   const handleImportData = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -594,7 +766,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               // Import bookmarks
               const bookmarkItems = await bookmarksDB.getAllItems();
               for (const item of bookmarkItems) {
-                await bookmarksDB.deleteItem((item as any).id);
+                await bookmarksDB.deleteItem((item as {id: string}).id);
               }
               for (const bookmark of importData.bookmarks) {
                 await bookmarksDB.saveItem(bookmark);
@@ -603,7 +775,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               // Import notes
               const noteItems = await notesDB.getAllItems();
               for (const item of noteItems) {
-                await notesDB.deleteItem((item as any).id);
+                await notesDB.deleteItem((item as {id: string}).id);
               }
               for (const note of importData.notes) {
                 await notesDB.saveItem(note);
@@ -612,7 +784,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               // Import todos
               const todoItems = await todosDB.getAllItems();
               for (const item of todoItems) {
-                await todosDB.deleteItem((item as any).id);
+                await todosDB.deleteItem((item as {id: string}).id);
               }
               for (const todo of importData.todos) {
                 await todosDB.saveItem(todo);
@@ -638,7 +810,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         };
         reader.readAsText(file);
 
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (dataFileInputRef.current) dataFileInputRef.current.value = "";
       } catch (error) {
         console.error("Import error:", error);
         alert("Error importing data. Please try again.");
@@ -648,6 +820,25 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     },
     [storageKey, calendarType, setCalendarType, tileNumber, onSelectBackground, loadSavedBackgrounds]
   );
+
+  const handleWeekendDayToggle = (day: DayOfWeek) => {
+    const newWeekendDays = weekendDays.includes(day)
+      ? weekendDays.filter((d: DayOfWeek) => d !== day) // Remove day if already selected
+      : weekendDays.length >= 3
+      ? weekendDays // If already at 3 days, don't add more
+      : [...weekendDays, day]; // Otherwise add the day
+      
+    if (weekendDays.length >= 3 && !weekendDays.includes(day)) {
+      alert("You can select a maximum of 3 weekend days");
+      return;
+    }
+    
+    setWeekendDays(newWeekendDays);
+  };
+
+  const handleWeekendColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWeekendColor(e.target.value);
+  };
 
   // ─── OTHER EFFECTS ──────────────────────────────────────────────
   // Handle click outside of the selector to close the modal
@@ -700,199 +891,239 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             minHeight: "500px",
           }}
         >
-          {/* ─── TABS ─── */}
+          {/* ─── MAIN TABS ─── */}
           <div className="flex gap-2 mb-4 flex-shrink-0">
             <button
-              onClick={() => setActiveTab("images")}
+              onClick={() => setMainTab("settings")}
               className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
-                activeTab === "images" ? "bg-white/30" : "hover:bg-white/20"
+                mainTab === "settings" ? "bg-white/30" : "hover:bg-white/20"
+              } transition-colors text-white`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Settings
+            </button>
+            <button
+              onClick={() => setMainTab("backgrounds")}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+                mainTab === "backgrounds" ? "bg-white/30" : "hover:bg-white/20"
               } transition-colors text-white`}
             >
               <Image className="w-4 h-4" />
-              Images
-            </button>
-            <button
-              onClick={() => setActiveTab("colors")}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
-                activeTab === "colors" ? "bg-white/30" : "hover:bg-white/20"
-              } transition-colors text-white`}
-            >
-              <Palette className="w-4 h-4" />
-              Colors
+              Backgrounds
             </button>
           </div>
 
-          {/* ─── TAB CONTENT ─── */}
-          {activeTab === "images" ? (
-            <div className="flex flex-col flex-grow overflow-hidden">
-              {/* Image List */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
-                {[...defaultBackgrounds, ...savedBackgrounds.filter((bg) => bg.type === "image")].map((bg) => (
-                  <BackgroundThumbnail
-                    key={bg.id}
-                    bg={bg}
-                    onSelect={() => handleSelectBackground(bg)}
-                    onRemove={bg.isBlob ? () => handleDeleteBackground(bg) : undefined}
-                  />
-                ))}
-              </div>
-
-              {/* Upload & URL form */}
-              <div className="space-y-4 flex-shrink-0">
-                {/* Upload File */}
+          {mainTab === "backgrounds" ? (
+            <>
+              {/* ─── BACKGROUND SUB-TABS ─── */}
+              <div className="flex gap-2 mb-4 flex-shrink-0">
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
-                  disabled={isUploading}
+                  onClick={() => setActiveTab("images")}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+                    activeTab === "images" ? "bg-white/30" : "hover:bg-white/20"
+                  } transition-colors text-white`}
                 >
-                  <Upload className="w-4 h-4" />
-                  {isUploading ? "Uploading..." : "Upload Image"}
+                  <Image className="w-4 h-4" />
+                  Images
                 </button>
-                <input ref={fileInputRef} type="file" accept="image/*,.gif" onChange={handleFileUpload} className="hidden" />
-
-                {/* URL Submission Form */}
-                <form onSubmit={handleUrlSubmit} className="flex flex-col gap-3 sm:flex-row sm:gap-2">
-                  <input
-                    type="text"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="Paste image URL"
-                    className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-white flex items-center justify-center"
-                  >
-                    <Link className="w-4 h-4" />
-                  </button>
-                </form>
+                <button
+                  onClick={() => setActiveTab("colors")}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+                    activeTab === "colors" ? "bg-white/30" : "hover:bg-white/20"
+                  } transition-colors text-white`}
+                >
+                  <Palette className="w-4 h-4" />
+                  Colors
+                </button>
               </div>
-            </div>
+
+              {/* ─── BACKGROUND TAB CONTENT ─── */}
+              {activeTab === "images" ? (
+                <div className="flex flex-col flex-grow overflow-hidden">
+                  {/* Image List */}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
+                    {[...defaultBackgrounds, ...savedBackgrounds.filter((bg) => bg.type === "image")].map((bg) => (
+                      <BackgroundThumbnail
+                        key={bg.id}
+                        bg={bg}
+                        onSelect={() => handleSelectBackground(bg)}
+                        onRemove={bg.isBlob ? () => handleDeleteBackground(bg) : undefined}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Upload & URL form */}
+                  <div className="space-y-4 flex-shrink-0">
+                    {/* Upload File */}
+                    <button
+                      onClick={() => imageFileInputRef.current?.click()}
+                      className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
+                      disabled={isUploading}
+                    >
+                      <Upload className="w-4 h-4" />
+                      {isUploading ? "Uploading..." : "Upload Image"}
+                    </button>
+                    <input ref={imageFileInputRef} type="file" accept="image/*,.gif" onChange={handleFileUpload} className="hidden" />
+
+                    {/* URL Submission Form */}
+                    <form onSubmit={handleUrlSubmit} className="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                      <input
+                        type="text"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        placeholder="Paste image URL"
+                        className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
+                      />
+                      <button
+                        type="submit"
+                        className="bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-white flex items-center justify-center"
+                      >
+                        <Link className="w-4 h-4" />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ) : (
+                // Colors Tab Content
+                <div className="grid grid-cols-4 gap-4 overflow-auto flex-grow">
+                  {colorOptions.map((color) => (
+                    <BackgroundThumbnail key={color.id} bg={color} onSelect={() => handleSelectBackground(color)} />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            // Colors Tab Content
-            <div className="grid grid-cols-4 gap-4 overflow-auto flex-grow">
-              {colorOptions.map((color) => (
-                <BackgroundThumbnail key={color.id} bg={color} onSelect={() => handleSelectBackground(color)} />
-              ))}
+            // ─── SETTINGS TAB CONTENT ─── 
+            <div className="flex flex-col gap-4 overflow-auto flex-grow custom-scrollbar">
+              {/* ─── SETTINGS SECTION ─── */}
+              <div className="flex flex-col gap-4 w-full">
+                {/* Weekend Days Selector & Color */}
+                <div className="flex flex-col w-full gap-2">
+                  <label className="text-white text-sm mb-0.5">Weekend Days (select up to 3)</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex justify-between gap-1">
+                      {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
+                        <button
+                          key={day}
+                          onClick={() => handleWeekendDayToggle(day as DayOfWeek)}
+                          className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
+                            weekendDays.includes(day as DayOfWeek) ? "bg-green-500 text-white" : "bg-white/30 text-white"
+                          } hover:bg-white/40 transition-colors`}
+                        >
+                          {day.slice(0, 2)}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <input
+                      type="color"
+                      value={weekendColor}
+                      onChange={handleWeekendColorChange}
+                      className="w-10 h-10 rounded cursor-pointer bg-transparent ml-2"
+                      title="Weekend Color"
+                    />
+                  </div>
+                </div>
+
+                {/* First Day of the Week selector */}
+                <div className="flex flex-col w-full">
+                  <label className="text-white text-sm mb-0.5">First Day of the Week</label>
+                  <Select
+                    className="basic-single"
+                    classNamePrefix="select"
+                    defaultValue={daysOptions[0]}
+                    isDisabled={false}
+                    isLoading={false}
+                    isClearable={false}
+                    isRtl={false}
+                    isSearchable={false}
+                    name="emoji"
+                    options={daysOptions}
+                    menuPortalTarget={document.body}
+                    menuPosition="absolute"
+                    menuShouldScrollIntoView={false}
+                    styles={customStyles}
+                    onChange={(selectedOption) => {
+                      if (selectedOption) {
+                        setFirstDayOfWeek(selectedOption.value as DayOfWeek);
+                      }
+                    }}
+                  />
+                  <div
+                    style={{
+                      color: "hsl(0, 100%, 40%)",
+                      display: "inline-block",
+                      fontSize: 12,
+                      fontStyle: "italic",
+                      marginTop: "1em",
+                    }}
+                  ></div>
+                </div>
+
+                {/* Calendar Type Buttons */}
+                <div className="flex w-full gap-2">
+                  <button
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+                      calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
+                    }`}
+                    onClick={() => setCalendarType("gregorian")}
+                  >
+                    Gregorian
+                  </button>
+                  <button
+                    className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
+                      calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
+                    }`}
+                    onClick={() => setCalendarType("persian")}
+                  >
+                    Persian
+                  </button>
+                </div>
+
+                {/* Tile Number Input */}
+                <div className="flex flex-col w-full">
+                  <label className="text-white text-sm mb-2">Tile Number</label>
+                  <input
+                    type="number"
+                    value={tileNumber}
+                    onChange={handleTileNumberChange}
+                    min="10"
+                    max="100"
+                    className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white outline-none placeholder-white/50"
+                  />
+                </div>
+                
+                {/* Export/Import Buttons */}
+                <div className="flex flex-col w-full gap-2 mt-4">
+                  <label className="text-white text-sm mb-0.5">Data Management</label>
+                  <div className="flex w-full gap-2">
+                    <button
+                      className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
+                      onClick={handleExportData}
+                    >
+                      <Download className="w-4 h-4" /> 
+                      Export Data
+                    </button>
+                    <button
+                      className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
+                      onClick={() => dataFileInputRef.current?.click()}
+                    >
+                      <FileUp className="w-4 h-4" />
+                      Import Data
+                    </button>
+                    <input 
+                      type="file" 
+                      ref={dataFileInputRef} 
+                      accept=".json" 
+                      onChange={handleImportData} 
+                      className="hidden"
+                      id="import-data-input"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-
-          {/* ─── SETTINGS SECTION ─── */}
-          <div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
-            {/* Day selector */}
-            <div className="flex justify-between items-center gap-2">
-              {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDay(day)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
-                    selectedDay === day ? "bg-green-500 text-white" : "bg-white/30 text-white"
-                  } hover:bg-white/40 transition-colors`}
-                >
-                  {day.slice(0, 2)}
-                </button>
-              ))}
-            </div>
-
-            {/* First Day of the Week selector */}
-            <div className="flex flex-col w-full">
-              <label className="text-white text-sm mb-0.5">First Day of the Week</label>
-              <Select
-                className="basic-single"
-                classNamePrefix="select"
-                defaultValue={daysOptions[0]}
-                isDisabled={false}
-                isLoading={false}
-                isClearable={false}
-                isRtl={false}
-                isSearchable={false}
-                name="emoji"
-                options={daysOptions}
-                menuPortalTarget={document.body}
-                menuPosition="absolute"
-                menuShouldScrollIntoView={false}
-                styles={customStyles}
-                onChange={(selectedOption) => {
-                  if (selectedOption) {
-                    setFirstDayOfWeek(selectedOption.value as DayOfWeek);
-                  }
-                }}
-              />
-              <div
-                style={{
-                  color: "hsl(0, 100%, 40%)",
-                  display: "inline-block",
-                  fontSize: 12,
-                  fontStyle: "italic",
-                  marginTop: "1em",
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Bottom Settings */}
-          <div className="mt-4 flex flex-col gap-4 w-full flex-shrink-0">
-            {/* Calendar Type Buttons */}
-            <div className="flex w-full gap-2">
-              <button
-                className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
-                  calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
-                }`}
-                onClick={() => setCalendarType("gregorian")}
-              >
-                Gregorian
-              </button>
-              <button
-                className={`flex-1 px-4 py-2 rounded-lg text-sm text-white ${
-                  calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
-                }`}
-                onClick={() => setCalendarType("persian")}
-              >
-                Persian
-              </button>
-            </div>
-
-            {/* Tile Number Input */}
-            <div className="flex flex-col w-full">
-              <label className="text-white text-sm mb-2">Tile Number</label>
-              <input
-                type="number"
-                value={tileNumber}
-                onChange={handleTileNumberChange}
-                min="10"
-                max="100"
-                className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white outline-none placeholder-white/50"
-              />
-            </div>
-            
-            {/* Export/Import Buttons */}
-            <div className="flex flex-col w-full gap-2 mt-4">
-              <label className="text-white text-sm mb-0.5">Data Management</label>
-              <div className="flex w-full gap-2">
-                <button
-                  className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
-                  onClick={handleExportData}
-                >
-                  <Download className="w-4 h-4" /> 
-                  Export Data
-                </button>
-                <button
-                  className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <FileUp className="w-4 h-4" />
-                  Import Data
-                </button>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  accept=".json" 
-                  onChange={handleImportData} 
-                  className="hidden" 
-                />
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

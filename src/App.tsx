@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Clock } from "./components/Clock";
-import { Calendar } from "./components/Calendar";
+import Calendar from "./components/Calendar";
 import { Bookmarks } from "./components/Bookmarks";
 import { Settings, CalendarProvider } from "./components/Settings";
 import { TodoList } from "./components/TodoList";
