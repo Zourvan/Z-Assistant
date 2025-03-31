@@ -67,7 +67,7 @@ export function Clock() {
       }}
     >
       <div className="text-[6vh] font-light">{formatTime()}</div>
-      <div className="text-[4.5vh] opacity-80">{formatDate()}</div>
+      <div className="text-[3.5vh] opacity-80">{formatDate()}</div>
       <div className="text-[3vh] opacity-80">{formatDateInvert()}</div>
     </div>
   );

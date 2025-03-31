@@ -210,11 +210,15 @@ export function Calendar() {
               <div
                 key={`day-${item.day}`}
                 className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
-                  item.isCurrentDay ? "bg-white/30 " : item.isWeekendDay ? "hover:bg-opacity-50 " : "hover:bg-white/0"
+                  item.isCurrentDay ? "" : item.isWeekendDay ? "hover:bg-opacity-50 " : "hover:bg-white/0"
                 }`}
                 style={{
-                  color: textColor,
-                  backgroundColor: item.isWeekendDay ? `${weekendColor}33` : 'transparent'
+                  color: item.isWeekendDay ? weekendColor : textColor,
+                  backgroundColor: item.isCurrentDay 
+                    ? "#8B5CF6" // Purple color for current day
+                    : item.isWeekendDay 
+                      ? `${weekendColor}33` 
+                      : 'transparent'
                 }}
               >
                 {item.displayText}
