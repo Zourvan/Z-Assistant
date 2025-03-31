@@ -45,6 +45,7 @@ interface CalendarSettings {
   tileNumber: number;
   weekendDays: DayOfWeek[];
   weekendColor: string;
+  firstDayOfWeek: DayOfWeek;
 }
 
 // Type for stored background data
@@ -286,7 +287,9 @@ const CalendarContext = createContext({
   weekendDays: ["Friday"] as DayOfWeek[],
   setWeekendDays: (_days: DayOfWeek[]) => {},
   weekendColor: "#1B4D3E",
-  setWeekendColor: (_color: string) => {}
+  setWeekendColor: (_color: string) => {},
+  firstDayOfWeek: "Saturday" as DayOfWeek,
+  setFirstDayOfWeek: (_day: DayOfWeek) => {}
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -309,6 +312,15 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     const saved = localStorage.getItem("weekendColor");
     return saved || "#1B4D3E";
   });
+  
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState<DayOfWeek>(() => {
+    try {
+      const saved = localStorage.getItem("firstDayOfWeek");
+      return saved as DayOfWeek || "Saturday";
+    } catch {
+      return "Saturday";
+    }
+  });
 
   const updateCalendarType = (type: "gregorian" | "persian") => {
     setCalendarType(type);
@@ -324,6 +336,11 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     setWeekendColor(color);
     localStorage.setItem("weekendColor", color);
   };
+  
+  const updateFirstDayOfWeek = (day: DayOfWeek) => {
+    setFirstDayOfWeek(day);
+    localStorage.setItem("firstDayOfWeek", day);
+  };
 
   return (
     <CalendarContext.Provider 
@@ -333,7 +350,9 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         weekendDays,
         setWeekendDays: updateWeekendDays,
         weekendColor,
-        setWeekendColor: updateWeekendColor
+        setWeekendColor: updateWeekendColor,
+        firstDayOfWeek,
+        setFirstDayOfWeek: updateFirstDayOfWeek
       }}
     >
       {children}
@@ -362,7 +381,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [urlInput, setUrlInput] = useState("");
   const [tileNumber, setTileNumber] = useState(10);
   const [isUploading, setIsUploading] = useState(false);
-  const [firstDayOfWeek, setFirstDayOfWeek] = useState<DayOfWeek>("Saturday");
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
 
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -370,7 +388,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const selectorRef = useRef<HTMLDivElement>(null);
 
   // Access calendar context
-  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor } = useCalendar();
+  const { calendarType, setCalendarType, weekendDays, setWeekendDays, weekendColor, setWeekendColor, firstDayOfWeek, setFirstDayOfWeek } = useCalendar();
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
@@ -434,23 +452,25 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   );
 
   // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
-  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string) => {
+  const saveCalendarSettings = useCallback((type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek) => {
     const settings: CalendarSettings = {
       type,
       tileNumber: tiles,
       weekendDays: weekend,
-      weekendColor: color
+      weekendColor: color,
+      firstDayOfWeek: firstDay
     };
     localStorage.setItem("calendarSettings", JSON.stringify(settings));
     localStorage.setItem("calendarType", type);
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
     localStorage.setItem("weekendDays", JSON.stringify(weekend));
     localStorage.setItem("weekendColor", color);
+    localStorage.setItem("firstDayOfWeek", firstDay);
   }, []);
 
   useEffect(() => {
-    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor);
-  }, [tileNumber, calendarType, weekendDays, weekendColor, saveCalendarSettings]);
+    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek);
+  }, [tileNumber, calendarType, weekendDays, weekendColor, firstDayOfWeek, saveCalendarSettings]);
 
   useEffect(() => {
     const loadCalendarSettings = async () => {
@@ -462,13 +482,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           setTileNumber(settings.tileNumber);
           if (settings.weekendDays) setWeekendDays(settings.weekendDays);
           if (settings.weekendColor) setWeekendColor(settings.weekendColor);
+          if (settings.firstDayOfWeek) setFirstDayOfWeek(settings.firstDayOfWeek);
         } else {
           // Set defaults
           setCalendarType("gregorian");
           setTileNumber(10);
           setWeekendDays(["Friday"]);
           setWeekendColor("#1B4D3E");
-          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E");
+          setFirstDayOfWeek("Saturday");
+          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday");
         }
       } catch (error) {
         console.error("Error loading calendar settings:", error);
@@ -477,7 +499,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         setTileNumber(10);
         setWeekendDays(["Friday"]);
         setWeekendColor("#1B4D3E");
-        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E");
+        setFirstDayOfWeek("Saturday");
+        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday");
       }
     };
 
@@ -676,10 +699,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const value = Number(event.target.value);
       if (value >= 10 && value <= 100) {
         setTileNumber(value);
-        saveCalendarSettings(calendarType, value, weekendDays, weekendColor); // Save settings immediately when tile number changes
+        saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek); // Save settings immediately when tile number changes
       }
     },
-    [calendarType, saveCalendarSettings, weekendDays, weekendColor]
+    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek]
   );
 
   const handleExportData = useCallback(async () => {
@@ -716,7 +739,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       console.error("Error exporting data:", e);
       alert("Error exporting data. Please try again.");
     }
-  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor]);
+  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek]);
 
   const handleImportData = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1031,7 +1054,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                   <Select
                     className="basic-single"
                     classNamePrefix="select"
-                    defaultValue={daysOptions[0]}
+                    defaultValue={daysOptions.find(option => option.value === firstDayOfWeek)}
                     isDisabled={false}
                     isLoading={false}
                     isClearable={false}

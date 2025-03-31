@@ -1,39 +1,46 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// Persian week days mapping (0 = Saturday, 1 = Sunday, etc.)
+const persianDayMap: Record<string, string> = {
+  "Saturday": "ش",
+  "Sunday": "ی",
+  "Monday": "د",
+  "Tuesday": "س",
+  "Wednesday": "چ",
+  "Thursday": "پ",
+  "Friday": "ج"
+};
+
 export function Calendar() {
-  const { calendarType, weekendDays, weekendColor } = useCalendar();
+  const { calendarType, weekendDays, weekendColor, firstDayOfWeek } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // Debug logs
   console.log("Calendar Component - weekendDays:", weekendDays);
   console.log("Calendar Component - weekendColor:", weekendColor);
+  console.log("Calendar Component - firstDayOfWeek:", firstDayOfWeek);
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
   const daysInMonth = dateLib.getDaysInMonth(currentDate);
   const firstDayOfMonth = dateLib.startOfMonth(currentDate);
 
-  // Adjust start day calculation for Persian calendar
-  const getAdjustedStartDay = () => {
-    const dayOfWeek = dateLib.getDay(firstDayOfMonth);
-    if (calendarType === "gregorian") {
-      return dayOfWeek;
-    } else {
-      // Convert Sunday-based index (0-6) to Saturday-based index (0-6)
-      return (dayOfWeek + 1) % 7;
-    }
+  // Map day name to index (0-6), using standard Sunday=0 to Saturday=6
+  const dayNameToIndex: Record<DayOfWeek, number> = {
+    "Sunday": 0,
+    "Monday": 1,
+    "Tuesday": 2,
+    "Wednesday": 3,
+    "Thursday": 4,
+    "Friday": 5,
+    "Saturday": 6
   };
-
-  const startDay = getAdjustedStartDay();
-
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const weekDays = calendarType === "gregorian" ? ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"] : ["ش", "ی", "د", "س", "چ", "پ", "ج"];
   
-  // Map day index (0-6) to day name for weekend check
+  // Map day index (0-6) to day name
   const dayIndexToName: Record<number, DayOfWeek> = {
     0: "Sunday",
     1: "Monday",
@@ -43,37 +50,90 @@ export function Calendar() {
     5: "Friday",
     6: "Saturday"
   };
-
-  // Check if a day index is a weekend based on settings
-  const isWeekend = (dayIndex: number) => {
-    const dayName = dayIndexToName[dayIndex];
-    const result = weekendDays.includes(dayName);
+  
+  // Get the index of the first day of week setting
+  const firstDayIndex = dayNameToIndex[firstDayOfWeek];
+  
+  // Helper function to convert between date-fns weekday and our representation
+  // date-fns: 0 = Sunday, 6 = Saturday (for both Gregorian and Jalali)
+  // Our standard: 0 = Sunday, 6 = Saturday
+  const getStandardWeekdayIndex = (date: Date): number => {
+    return dateLib.getDay(date); // Already in our standard format
+  };
+  
+  // Get weekday for first day of month in standard format
+  const firstDayOfMonthWeekday = getStandardWeekdayIndex(firstDayOfMonth);
+  
+  // Calculate empty cells needed before first day of month
+  const emptyDayCount = useMemo(() => {
+    // How many cells to skip before the 1st day of month
+    const emptyCells = (7 + firstDayOfMonthWeekday - firstDayIndex) % 7;
     
-    // Add debugging information
-    console.log(`isWeekend check - Day Index: ${dayIndex}, Day Name: ${dayName}, Is Weekend: ${result}`);
-    return result;
-  };
-
-  // Add a debugging function to check all days
-  useEffect(() => {
-    console.log("Calendar days status:");
+    console.log(
+      `First day of month weekday: ${dayIndexToName[firstDayOfMonthWeekday]} (index: ${firstDayOfMonthWeekday}), ` + 
+      `first day of week setting: ${firstDayOfWeek} (index: ${firstDayIndex}), ` +
+      `empty cells needed: ${emptyCells}`
+    );
+    
+    return emptyCells;
+  }, [firstDayOfMonthWeekday, firstDayIndex, firstDayOfWeek]);
+  
+  // Generate ordered list of day names based on firstDayOfWeek
+  const orderedDayNames = useMemo(() => {
+    const days: DayOfWeek[] = [];
     for (let i = 0; i < 7; i++) {
-      const dayName = dayIndexToName[i];
+      const index = (firstDayIndex + i) % 7;
+      days.push(dayIndexToName[index]);
+    }
+    return days;
+  }, [firstDayIndex]);
+  
+  // Create weekday labels based on the ordered day names
+  const weekDayLabels = useMemo(() => {
+    return orderedDayNames.map(day => {
+      if (calendarType === "gregorian") {
+        return day.slice(0, 2); // "Su", "Mo", etc.
+      } else {
+        // Use Persian day abbreviations
+        return persianDayMap[day];
+      }
+    });
+  }, [calendarType, orderedDayNames]);
+  
+  // Generate calendar days data with all needed properties
+  const calendarDaysData = useMemo(() => {
+    const days = [];
+    
+    // Add empty cells at the beginning
+    for (let i = 0; i < emptyDayCount; i++) {
+      days.push({ type: 'empty', id: `empty-${i}` });
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = dateLib.setDate(firstDayOfMonth, day);
+      const weekdayIndex = getStandardWeekdayIndex(date);
+      const dayName = dayIndexToName[weekdayIndex];
+      
+      // Check if it's a weekend
       const isWeekendDay = weekendDays.includes(dayName);
-      console.log(`Day ${i} (${dayName}): ${isWeekendDay ? "Weekend" : "Weekday"}`);
+      
+      // Check if it's today
+      const today = new Date();
+      const isCurrentDay = dateLib.isSameDay(date, today);
+      
+      days.push({
+        type: 'day',
+        day,
+        dayName,
+        isWeekendDay,
+        isCurrentDay,
+        displayText: calendarType === "persian" ? day.toLocaleString("fa-IR") : day
+      });
     }
-  }, [weekendDays]);
-
-  const getDayIndex = (day: number) => {
-    const date = dateLib.setDate(firstDayOfMonth, day);
-    const dayOfWeek = dateLib.getDay(date);
-    if (calendarType === "gregorian") {
-      return dayOfWeek;
-    } else {
-      // Convert Sunday-based index to Saturday-based index for Persian calendar
-      return (dayOfWeek + 1) % 7;
-    }
-  };
+    
+    return days;
+  }, [daysInMonth, firstDayOfMonth, emptyDayCount, calendarType, weekendDays, dateLib]);
 
   function convertToPersianNumbers(input: string): string {
     return input.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
@@ -87,8 +147,6 @@ export function Calendar() {
     }
   };
 
-  const currentDay = calendarType === "gregorian" ? dateFns.getDate(currentDate) : dateFnsJalali.getDate(currentDate);
-
   const handlePreviousMonth = () => {
     setCurrentDate(dateLib.subMonths(currentDate, 1));
   };
@@ -101,44 +159,50 @@ export function Calendar() {
     <div className={`bg-black/20 backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}>
       <div className={`flex justify-between items-center mb-4 ${calendarType === "persian" ? "flex-row-reverse" : ""}`}>
         <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Previous month">
-          {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
         <h2 className="text-white text-xl font-medium text-center">{formatMonth()}</h2>
 
         <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10 text-white" aria-label="Next month">
-          {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+          {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-white">
-        {weekDays.map((day, index) => (
-          <div 
-            key={day} 
-            className={`text-center text-[2vh] font-extrabold p-2 ${isWeekend(index) ? "text-green-400" : ""}`}
-            style={isWeekend(index) ? { color: weekendColor } : {}}
-          >
-            {day}
-          </div>
-        ))}
-        {Array(startDay)
-          .fill(null)
-          .map((_, i) => (
-            <div key={`empty-${i}`} className="p-2" />
-          ))}
-        {days.map((day) => {
-          const dayIndex = getDayIndex(day);
+        {/* Week day headers */}
+        {weekDayLabels.map((label, index) => {
+          const dayName = orderedDayNames[index];
+          const isWeekendDay = weekendDays.includes(dayName);
+          
           return (
-            <div
-              key={day}
-              className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
-                day === currentDay ? "bg-white/30 " : isWeekend(dayIndex) ? "hover:bg-opacity-50 " : "hover:bg-white/0"
-              }`}
-              style={isWeekend(dayIndex) ? { backgroundColor: `${weekendColor}33` } : {}}
+            <div 
+              key={`header-${index}`} 
+              className="text-center text-[2vh] font-extrabold p-2"
+              style={isWeekendDay ? { color: weekendColor } : {}}
             >
-              {calendarType === "persian" ? day.toLocaleString("fa-IR") : day}
+              {label}
             </div>
           );
+        })}
+        
+        {/* Calendar days - both empty cells and day cells */}
+        {calendarDaysData.map((item, index) => {
+          if (item.type === 'empty') {
+            return <div key={item.id} className="p-2" />;
+          } else {
+            return (
+              <div
+                key={`day-${item.day}`}
+                className={`text-center p-[0.5vw] rounded-full text-[2vh] font-extrabold ${
+                  item.isCurrentDay ? "bg-white/30 " : item.isWeekendDay ? "hover:bg-opacity-50 " : "hover:bg-white/0"
+                }`}
+                style={item.isWeekendDay ? { backgroundColor: `${weekendColor}33` } : {}}
+              >
+                {item.displayText}
+              </div>
+            );
+          }
         })}
       </div>
     </div>
