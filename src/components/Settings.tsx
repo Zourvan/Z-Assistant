@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
 import Select, { StylesConfig } from "react-select";
+import { ChromePicker } from "react-color";
 import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 
@@ -429,6 +430,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [urlInput, setUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isTextPickerOpen, setIsTextPickerOpen] = useState(false);
+  const [isWeekendPickerOpen, setIsWeekendPickerOpen] = useState(false);
 
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const dataFileInputRef = useRef<HTMLInputElement>(null);
@@ -1103,35 +1107,59 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       ))}
                     </div>
                     
-                    <input
-                      type="color"
-                      value={weekendColor}
-                      onChange={handleWeekendColorChange}
-                      className="w-10 h-10 rounded cursor-pointer bg-transparent ml-2"
-                      title="Weekend Color"
-                    />
+                    <div className="relative" title="Weekend Color">
+                      <div 
+                        className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                        style={{ backgroundColor: weekendColor }}
+                        onClick={() => setIsWeekendPickerOpen(!isWeekendPickerOpen)}
+                      ></div>
+                      
+                      {isWeekendPickerOpen && (
+                        <div className="absolute right-0 mt-2 z-10">
+                          <div className="fixed inset-0" onClick={() => setIsWeekendPickerOpen(false)} style={{ zIndex: -1 }}></div>
+                          <ChromePicker
+                            color={weekendColor}
+                            onChange={(color: any) => {
+                              const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
+                              setWeekendColor(rgbaColor);
+                              console.log("Saving weekend color:", rgbaColor);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 
                 {/* Text & Background Color Pickers */}
                 <div className="flex flex-col w-full gap-4">
-                  {/* Text & Background Colors in one row */}
-                  <div className="flex items-center gap-4">
+                  {/* Text & Background Colors & Reset in one row */}
+                  <div className="flex items-center gap-3">
                     {/* Text Color */}
                     <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm" style={{ color: textColor }}>Text Color</label>
+                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>Text Color</label>
                       <div className="flex ml-auto items-center gap-2">
-                        <input
-                          type="color"
-                          value={textColor}
-                          onChange={(e) => {
-                            const newColor = e.target.value;
-                            setTextColor(newColor);
-                            console.log("Saving text color:", newColor);
-                          }}
-                          className="w-10 h-10 rounded cursor-pointer bg-transparent"
-                          title="Text Color"
-                        />
+                        <div className="relative" title="Text Color">
+                          <div 
+                            className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                            style={{ backgroundColor: textColor }}
+                            onClick={() => setIsTextPickerOpen(!isTextPickerOpen)}
+                          ></div>
+                          
+                          {isTextPickerOpen && (
+                            <div className="absolute right-0 mt-2 z-10">
+                              <div className="fixed inset-0" onClick={() => setIsTextPickerOpen(false)} style={{ zIndex: -1 }}></div>
+                              <ChromePicker
+                                color={textColor}
+                                onChange={(color: any) => {
+                                  const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
+                                  setTextColor(rgbaColor);
+                                  console.log("Saving text color:", rgbaColor);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
                         <div 
                           className="w-8 h-8 rounded flex items-center justify-center" 
                           style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
@@ -1143,58 +1171,62 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     
                     {/* Background Color */}
                     <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm" style={{ color: textColor }}>Background Color</label>
+                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>Background Color</label>
                       <div className="flex ml-auto items-center gap-2">
-                        <input
-                          type="color"
-                          value={backgroundColor.startsWith("rgba") ? "#000000" : backgroundColor}
-                          onChange={(e) => {
-                            const newColor = e.target.value;
-                            setBackgroundColor(newColor);
-                            console.log("Saving background color:", newColor);
-                          }}
-                          className="w-10 h-10 rounded cursor-pointer bg-transparent"
-                          title="Background Color"
-                        />
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="5"
-                          value={backgroundColor.startsWith("rgba") ? 
-                            parseFloat(backgroundColor.split(',')[3].replace(')', '')) * 100 : 100}
-                          onChange={(e) => {
-                            const opacity = parseInt(e.target.value) / 100;
-                            let newColor;
-                            
-                            if (backgroundColor.startsWith("rgba")) {
-                              // Extract RGB values from current rgba
-                              const parts = backgroundColor.split(',');
-                              const r = parts[0].split('(')[1];
-                              const g = parts[1];
-                              const b = parts[2];
-                              newColor = `rgba(${r},${g},${b},${opacity})`;
-                            } else {
-                              // Convert hex to rgba
-                              const hex = backgroundColor.replace("#", "");
-                              const r = parseInt(hex.substring(0, 2), 16);
-                              const g = parseInt(hex.substring(2, 4), 16);
-                              const b = parseInt(hex.substring(4, 6), 16);
-                              newColor = `rgba(${r},${g},${b},${opacity})`;
-                            }
-                            
-                            setBackgroundColor(newColor);
-                            console.log("Saving background color with opacity:", newColor);
-                          }}
-                          className="w-16 h-4"
-                        />
+                        <div className="relative" title="Background Color">
+                          <div 
+                            className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                            style={{ backgroundColor }}
+                            onClick={() => setIsPickerOpen(!isPickerOpen)}
+                          ></div>
+                          
+                          {isPickerOpen && (
+                            <div className="absolute right-0 mt-2 z-10">
+                              <div className="fixed inset-0" onClick={() => setIsPickerOpen(false)} style={{ zIndex: -1 }}></div>
+                              <ChromePicker
+                                color={backgroundColor}
+                                onChange={(color: any) => {
+                                  const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
+                                  setBackgroundColor(rgbaColor);
+                                  console.log("Saving background color:", rgbaColor);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
                         <div 
-                          className="w-8 h-8 rounded" 
-                          style={{ backgroundColor: backgroundColor }}
-                        ></div>
+                          className="w-8 h-8 rounded flex items-center justify-center" 
+                          style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
+                        >
+                          Bg
+                        </div>
                       </div>
                     </div>
+                                      {/* Reset Colors Button */}
+                  <button 
+                    className="px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors whitespace-nowrap"
+                    style={{ color: textColor }}
+                    onClick={() => {
+                      // Reset to default values
+                      const defaultTextColor = "#FFFFFF";
+                      const defaultBgColor = "rgba(0, 0, 0, 0.2)";
+                      
+                      // Update states
+                      setTextColor(defaultTextColor);
+                      setBackgroundColor(defaultBgColor);
+                      
+                      // Save to localStorage
+                      localStorage.setItem("textColor", defaultTextColor);
+                      localStorage.setItem("backgroundColor", defaultBgColor);
+                      
+                      console.log("Reset colors to defaults");
+                    }}
+                  >
+                    Reset Colors
+                  </button>
                   </div>
+
+
                 </div>
 
                 {/* First Day of the Week selector */}
@@ -1260,7 +1292,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 </div>
                 
                 {/* Export/Import Buttons */}
-                <div className="flex flex-col w-full gap-2 mt-4">
+                <div className="flex flex-col w-full gap-1 mt-1">
                   <label className="text-sm mb-0.5" style={{ color: textColor }}>Data Management</label>
                   <div className="flex w-full gap-2">
                     <button
