@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
 import Select, { StylesConfig } from "react-select";
-import { SlidersHorizontal, Image, Upload, Link, X, Palette } from "lucide-react";
+import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 
 //
@@ -58,7 +58,7 @@ export interface StoredBackground {
 // ─── CONFIGURATIONS & DATABASE ─────────────────────────────────────────────────────
 //
 
-// IndexedDB instance for backgrounds
+// IndexedDB instances for all data types
 const backgroundsDB = createDatabase({
   dbName: "backgroundSelectorDB",
   storeName: "backgrounds",
@@ -68,6 +68,31 @@ const backgroundsDB = createDatabase({
     { name: "type", keyPath: "type", unique: false },
     { name: "createdAt", keyPath: "createdAt", unique: false },
   ],
+});
+
+// Database instances for bookmarks, notes, and todos
+const bookmarksDB = createDatabase({
+  dbName: "bookmarkManagerDB",
+  storeName: "tiles",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }],
+});
+
+const notesDB = createDatabase({
+  dbName: "notesManagerDB",
+  storeName: "notes",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }],
+});
+
+const todosDB = createDatabase({
+  dbName: "todosManagerDB",
+  storeName: "todos",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "completed", keyPath: "completed", unique: false }],
 });
 
 // Custom styles for react-select
@@ -485,6 +510,145 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     [calendarType, saveCalendarSettings]
   );
 
+  const handleExportData = useCallback(async () => {
+    try {
+      // Gather data from all databases
+      const backgroundData = await backgroundsDB.getAllItems();
+      const bookmarkData = await bookmarksDB.getAllItems();
+      const noteData = await notesDB.getAllItems();
+      const todoData = await todosDB.getAllItems();
+      
+      // Create combined data object including settings
+      const exportData = {
+        timestamp: Date.now(),
+        settings: {
+          calendarType,
+          tileNumber,
+          selectedBackground: localStorage.getItem(storageKey) || null,
+        },
+        backgrounds: backgroundData,
+        bookmarks: bookmarkData,
+        notes: noteData,
+        todos: todoData
+      };
+      
+      // Create and download the file
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `z-assistant-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      alert("Error exporting data. Please try again.");
+    }
+  }, [calendarType, tileNumber, storageKey]);
+
+  const handleImportData = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        setIsUploading(true);
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const text = e.target?.result as string;
+          if (text) {
+            try {
+              const importData = JSON.parse(text);
+              
+              // Validate data structure
+              if (!importData.settings || !importData.backgrounds || 
+                  !importData.bookmarks || !importData.notes || !importData.todos) {
+                throw new Error("Invalid import file format");
+              }
+              
+              // Confirm with user
+              if (!confirm("This will override your current settings and data. Continue?")) {
+                return;
+              }
+              
+              // Apply settings
+              setCalendarType(importData.settings.calendarType);
+              setTileNumber(importData.settings.tileNumber);
+              if (importData.settings.selectedBackground) {
+                localStorage.setItem(storageKey, importData.settings.selectedBackground);
+              }
+              
+              // Import all data types
+              // First clear existing data
+              const backgroundItems = await backgroundsDB.getAllItems<StoredBackground>();
+              for (const item of backgroundItems) {
+                await backgroundsDB.deleteItem(item.id);
+              }
+              
+              // Then import new data
+              for (const bg of importData.backgrounds) {
+                await backgroundsDB.saveItem(bg);
+              }
+              
+              // Import bookmarks
+              const bookmarkItems = await bookmarksDB.getAllItems();
+              for (const item of bookmarkItems) {
+                await bookmarksDB.deleteItem((item as any).id);
+              }
+              for (const bookmark of importData.bookmarks) {
+                await bookmarksDB.saveItem(bookmark);
+              }
+              
+              // Import notes
+              const noteItems = await notesDB.getAllItems();
+              for (const item of noteItems) {
+                await notesDB.deleteItem((item as any).id);
+              }
+              for (const note of importData.notes) {
+                await notesDB.saveItem(note);
+              }
+              
+              // Import todos
+              const todoItems = await todosDB.getAllItems();
+              for (const item of todoItems) {
+                await todosDB.deleteItem((item as any).id);
+              }
+              for (const todo of importData.todos) {
+                await todosDB.saveItem(todo);
+              }
+              
+              // Reload backgrounds
+              await loadSavedBackgrounds();
+              
+              // Apply selected background if available
+              if (importData.backgrounds.length > 0) {
+                onSelectBackground(importData.backgrounds[0].url);
+              }
+              
+              alert("Data successfully imported!");
+              
+              // Reload the page to apply all changes
+              window.location.reload();
+            } catch (error) {
+              console.error("Import parsing error:", error);
+              alert("Invalid import file. Please try again with a valid export file.");
+            }
+          }
+        };
+        reader.readAsText(file);
+
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } catch (error) {
+        console.error("Import error:", error);
+        alert("Error importing data. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [storageKey, calendarType, setCalendarType, tileNumber, onSelectBackground, loadSavedBackgrounds]
+  );
+
   // ─── OTHER EFFECTS ──────────────────────────────────────────────
   // Handle click outside of the selector to close the modal
   useEffect(() => {
@@ -699,6 +863,34 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 max="100"
                 className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white outline-none placeholder-white/50"
               />
+            </div>
+            
+            {/* Export/Import Buttons */}
+            <div className="flex flex-col w-full gap-2 mt-4">
+              <label className="text-white text-sm mb-0.5">Data Management</label>
+              <div className="flex w-full gap-2">
+                <button
+                  className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
+                  onClick={handleExportData}
+                >
+                  <Download className="w-4 h-4" /> 
+                  Export Data
+                </button>
+                <button
+                  className="flex-1 px-4 py-2 rounded-lg text-sm text-white bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <FileUp className="w-4 h-4" />
+                  Import Data
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  accept=".json" 
+                  onChange={handleImportData} 
+                  className="hidden" 
+                />
+              </div>
             </div>
           </div>
         </div>
