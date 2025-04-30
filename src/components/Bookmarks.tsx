@@ -49,6 +49,12 @@ interface ActionMenuPortalProps {
 // Add types for grouping options
 type GroupingType = "none" | "alphabetical" | "type";
 
+// Add interfaces for grouped nodes
+interface GroupedData {
+  title: string;
+  nodes: BookmarkNode[];
+}
+
 // --- Database Setup ---
 const bookmarkDB = createDatabase({
   dbName: "bookmarkManagerDB",
@@ -520,28 +526,75 @@ export function Bookmarks() {
     return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
   };
 
-  // Add a method to handle grouping of bookmark nodes
-  const getGroupedNodes = (nodes: BookmarkNode[], groupType: GroupingType): BookmarkNode[] => {
+  // Modify the getGroupedNodes function to check for empty inputs
+  const getGroupedNodes = (nodes: BookmarkNode[], groupType: GroupingType): GroupedData[] | BookmarkNode[] => {
+    // Return empty array if nodes is undefined or empty
+    if (!nodes || nodes.length === 0) return [];
+
     if (groupType === "none") return nodes;
 
-    const nodesCopy = [...nodes];
-
     if (groupType === "alphabetical") {
-      // Sort alphabetically by title
-      return nodesCopy.sort((a, b) => a.title.localeCompare(b.title));
+      // Group alphabetically by first letter
+      const groups: Record<string, BookmarkNode[]> = {};
+
+      // Sort and group by first letter
+      [...nodes]
+        .sort((a, b) => a.title.localeCompare(b.title))
+        .forEach((node) => {
+          const firstLetter = node.title.charAt(0).toUpperCase();
+          if (!groups[firstLetter]) {
+            groups[firstLetter] = [];
+          }
+          groups[firstLetter].push(node);
+        });
+
+      // Convert to array of groups
+      return Object.entries(groups).map(([letter, groupNodes]) => ({
+        title: letter,
+        nodes: groupNodes,
+      }));
     } else if (groupType === "type") {
-      // Sort by type (folders first, then bookmarks)
-      return nodesCopy.sort((a, b) => {
-        // If a has children and b doesn't, a comes first
-        if (a.children && !b.children) return -1;
-        // If b has children and a doesn't, b comes first
-        if (!a.children && b.children) return 1;
-        // Otherwise, sort alphabetically
-        return a.title.localeCompare(b.title);
+      // Create folder and bookmark groups
+      const folders: BookmarkNode[] = [];
+      const bookmarks: BookmarkNode[] = [];
+
+      nodes.forEach((node) => {
+        if (node.children) {
+          folders.push(node);
+        } else {
+          bookmarks.push(node);
+        }
       });
+
+      // Sort each group alphabetically
+      folders.sort((a, b) => a.title.localeCompare(b.title));
+      bookmarks.sort((a, b) => a.title.localeCompare(b.title));
+
+      const result: GroupedData[] = [];
+
+      if (folders.length > 0) {
+        result.push({
+          title: "Folders",
+          nodes: folders,
+        });
+      }
+
+      if (bookmarks.length > 0) {
+        result.push({
+          title: "Bookmarks",
+          nodes: bookmarks,
+        });
+      }
+
+      return result;
     }
 
-    return nodesCopy;
+    return nodes;
+  };
+
+  // Add a type guard function to check if data is grouped
+  const isGroupedData = (data: any[]): data is GroupedData[] => {
+    return data.length > 0 && "title" in data[0] && "nodes" in data[0];
   };
 
   // Add a function to filter folder content by search term
@@ -553,17 +606,50 @@ export function Bookmarks() {
     return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
   };
 
+  // Add a scroll padding utility function to handle scrolling behavior
+  useEffect(() => {
+    // Apply scroll padding when the selector or folder content is open
+    const applyScrollPadding = () => {
+      if (isSelecting && selectorRef.current) {
+        const searchControls = selectorRef.current.querySelector(".search-controls");
+        if (searchControls) {
+          const height = searchControls.getBoundingClientRect().height;
+          document.documentElement.style.setProperty("--scroll-padding-top", `${height + 16}px`);
+        }
+      } else if (activeFolderContent && folderContentRef.current) {
+        const folderControls = folderContentRef.current.querySelector(".search-controls");
+        if (folderControls) {
+          const height = folderControls.getBoundingClientRect().height;
+          document.documentElement.style.setProperty("--scroll-padding-top", `${height + 16}px`);
+        }
+      } else {
+        document.documentElement.style.setProperty("--scroll-padding-top", "0px");
+      }
+    };
+
+    applyScrollPadding();
+    window.addEventListener("resize", applyScrollPadding);
+
+    return () => {
+      window.removeEventListener("resize", applyScrollPadding);
+      document.documentElement.style.setProperty("--scroll-padding-top", "0px");
+    };
+  }, [isSelecting, activeFolderContent]);
+
   // --- Rendering Functions ---
   const renderSelector = () => {
     const nodes = currentFolder?.children || bookmarks;
-    const filteredNodes = filterNodesBySearch(nodes, searchTerm);
-    const groupedNodes = getGroupedNodes(filteredNodes, groupingType);
+    const filteredNodes = filterNodesBySearch(nodes || [], searchTerm);
+    const groupedData = getGroupedNodes(filteredNodes, groupingType);
+
+    // Use type guard to safely check if data is grouped
+    const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
       <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
         <div ref={selectorRef} className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
           {/* Top Bar */}
-          <div className="flex items-center justify-between gap-2 mb-4 sticky top-0 bg-black/50 p-2 z-10">
+          <div className="flex items-center justify-between gap-2 sticky top-0 bg-black/50 p-2 z-10">
             <button
               onClick={currentFolder ? navigateBack : closeSelector}
               className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
@@ -594,8 +680,8 @@ export function Bookmarks() {
             )}
           </div>
 
-          {/* Search and Grouping Controls */}
-          <div className="mb-4 sticky top-14 z-10 space-y-2">
+          {/* Search and Grouping Controls with improved styling for scroll */}
+          <div className="search-controls mb-4 sticky top-[3.5rem] z-10 space-y-2 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -651,34 +737,108 @@ export function Bookmarks() {
             </div>
           </div>
 
-          {/* Bookmark/Folder Grid with Responsive Font Sizes */}
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-            {groupedNodes.length > 0 ? (
-              groupedNodes.map((node) => (
-                <button
-                  key={node.id}
-                  onClick={() => (node.children ? navigateToFolder(node.id) : selectNode(node))}
-                  className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
-                >
-                  {node.children ? (
-                    <Folder className="w-6 h-6 mb-1 text-white" />
-                  ) : (
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                      alt=""
-                      className="w-6 h-6 mb-1"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+          {/* Content with scroll padding based on control heights */}
+          <div className="pt-1">
+            {!isGrouped ? (
+              // Render regular grid when not grouped
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+                {filteredNodes.length > 0 ? (
+                  filteredNodes.map((node) => (
+                    <a
+                      key={node.id}
+                      href={node.url || "#"}
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent default for left click
+                        if (node.children) {
+                          navigateToFolder(node.id);
+                        } else {
+                          selectNode(node);
+                        }
                       }}
-                    />
-                  )}
-                  <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
-                    {truncateTitle(node.title)}
-                  </span>
-                </button>
-              ))
+                      className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      {node.children ? (
+                        <Folder className="w-6 h-6 mb-1 text-white" />
+                      ) : (
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                          alt=""
+                          className="w-6 h-6 mb-1"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                          }}
+                        />
+                      )}
+                      <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                        {truncateTitle(node.title)}
+                      </span>
+                    </a>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                )}
+              </div>
             ) : (
-              <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+              // Render grouped content with headers
+              <div className="space-y-4">
+                {isGroupedData(groupedData) &&
+                  groupedData.map((group) => (
+                    <div key={group.title} className="space-y-1">
+                      {/* Group header - Adjust top position for better scrolling */}
+                      <div className="sticky top-[calc(var(--scroll-padding-top)_-_16px)] z-10 bg-white/10 backdrop-blur-md text-white font-medium px-3 py-1 rounded-md flex items-center">
+                        {group.title === "Folders" ? (
+                          <Folder className="w-4 h-4 mr-2" />
+                        ) : group.title === "Bookmarks" ? (
+                          <List className="w-4 h-4 mr-2" />
+                        ) : (
+                          <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                        )}
+                        <span>{group.title}</span>
+                        <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                      </div>
+                      {/* Group items */}
+                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+                        {group.nodes &&
+                          group.nodes.map((node) => (
+                            <a
+                              key={node.id}
+                              href={node.url || "#"}
+                              onClick={(e) => {
+                                e.preventDefault(); // Prevent default for left click
+                                if (node.children) {
+                                  navigateToFolder(node.id);
+                                } else {
+                                  selectNode(node);
+                                }
+                              }}
+                              className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              {node.children ? (
+                                <Folder className="w-6 h-6 mb-1 text-white" />
+                              ) : (
+                                <img
+                                  src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                  alt=""
+                                  className="w-6 h-6 mb-1"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                                  }}
+                                />
+                              )}
+                              <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                                {truncateTitle(node.title)}
+                              </span>
+                            </a>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                {isGroupedData(groupedData) && groupedData.length === 0 && (
+                  <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -689,8 +849,11 @@ export function Bookmarks() {
   const renderFolderContent = () => {
     if (!activeFolderContent) return null;
 
-    const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children, folderSearchTerm);
-    const groupedFolderContent = getGroupedNodes(filteredFolderContent, groupingType);
+    const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children || [], folderSearchTerm);
+    const groupedData = getGroupedNodes(filteredFolderContent, groupingType);
+
+    // Use the type guard for safer type checking
+    const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
@@ -707,8 +870,8 @@ export function Bookmarks() {
             <h3 className="text-white text-lg font-medium">{activeFolderContent.title}</h3>
           </div>
 
-          {/* Search and Grouping Controls for Folder Content */}
-          <div className="mt-2 mb-4 space-y-2">
+          {/* Search and Grouping Controls with improved styling for scroll */}
+          <div className="search-controls mt-2 mb-4 space-y-2 sticky top-[3.5rem] z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -764,47 +927,120 @@ export function Bookmarks() {
             </div>
           </div>
 
-          {/* Content Grid with Responsive Font Sizes */}
+          {/* Content Grid with improved scroll behavior */}
           <div className="overflow-y-auto h-[70%] pt-2">
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-              {groupedFolderContent.length > 0 ? (
-                groupedFolderContent.map((node) => (
-                  <button
-                    key={node.id}
-                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                      if (node.children) {
-                        navigateToFolder(node.id);
-                      } else {
-                        if (event.ctrlKey) {
-                          window.open(node.url || "", "_blank");
+            {!isGrouped ? (
+              // Render regular grid when not grouped
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+                {filteredFolderContent.length > 0 ? (
+                  filteredFolderContent.map((node) => (
+                    <a
+                      key={node.id}
+                      href={node.url || "#"}
+                      onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                        event.preventDefault(); // Prevent default only for left click
+                        if (node.children) {
+                          navigateToFolder(node.id);
                         } else {
-                          window.location.href = node.url || "";
+                          if (event.ctrlKey) {
+                            window.open(node.url || "", "_blank");
+                          } else {
+                            window.location.href = node.url || "";
+                          }
                         }
-                      }
-                    }}
-                    className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
-                  >
-                    {node.children ? (
-                      <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
-                    ) : (
-                      <img
-                        src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                        alt=""
-                        className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                        }}
-                      />
-                    )}
-                    <span className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2" title={node.title}>
-                      {truncateTitle(node.title)}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
-              )}
-            </div>
+                      }}
+                      className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                      style={{ textDecoration: "none" }}
+                    >
+                      {node.children ? (
+                        <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                      ) : (
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                          alt=""
+                          className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                          }}
+                        />
+                      )}
+                      <span className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2" title={node.title}>
+                        {truncateTitle(node.title)}
+                      </span>
+                    </a>
+                  ))
+                ) : (
+                  <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                )}
+              </div>
+            ) : (
+              // Render grouped content with headers
+              <div className="space-y-4">
+                {isGroupedData(groupedData) &&
+                  groupedData.map((group) => (
+                    <div key={group.title} className="space-y-1">
+                      {/* Group header - Adjust top position for better scrolling */}
+                      <div className="sticky top-0 z-10 bg-white/10 backdrop-blur-md text-white font-medium px-3 py-1 rounded-md flex items-center">
+                        {group.title === "Folders" ? (
+                          <Folder className="w-4 h-4 mr-2" />
+                        ) : group.title === "Bookmarks" ? (
+                          <List className="w-4 h-4 mr-2" />
+                        ) : (
+                          <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                        )}
+                        <span>{group.title}</span>
+                        <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                      </div>
+                      {/* Group items */}
+                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+                        {group.nodes &&
+                          group.nodes.map((node) => (
+                            <a
+                              key={node.id}
+                              href={node.url || "#"}
+                              onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                                event.preventDefault(); // Prevent default only for left click
+                                if (node.children) {
+                                  navigateToFolder(node.id);
+                                } else {
+                                  if (event.ctrlKey) {
+                                    window.open(node.url || "", "_blank");
+                                  } else {
+                                    window.location.href = node.url || "";
+                                  }
+                                }
+                              }}
+                              className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                              style={{ textDecoration: "none" }}
+                            >
+                              {node.children ? (
+                                <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                              ) : (
+                                <img
+                                  src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                  alt=""
+                                  className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                                  }}
+                                />
+                              )}
+                              <span
+                                className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                                title={node.title}
+                              >
+                                {truncateTitle(node.title)}
+                              </span>
+                            </a>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                {isGroupedData(groupedData) && groupedData.length === 0 && (
+                  <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
