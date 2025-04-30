@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
-import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette } from "lucide-react";
+import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid } from "lucide-react";
 import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
@@ -28,6 +28,8 @@ interface TileConfig {
   url?: string;
   tileColor: string;
   tileIcon: string;
+  position: number;
+  createdAt: number;
 }
 
 interface BookmarkPreferences {
@@ -44,13 +46,19 @@ interface ActionMenuPortalProps {
   onClose: () => void;
 }
 
+// Add types for grouping options
+type GroupingType = "none" | "alphabetical" | "type";
+
 // --- Database Setup ---
 const bookmarkDB = createDatabase({
   dbName: "bookmarkManagerDB",
   storeName: "tiles",
   version: 1,
   keyPath: "id",
-  indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }],
+  indexes: [
+    { name: "createdAt", keyPath: "createdAt", unique: false },
+    { name: "position", keyPath: "position", unique: false }, // Add index for position
+  ],
 });
 
 // --- Helper Functions ---
@@ -63,6 +71,20 @@ function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): Bookmar
     tileColor: "rgba(0, 0, 0, 0.6)", // Default color
     children: node.children?.map((child) => transformBookmarkNode(child)),
   };
+}
+
+// Modify the truncateTitle function to enforce a 15-character limit
+function truncateTitle(title: string): string {
+  // First, apply the word limit (3 words)
+  const words = title.trim().split(/\s+/);
+  let truncated = words.length <= 3 ? title : words.slice(0, 3).join(" ") + "...";
+
+  // Then, enforce the character limit (15 characters)
+  if (truncated.length > 15) {
+    return truncated.substring(0, 12) + "...";
+  }
+
+  return truncated;
 }
 
 // --- Color Picker Component ---
@@ -190,10 +212,10 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose 
 export function Bookmarks() {
   // Get tileNumber from CalendarContext
   const { tileNumber, textColor, backgroundColor } = useCalendar();
-  
+
   // --- State ---
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
-  const [preferences, setPreferences] = useState<BookmarkPreferences>({ tiles: [] });
+  const [tiles, setTiles] = useState<(TileConfig | null)[]>([]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [currentFolder, setCurrentFolder] = useState<BookmarkNode | null>(null);
@@ -201,6 +223,9 @@ export function Bookmarks() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [folderHistory, setFolderHistory] = useState<BookmarkNode[]>([]);
   const [menuButtonRect, setMenuButtonRect] = useState<DOMRect | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [folderSearchTerm, setFolderSearchTerm] = useState<string>(""); // New state for folder panel search
+  const [groupingType, setGroupingType] = useState<GroupingType>("none"); // New state for grouping
 
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -213,45 +238,52 @@ export function Bookmarks() {
   const sortableRef = useRef<Sortable | null>(null);
   const menuButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // --- Effects ---
-  // (Load initial data, save preferences, handle clicks outside - No changes here)
-
-  // Load initial data (bookmarks and preferences).
+  // --- Data Loading ---
+  // Load initial data (bookmarks and tiles)
   useEffect(() => {
     const loadData = async () => {
       try {
-        const storedPreferences = await bookmarkDB.getPreferences<BookmarkPreferences>();
-        setPreferences(storedPreferences && Array.isArray(storedPreferences.tiles) ? storedPreferences : { tiles: [] });
+        // Load all tiles from database
+        const storedTiles = await bookmarkDB.getAllItems<TileConfig>();
 
+        // Sort tiles by position
+        const sortedTiles = storedTiles.sort((a, b) => a.position - b.position);
+
+        // Initialize tile array with the right length
+        const initialTiles: (TileConfig | null)[] = Array(tileNumber).fill(null);
+
+        // Fill in the tiles at their positions
+        sortedTiles.forEach((tile) => {
+          if (tile.position < tileNumber) {
+            initialTiles[tile.position] = tile;
+          }
+        });
+
+        setTiles(initialTiles);
+
+        // Get bookmark data from Chrome
         chrome.bookmarks.getTree((bookmarkNodes) => {
           const transformedNodes = bookmarkNodes[0].children?.map(transformBookmarkNode) || [];
           setBookmarks(transformedNodes);
         });
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Error loading tile data:", error);
       }
     };
 
     loadData();
-  }, []);
+  }, [tileNumber]);
 
-  // Save preferences to IndexedDB whenever they change.
+  // Save tiles to Chrome sync storage
   useEffect(() => {
-    const savePreferences = async () => {
-      try {
-        await bookmarkDB.savePreferences(preferences);
-      } catch (error) {
-        console.error("Error saving preferences to IndexedDB", error);
-      }
-    };
+    chrome.storage.sync.set({ bookmarkPreferences: { tiles } });
+  }, [tiles]);
 
-    savePreferences();
-  }, [preferences]);
-
-  // Save preferences to Chrome storage (sync).
+  // Ensure menuButtonRefs array has the correct length based on tileNumber
   useEffect(() => {
-    chrome.storage.sync.set({ bookmarkPreferences: preferences });
-  }, [preferences]);
+    // Reset the refs array with the right length when tileNumber changes
+    menuButtonRefs.current = Array(tileNumber).fill(null);
+  }, [tileNumber]);
 
   // Handle clicks outside the selector and folder content to close them.
   useEffect(() => {
@@ -269,12 +301,6 @@ export function Bookmarks() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSelecting, activeFolderContent]);
-
-  // Ensure menuButtonRefs array has the correct length based on tileNumber
-  useEffect(() => {
-    // Reset the refs array with the right length when tileNumber changes
-    menuButtonRefs.current = Array(tileNumber).fill(null);
-  }, [tileNumber]);
 
   // Handle clicks outside the action menu to close it.
   useEffect(() => {
@@ -301,7 +327,7 @@ export function Bookmarks() {
         const indexStr = tileElement.getAttribute("data-tile-index");
         if (indexStr) {
           const index = parseInt(indexStr, 10);
-          const existingTile = preferences.tiles[index];
+          const existingTile = tiles[index];
           newTiles.push(existingTile);
         } else {
           console.error("Tile element missing data-tile-index attribute");
@@ -312,14 +338,21 @@ export function Bookmarks() {
       while (newTiles.length < tileNumber) {
         newTiles.push(null);
       }
-      console.log("Before setPreferences:", preferences.tiles);
-      setPreferences((prevPreferences) => ({
-        ...prevPreferences,
-        tiles: newTiles,
-      }));
-      console.log("After setPreferences:", newTiles);
+
+      // Update positions and save to database
+      const updatedTiles = newTiles.map((tile, index) => (tile ? { ...tile, position: index } : null));
+
+      // Save each tile with its new position
+      for (let i = 0; i < updatedTiles.length; i++) {
+        const tile = updatedTiles[i];
+        if (tile) {
+          await bookmarkDB.saveItem(tile);
+        }
+      }
+
+      setTiles(updatedTiles);
     }, 200),
-    [preferences.tiles, tileGridRef, tileNumber]
+    [tiles, tileGridRef, tileNumber]
   );
 
   useEffect(() => {
@@ -343,7 +376,7 @@ export function Bookmarks() {
     setCurrentFolder(null);
   };
 
-  const selectNode = (node: BookmarkNode) => {
+  const selectNode = async (node: BookmarkNode) => {
     if (selectedTileIndex === null) return;
 
     const newTile = {
@@ -354,24 +387,34 @@ export function Bookmarks() {
       url: node.url,
       tileColor: node.tileColor || "rgba(0, 0, 0, 0.6)",
       tileIcon: node.tileIcon || "default",
+      position: selectedTileIndex,
+      createdAt: Date.now(),
     };
 
-    updateTile(newTile);
+    await updateTile(newTile);
   };
 
-  const updateTile = (tile: TileConfig, color?: string) => {
+  const updateTile = async (tile: TileConfig, color?: string) => {
     if (selectedTileIndex === null && tileIndexForColor === null) return;
 
     const indexToUpdate = selectedTileIndex !== null ? selectedTileIndex : tileIndexForColor;
 
-    const newTiles = [...preferences.tiles];
-    if (color && indexToUpdate !== null) {
-      newTiles[indexToUpdate] = { ...tile, tileColor: color }; //Update with new color
-    } else if (indexToUpdate !== null) {
-      newTiles[indexToUpdate] = tile;
-    }
+    if (indexToUpdate === null) return;
 
-    setPreferences({ ...preferences, tiles: newTiles });
+    // If updating color, update the tile with new color
+    const updatedTile = color ? { ...tile, tileColor: color } : tile;
+
+    // Save to database directly like in Notes.tsx
+    await bookmarkDB.saveItem(updatedTile);
+
+    // Update state with new tile
+    setTiles((prevTiles) => {
+      const newTiles = [...prevTiles];
+      newTiles[indexToUpdate] = updatedTile;
+      return newTiles;
+    });
+
+    // Reset UI states
     setIsSelecting(false);
     setSelectedTileIndex(null);
     setIsColorPickerOpen(false);
@@ -379,21 +422,23 @@ export function Bookmarks() {
   };
 
   const clearTile = async (index: number) => {
-    const tileToClear = preferences.tiles[index];
+    const tileToClear = tiles[index];
     if (!tileToClear) return;
 
-    setPreferences((prevPreferences) => {
-      const newTiles = [...prevPreferences.tiles];
-      newTiles[index] = null;
-      return { ...prevPreferences, tiles: newTiles };
-    });
-
+    // Delete from database
     await bookmarkDB.deleteItem(tileToClear.id);
+
+    // Update state
+    setTiles((prevTiles) => {
+      const newTiles = [...prevTiles];
+      newTiles[index] = null;
+      return newTiles;
+    });
   };
 
   const handleColorClick = (index: number) => {
     setTileIndexForColor(index);
-    const tile = preferences.tiles[index];
+    const tile = tiles[index];
     // Set initial color
     setSelectedTileColor(tile?.tileColor || "#f0f0f0");
     setIsColorPickerOpen(true);
@@ -407,7 +452,7 @@ export function Bookmarks() {
   const handleColorConfirm = () => {
     if (tileIndexForColor === null) return;
 
-    const currentTile = preferences.tiles[tileIndexForColor];
+    const currentTile = tiles[tileIndexForColor];
     if (!currentTile) return;
 
     updateTile(currentTile, selectedTileColor);
@@ -423,6 +468,7 @@ export function Bookmarks() {
             setFolderHistory((prev) => [...prev, currentFolder]);
           }
           setCurrentFolder(transformedNode);
+          setSearchTerm("");
         } else {
           if (activeFolderContent) {
             setFolderHistory((prev) => [...prev, activeFolderContent]);
@@ -439,16 +485,20 @@ export function Bookmarks() {
         const previousFolder = folderHistory[folderHistory.length - 1];
         setFolderHistory((prev) => prev.slice(0, prev.length - 1));
         setCurrentFolder(previousFolder);
+        setSearchTerm(""); // Clear search term when navigating back
       } else {
         setCurrentFolder(null);
+        setSearchTerm(""); // Clear search term when exiting folder
       }
     } else {
       if (folderHistory.length > 0) {
         const previousFolder = folderHistory[folderHistory.length - 1];
         setFolderHistory((prev) => prev.slice(0, prev.length - 1));
         setActiveFolderContent(previousFolder);
+        setFolderSearchTerm(""); // Clear folder search term when navigating back
       } else {
         setActiveFolderContent(null);
+        setFolderSearchTerm(""); // Clear folder search term when exiting folder
       }
     }
   };
@@ -458,11 +508,56 @@ export function Bookmarks() {
     setSelectedTileIndex(null);
     setCurrentFolder(null);
     setFolderHistory([]);
+    setSearchTerm("");
+    setFolderSearchTerm("");
+  };
+
+  // Add a helper function to filter nodes based on search term
+  const filterNodesBySearch = (nodes: BookmarkNode[], term: string): BookmarkNode[] => {
+    if (!term) return nodes;
+
+    const lowerTerm = term.toLowerCase();
+    return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
+  };
+
+  // Add a method to handle grouping of bookmark nodes
+  const getGroupedNodes = (nodes: BookmarkNode[], groupType: GroupingType): BookmarkNode[] => {
+    if (groupType === "none") return nodes;
+
+    const nodesCopy = [...nodes];
+
+    if (groupType === "alphabetical") {
+      // Sort alphabetically by title
+      return nodesCopy.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (groupType === "type") {
+      // Sort by type (folders first, then bookmarks)
+      return nodesCopy.sort((a, b) => {
+        // If a has children and b doesn't, a comes first
+        if (a.children && !b.children) return -1;
+        // If b has children and a doesn't, b comes first
+        if (!a.children && b.children) return 1;
+        // Otherwise, sort alphabetically
+        return a.title.localeCompare(b.title);
+      });
+    }
+
+    return nodesCopy;
+  };
+
+  // Add a function to filter folder content by search term
+  const filterFolderContentBySearch = (nodes: BookmarkNode[] | undefined, term: string): BookmarkNode[] => {
+    if (!nodes) return [];
+    if (!term) return nodes;
+
+    const lowerTerm = term.toLowerCase();
+    return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
   };
 
   // --- Rendering Functions ---
   const renderSelector = () => {
     const nodes = currentFolder?.children || bookmarks;
+    const filteredNodes = filterNodesBySearch(nodes, searchTerm);
+    const groupedNodes = getGroupedNodes(filteredNodes, groupingType);
 
     return (
       <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
@@ -488,6 +583,8 @@ export function Bookmarks() {
                     title: currentFolder.title,
                     tileColor: "rgba(0, 0, 0, 0.6)",
                     tileIcon: "Luci",
+                    position: selectedTileIndex !== null ? selectedTileIndex : 0,
+                    createdAt: Date.now(),
                   })
                 }
                 className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm"
@@ -497,29 +594,92 @@ export function Bookmarks() {
             )}
           </div>
 
-          {/* Bookmark/Folder Grid */}
+          {/* Search and Grouping Controls */}
+          <div className="mb-4 sticky top-14 z-10 space-y-2">
+            {/* Search Input */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-5 h-5 text-white/70" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search bookmarks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
+                          rounded-lg text-white placeholder-white/60 text-base
+                          border-2 border-transparent focus:border-white/30
+                          transition-all duration-200 ease-in-out
+                          focus:outline-none focus:ring-2 focus:ring-white/20"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Grouping Controls */}
+            <div className="flex items-center space-x-2">
+              <span className="text-white/70 text-sm">Group by:</span>
+              <div className="flex bg-white/10 rounded-lg p-1">
+                <button
+                  onClick={() => setGroupingType("none")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <Grid className="w-4 h-4 inline mr-1" />
+                  None
+                </button>
+                <button
+                  onClick={() => setGroupingType("alphabetical")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <SortDesc className="w-4 h-4 inline mr-1" />
+                  A-Z
+                </button>
+                <button
+                  onClick={() => setGroupingType("type")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <List className="w-4 h-4 inline mr-1" />
+                  Type
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bookmark/Folder Grid with Responsive Font Sizes */}
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-            {nodes.map((node) => (
-              <button
-                key={node.id}
-                onClick={() => (node.children ? navigateToFolder(node.id) : selectNode(node))}
-                className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
-              >
-                {node.children ? (
-                  <Folder className="w-6 h-6 mb-1 text-white" />
-                ) : (
-                  <img
-                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                    alt=""
-                    className="w-6 h-6 mb-1"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                    }}
-                  />
-                )}
-                <span className="text-white text-center text-lg text-[1vw] font-medium line-clamp-2">{node.title}</span>
-              </button>
-            ))}
+            {groupedNodes.length > 0 ? (
+              groupedNodes.map((node) => (
+                <button
+                  key={node.id}
+                  onClick={() => (node.children ? navigateToFolder(node.id) : selectNode(node))}
+                  className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                >
+                  {node.children ? (
+                    <Folder className="w-6 h-6 mb-1 text-white" />
+                  ) : (
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                      alt=""
+                      className="w-6 h-6 mb-1"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                      }}
+                    />
+                  )}
+                  <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                    {truncateTitle(node.title)}
+                  </span>
+                </button>
+              ))
+            ) : (
+              <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+            )}
           </div>
         </div>
       </div>
@@ -528,6 +688,9 @@ export function Bookmarks() {
 
   const renderFolderContent = () => {
     if (!activeFolderContent) return null;
+
+    const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children, folderSearchTerm);
+    const groupedFolderContent = getGroupedNodes(filteredFolderContent, groupingType);
 
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
@@ -544,40 +707,103 @@ export function Bookmarks() {
             <h3 className="text-white text-lg font-medium">{activeFolderContent.title}</h3>
           </div>
 
-          {/* Content Grid */}
-          <div className="overflow-y-auto h-[85%] pt-2">
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-              {activeFolderContent.children?.map((node) => (
+          {/* Search and Grouping Controls for Folder Content */}
+          <div className="mt-2 mb-4 space-y-2">
+            {/* Search Input */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-5 h-5 text-white/70" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search in this folder..."
+                value={folderSearchTerm}
+                onChange={(e) => setFolderSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
+                          rounded-lg text-white placeholder-white/60 text-base
+                          border-2 border-transparent focus:border-white/30
+                          transition-all duration-200 ease-in-out
+                          focus:outline-none focus:ring-2 focus:ring-white/20"
+              />
+              {folderSearchTerm && (
                 <button
-                key={node.id}
-                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
-                  if (node.children) {
-                    navigateToFolder(node.id);
-                  } else {
-                    if (event.ctrlKey) {
-                      window.open(node.url || "", '_blank');
-                    } else {
-                      window.location.href = node.url || "";
-                    }
-                  }
-                }}
-                className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
-              >
-                {node.children ? (
-                    <Folder className="w-10 h-10 mb-1 text-white" />
-                  ) : (
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                      alt=""
-                      className="w-8 h-8 mb-1"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                      }}
-                    />
-                  )}
-                  <span className="font-extrabold text-white text-center text-secondary-800 text-xs  line-clamp-2">{node.title}</span>
+                  onClick={() => setFolderSearchTerm("")}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
                 </button>
-              ))}
+              )}
+            </div>
+
+            {/* Grouping Controls */}
+            <div className="flex items-center space-x-2">
+              <span className="text-white/70 text-sm">Group by:</span>
+              <div className="flex bg-white/10 rounded-lg p-1">
+                <button
+                  onClick={() => setGroupingType("none")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <Grid className="w-4 h-4 inline mr-1" />
+                  None
+                </button>
+                <button
+                  onClick={() => setGroupingType("alphabetical")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <SortDesc className="w-4 h-4 inline mr-1" />
+                  A-Z
+                </button>
+                <button
+                  onClick={() => setGroupingType("type")}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                >
+                  <List className="w-4 h-4 inline mr-1" />
+                  Type
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Grid with Responsive Font Sizes */}
+          <div className="overflow-y-auto h-[70%] pt-2">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
+              {groupedFolderContent.length > 0 ? (
+                groupedFolderContent.map((node) => (
+                  <button
+                    key={node.id}
+                    onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                      if (node.children) {
+                        navigateToFolder(node.id);
+                      } else {
+                        if (event.ctrlKey) {
+                          window.open(node.url || "", "_blank");
+                        } else {
+                          window.location.href = node.url || "";
+                        }
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                  >
+                    {node.children ? (
+                      <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                    ) : (
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                        alt=""
+                        className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                        }}
+                      />
+                    )}
+                    <span className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2" title={node.title}>
+                      {truncateTitle(node.title)}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+              )}
             </div>
           </div>
         </div>
@@ -621,7 +847,7 @@ export function Bookmarks() {
     // --- Common Action Menu Button ---
     const actionMenuButton = (
       <button
-        ref={el => menuButtonRefs.current[index] = el}
+        ref={(el) => (menuButtonRefs.current[index] = el)}
         id={`menu-button-${tile.id}`}
         onClick={handleMenuButtonClick}
         className="p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
@@ -662,7 +888,9 @@ export function Bookmarks() {
             />
           )}
           <Folder className="w-3 h-3 mb-1 text-white relative z-10" />
-          <span className="text-white text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10">{tile.title}</span>
+          <span className="text-white text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10" title={tile.title}>
+            {truncateTitle(tile.title)}
+          </span>
         </div>
       );
     }
@@ -681,7 +909,7 @@ export function Bookmarks() {
           const url = (e.currentTarget as HTMLDivElement).dataset.url;
           if (url) {
             if (e.ctrlKey) {
-              window.open(url, '_blank');
+              window.open(url, "_blank");
             } else {
               window.location.href = url;
             }
@@ -708,20 +936,20 @@ export function Bookmarks() {
             e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
           }}
         />
-        <span className="text-white text-center text-[0.8vh] font-medium line-clamp-2 relative z-10">{tile.title}</span>
+        <span className="text-white text-center text-[0.8vh] font-medium line-clamp-2 relative z-10" title={tile.title}>
+          {truncateTitle(tile.title)}
+        </span>
       </div>
     );
   };
 
   // --- Main Tile Grid Rendering ---
-  const tiles = Array(tileNumber)
-    .fill(null)
-    .map((_, i) => (preferences?.tiles ? preferences.tiles[i] : null));
-
   return (
     <div className="relative">
       <div ref={tileGridRef} className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-8 gap-1">
-        {tiles.map((tile, index) => renderTile(tile, index))}
+        {Array(tileNumber)
+          .fill(null)
+          .map((_, i) => renderTile(tiles[i], i))}
       </div>
       {isSelecting && renderSelector()}
       {activeFolderContent && renderFolderContent()}
