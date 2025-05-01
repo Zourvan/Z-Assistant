@@ -213,14 +213,53 @@ export function Notes({}: NotesProps) {
           Notes
         </h2>
         <div className="flex items-center gap-6">
-          <div className="ml-6">
+          <div className="ml-6 z-10 relative">
             <Select
               options={colorOptions}
               value={selectedColor}
               onChange={(option) => option && setSelectedColor(option)}
               components={{ Option: ColourOption, SingleValue: ColourValue }}
-              styles={customStyles}
+              styles={{
+                ...customStyles,
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 50,
+                  backgroundColor: "#121212",
+                  width: "auto",
+                  minWidth: "100%",
+                  boxSizing: "content-box",
+                }),
+                menuList: (provided) => ({
+                  ...provided,
+                  backgroundColor: "#121212",
+                }),
+                menuPortal: (provided) => ({
+                  ...provided,
+                  zIndex: 9999,
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.1)" : state.isSelected ? "rgba(255, 255, 255, 0.2)" : "#121212",
+                  color: "white",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                  },
+                }),
+                control: (provided) => ({
+                  ...provided,
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  border: "none",
+                  borderRadius: "0.5rem",
+                  minHeight: "2rem",
+                  boxShadow: "none",
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  },
+                }),
+              }}
               menuPortalTarget={document.body}
+              menuPosition="fixed"
+              menuPlacement="auto"
             />
           </div>
           <button
@@ -231,7 +270,7 @@ export function Notes({}: NotesProps) {
                 addNote(formEvent);
               }
             }}
-            className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors"
+            className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors z-0"
           >
             <Plus className="w-4 h-4" style={{ color: textColor }} />
           </button>
@@ -262,7 +301,7 @@ export function Notes({}: NotesProps) {
             }}
           >
             {editingNoteId === note.id ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col ">
                 <textarea
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
@@ -271,7 +310,7 @@ export function Notes({}: NotesProps) {
                   style={{ color: textColor }}
                 />
                 <div className="flex justify-between items-center">
-                  <div className="flex gap-1 items-center">
+                  <div className="flex items-center">
                     <Select
                       options={colorOptions}
                       value={editingColor}

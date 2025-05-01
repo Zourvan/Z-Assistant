@@ -33,10 +33,6 @@ interface TileConfig {
   createdAt: number;
 }
 
-interface BookmarkPreferences {
-  tiles: (TileConfig | null)[];
-}
-
 interface ActionMenuPortalProps {
   tile: TileConfig;
   buttonRect: DOMRect;
@@ -1119,17 +1115,6 @@ export function Bookmarks() {
   };
 
   const renderTile = (tile: TileConfig | null, index: number) => {
-    // Don't create a new ref inside the function; use the array of refs
-    const handleMenuButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const currentButtonRef = menuButtonRefs.current[index];
-      if (currentButtonRef) {
-        setMenuButtonRect(currentButtonRef.getBoundingClientRect());
-      }
-      setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
-    };
-
     const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 glass-effect backdrop-blur-md rounded-xl group cursor-pointer`;
 
     const tileBackgroundColor = tile?.tileColor || "rgba(0, 0, 0, 0.2)"; // Using a transparent background
@@ -1152,18 +1137,6 @@ export function Bookmarks() {
     }
 
     // --- Common Action Menu Button ---
-    const actionMenuButton = (
-      <button
-        ref={(el) => (menuButtonRefs.current[index] = el)}
-        id={`menu-button-${tile.id}`}
-        onClick={handleMenuButtonClick}
-        className="p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
-        title="Menu"
-      >
-        <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
-      </button>
-    );
-
     const handleEdit = () => {
       openSelector(index);
     };
@@ -1177,12 +1150,29 @@ export function Bookmarks() {
         <div
           key={`folder-tile-${tile.nodeId}`}
           id={`folder-tile-${tile.nodeId}`}
-          className={`${commonClasses} hover:bg-black/30 transition-colors`}
+          className={`${commonClasses} hover:bg-black/30 transition-colors overflow-visible`}
           style={{ position: "relative", zIndex: 1, backgroundColor: tileBackgroundColor }} // Set background color
           data-tile-index={index}
           onClick={() => navigateToFolder(tile.nodeId)}
         >
-          <div className="absolute top-1 right-1">{actionMenuButton}</div>
+          <button
+            ref={(el) => (menuButtonRefs.current[index] = el)}
+            id={`menu-button-${tile.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const currentButtonRef = menuButtonRefs.current[index];
+              if (currentButtonRef) {
+                setMenuButtonRect(currentButtonRef.getBoundingClientRect());
+              }
+              setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
+            }}
+            className="absolute top-1 right-1 z-20 p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
+            title="Menu"
+            style={{ zIndex: 20 }}
+          >
+            <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
+          </button>
           {openMenuId === tile.id && menuButtonRect && (
             <ActionMenuPortal
               tile={tile}
@@ -1190,7 +1180,7 @@ export function Bookmarks() {
               buttonRect={menuButtonRect}
               onEdit={handleEdit}
               onClear={handleClear}
-              onColor={() => handleColorClick(index)} // Pass index
+              onColor={() => handleColorClick(index)}
               onClose={() => setOpenMenuId(null)}
             />
           )}
@@ -1211,7 +1201,7 @@ export function Bookmarks() {
       <div
         key={`bookmark-tile-${tile.nodeId}`}
         id={`bookmark-tile-${tile.nodeId}`}
-        className={`${commonClasses} hover:bg-black/30 transition-colors`}
+        className={`${commonClasses} hover:bg-black/30 transition-colors overflow-visible`}
         style={{ position: "relative", zIndex: 1, backgroundColor: tileBackgroundColor }} // Set background color
         data-tile-index={index}
         data-url={tile.url}
@@ -1227,7 +1217,24 @@ export function Bookmarks() {
           }
         }}
       >
-        <div className="absolute top-1 right-1">{actionMenuButton}</div>
+        <button
+          ref={(el) => (menuButtonRefs.current[index] = el)}
+          id={`menu-button-${tile.id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const currentButtonRef = menuButtonRefs.current[index];
+            if (currentButtonRef) {
+              setMenuButtonRect(currentButtonRef.getBoundingClientRect());
+            }
+            setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
+          }}
+          className="absolute top-1 right-1 z-20 p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
+          title="Menu"
+          style={{ zIndex: 20 }}
+        >
+          <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
+        </button>
         {openMenuId === tile.id && menuButtonRect && (
           <ActionMenuPortal
             tile={tile}
@@ -1235,7 +1242,7 @@ export function Bookmarks() {
             buttonRect={menuButtonRect}
             onEdit={handleEdit}
             onClear={handleClear}
-            onColor={() => handleColorClick(index)} // Pass index
+            onColor={() => handleColorClick(index)}
             onClose={() => setOpenMenuId(null)}
           />
         )}
