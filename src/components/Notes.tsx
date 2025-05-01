@@ -72,8 +72,9 @@ const customStyles: StylesConfig<{ value: string; label: string; color: string }
     backgroundColor: "transparent",
     border: "none",
     boxShadow: "none",
-    minWidth: "30px",
-    width: "30px",
+    minWidth: "20px",
+    width: "20px",
+    height: "32px",
     cursor: "pointer",
   }),
   menu: (provided: any) => ({
@@ -110,6 +111,14 @@ const customStyles: StylesConfig<{ value: string; label: string; color: string }
     color: state.isFocused ? "#fff" : "#000",
     textAlign: "center",
     padding: "8px 0",
+  }),
+  input: (provided) => ({
+    ...provided,
+    opacity: 0,
+    position: "absolute",
+    width: 0,
+    height: 0,
+    padding: 0,
   }),
 };
 
@@ -199,10 +208,38 @@ export function Notes({}: NotesProps) {
 
   return (
     <div className="backdrop-blur-md rounded-xl p-4 shadow-lg" style={{ backgroundColor, color: textColor }}>
-      <h2 className="text-[3.5vh] font-light mb-4" style={{ color: textColor }}>Notes</h2>
-      
-      <form onSubmit={addNote} className="mb-4 flex gap-2">
-        <div className="relative flex-1">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-[3.5vh] font-light" style={{ color: textColor }}>
+          Notes
+        </h2>
+        <div className="flex items-center gap-6">
+          <div className="ml-6">
+            <Select
+              options={colorOptions}
+              value={selectedColor}
+              onChange={(option) => option && setSelectedColor(option)}
+              components={{ Option: ColourOption, SingleValue: ColourValue }}
+              styles={customStyles}
+              menuPortalTarget={document.body}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              if (newNote.trim()) {
+                const formEvent = e as unknown as React.FormEvent;
+                addNote(formEvent);
+              }
+            }}
+            className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors"
+          >
+            <Plus className="w-4 h-4" style={{ color: textColor }} />
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={addNote} className="mb-4">
+        <div className="relative">
           <input
             type="text"
             value={newNote}
@@ -212,29 +249,16 @@ export function Notes({}: NotesProps) {
             style={{ color: textColor }}
           />
         </div>
-        <Select
-          options={colorOptions}
-          value={selectedColor}
-          onChange={(option) => option && setSelectedColor(option)}
-          components={{ Option: ColourOption, SingleValue: ColourValue }}
-          styles={customStyles}
-          menuPortalTarget={document.body}
-        />
-        <button type="submit" className="px-3 py-2 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors">
-          <Plus className="w-5 h-5" style={{ color: textColor }} />
-        </button>
       </form>
 
       <div className="space-y-3 overflow-auto max-h-[calc(100vh-15rem)] custom-scrollbar">
         {notes.map((note) => (
           <div
             key={note.id}
-            className={`p-3 rounded-lg ${
-              isPersian(note.text) ? "rtl" : "ltr"
-            }`}
+            className={`p-3 rounded-lg ${isPersian(note.text) ? "rtl" : "ltr"}`}
             style={{
               backgroundColor: note.color,
-              color: textColor
+              color: textColor,
             }}
           >
             {editingNoteId === note.id ? (
@@ -258,16 +282,10 @@ export function Notes({}: NotesProps) {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={cancelEditing}
-                      className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
-                    >
+                    <button onClick={cancelEditing} className="p-1 bg-white/20 hover:bg-white/30 rounded-md">
                       <X className="w-4 h-4" style={{ color: textColor }} />
                     </button>
-                    <button
-                      onClick={saveEditedNote}
-                      className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
-                    >
+                    <button onClick={saveEditedNote} className="p-1 bg-white/20 hover:bg-white/30 rounded-md">
                       <CheckCircle2 className="w-4 h-4" style={{ color: textColor }} />
                     </button>
                   </div>
@@ -277,21 +295,13 @@ export function Notes({}: NotesProps) {
               <div className="flex justify-between gap-2">
                 <div className="flex flex-col flex-1">
                   <p className="break-words">{note.text}</p>
-                  <span className="text-xs opacity-70 mt-1">
-                    {formatDate(note.createdAt)}
-                  </span>
+                  <span className="text-xs opacity-70 mt-1">{formatDate(note.createdAt)}</span>
                 </div>
                 <div className="flex gap-2 items-start shrink-0">
-                  <button
-                    onClick={() => startEditing(note)}
-                    className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
-                  >
+                  <button onClick={() => startEditing(note)} className="p-1 bg-white/20 hover:bg-white/30 rounded-md">
                     <Edit2 className="w-3.5 h-3.5" style={{ color: textColor }} />
                   </button>
-                  <button
-                    onClick={() => deleteNote(note.id)}
-                    className="p-1 bg-white/20 hover:bg-white/30 rounded-md"
-                  >
+                  <button onClick={() => deleteNote(note.id)} className="p-1 bg-white/20 hover:bg-white/30 rounded-md">
                     <X className="w-3.5 h-3.5" style={{ color: textColor }} />
                   </button>
                 </div>
