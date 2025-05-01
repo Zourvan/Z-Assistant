@@ -1895,7 +1895,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                             onChange={(color: any) => {
                               const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
                               setWeekendColor(rgbaColor);
-                              console.log("Saving weekend color:", rgbaColor);
                             }}
                           />
                         </div>
@@ -1929,7 +1928,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                                 onChange={(color: any) => {
                                   const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
                                   setTextColor(rgbaColor);
-                                  console.log("Saving text color:", rgbaColor);
                                 }}
                               />
                             </div>
@@ -1965,7 +1963,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                                 onChange={(color: any) => {
                                   const rgbaColor = `rgba(${color.rgb.r},${color.rgb.g},${color.rgb.b},${color.rgb.a})`;
                                   setBackgroundColor(rgbaColor);
-                                  console.log("Saving background color:", rgbaColor);
                                 }}
                               />
                             </div>
@@ -1995,8 +1992,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         // Save to localStorage
                         localStorage.setItem("textColor", defaultTextColor);
                         localStorage.setItem("backgroundColor", defaultBgColor);
-
-                        console.log("Reset colors to defaults");
                       }}
                     >
                       Reset Colors

@@ -19,12 +19,6 @@ export function Calendar() {
   const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Debug logs
-  console.log("Calendar Component - weekendDays:", weekendDays);
-  console.log("Calendar Component - weekendColor:", weekendColor);
-  console.log("Calendar Component - firstDayOfWeek:", firstDayOfWeek);
-  console.log("Calendar Component - textColor:", textColor);
-  console.log("Calendar Component - backgroundColor:", backgroundColor);
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
@@ -70,12 +64,6 @@ export function Calendar() {
   const emptyDayCount = useMemo(() => {
     // How many cells to skip before the 1st day of month
     const emptyCells = (7 + firstDayOfMonthWeekday - firstDayIndex) % 7;
-
-    console.log(
-      `First day of month weekday: ${dayIndexToName[firstDayOfMonthWeekday]} (index: ${firstDayOfMonthWeekday}), ` +
-        `first day of week setting: ${firstDayOfWeek} (index: ${firstDayIndex}), ` +
-        `empty cells needed: ${emptyCells}`
-    );
 
     return emptyCells;
   }, [firstDayOfMonthWeekday, firstDayIndex, firstDayOfWeek]);

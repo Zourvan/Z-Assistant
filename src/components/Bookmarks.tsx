@@ -52,6 +52,13 @@ interface GroupedData {
   nodes: BookmarkNode[];
 }
 
+// Interface for bookmark settings
+interface BookmarkSettings {
+  id: string;
+  value: string | GroupingType;
+  updatedAt: number;
+}
+
 // --- Database Setup ---
 const bookmarkDB = createDatabase({
   dbName: "bookmarkManagerDB",
@@ -62,6 +69,15 @@ const bookmarkDB = createDatabase({
     { name: "createdAt", keyPath: "createdAt", unique: false },
     { name: "position", keyPath: "position", unique: false }, // Add index for position
   ],
+});
+
+// Create a database for bookmark settings
+const bookmarkSettingsDB = createDatabase({
+  dbName: "bookmarkSettingsDB",
+  storeName: "settings",
+  version: 1,
+  keyPath: "id",
+  indexes: [{ name: "updatedAt", keyPath: "updatedAt", unique: false }],
 });
 
 // --- Helper Functions ---
@@ -269,6 +285,17 @@ export function Bookmarks() {
           const transformedNodes = bookmarkNodes[0].children?.map(transformBookmarkNode) || [];
           setBookmarks(transformedNodes);
         });
+
+        // Load grouping preference from settings database
+        try {
+          const groupingPref = await bookmarkSettingsDB.getItem<BookmarkSettings>("groupingType");
+          if (groupingPref) {
+            setGroupingType(groupingPref.value as GroupingType);
+          } else {
+          }
+        } catch (error) {
+          console.error("Error loading grouping preference:", error);
+        }
       } catch (error) {
         console.error("Error loading tile data:", error);
       }
@@ -276,6 +303,24 @@ export function Bookmarks() {
 
     loadData();
   }, [tileNumber]);
+
+  // Save grouping preference when it changes
+  useEffect(() => {
+    const saveGroupingPreference = async () => {
+      try {
+        const settings: BookmarkSettings = {
+          id: "groupingType",
+          value: groupingType,
+          updatedAt: Date.now(),
+        };
+        await bookmarkSettingsDB.saveItem(settings);
+      } catch (error) {
+        console.error("Error saving grouping preference:", error);
+      }
+    };
+
+    saveGroupingPreference();
+  }, [groupingType]);
 
   // Save tiles to Chrome sync storage
   useEffect(() => {
@@ -513,6 +558,7 @@ export function Bookmarks() {
     setFolderHistory([]);
     setSearchTerm("");
     setFolderSearchTerm("");
+    // Don't reset groupingType as it should persist
   };
 
   // Add a helper function to filter nodes based on search term
@@ -643,13 +689,16 @@ export function Bookmarks() {
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
-      <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 flex items-center justify-center">
-        <div ref={selectorRef} className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
+      <div className="fixed inset-0 z-20 bg-black/40 backdrop-blur-lg p-4 flex items-center justify-center">
+        <div
+          ref={selectorRef}
+          className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 border-2 border-white p-4 rounded-xl backdrop-blur-md relative flex flex-col"
+        >
           {/* Top Bar - Fixed */}
-          <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-10 rounded-t-lg">
+          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/20 p-2 z-10 rounded-lg">
             <button
               onClick={currentFolder ? navigateBack : closeSelector}
-              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-sm"
+              className="flex items-center gap-1 bg-black/30 hover:bg-black/40 border border-white/20 transition-colors rounded-lg px-2 py-1 text-sm"
               style={{ color: textColor }}
             >
               <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
@@ -682,7 +731,7 @@ export function Bookmarks() {
           </div>
 
           {/* Search and Grouping Controls - Fixed */}
-          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
+          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/30 border-2 border-white/20 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -695,7 +744,7 @@ export function Bookmarks() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
                           rounded-lg placeholder-white/60 text-base
-                          border-2 border-transparent focus:border-white/30
+                          border-2 border-white/20 focus:border-white/40
                           transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-white/20"
                 style={{ color: textColor }}
@@ -755,7 +804,7 @@ export function Bookmarks() {
           </div>
 
           {/* Separated Scrollable Content Area with Border */}
-          <div className="flex-1 mt-2 bg-black/30 backdrop-blur-lg rounded-lg border border-white/10 overflow-hidden flex flex-col">
+          <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
             <div className="overflow-y-auto p-3 h-full">
               {!isGrouped ? (
                 // Render regular grid when not grouped
@@ -773,7 +822,7 @@ export function Bookmarks() {
                             selectNode(node);
                           }
                         }}
-                        className="glass-effect flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+                        className="bookmark-selector-item flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
@@ -807,7 +856,7 @@ export function Bookmarks() {
                       <div key={group.title} className="space-y-1">
                         {/* Group header - Updated sticky positioning */}
                         <div
-                          className="sticky top-0 z-10 bg-white/20 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
+                          className="sticky top-0 z-10 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
                           style={{ color: textColor }}
                         >
                           {group.title === "Folders" ? (
@@ -837,7 +886,7 @@ export function Bookmarks() {
                                     selectNode(node);
                                   }
                                 }}
-                                className="glass-effect flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+                                className="bookmark-selector-item flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
@@ -891,10 +940,10 @@ export function Bookmarks() {
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
         <div ref={folderContentRef} className="w-[70vw] h-[70vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
           {/* Top Bar - Fixed */}
-          <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-20 rounded-t-lg">
+          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/20 p-2 z-10 rounded-lg">
             <button
               onClick={navigateBack}
-              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-sm"
+              className="flex items-center gap-1 bg-black/30 hover:bg-black/40 border border-white/20 transition-colors rounded-lg px-2 py-1 text-sm"
               style={{ color: textColor }}
             >
               <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
@@ -906,7 +955,7 @@ export function Bookmarks() {
           </div>
 
           {/* Search and Grouping Controls - Fixed */}
-          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
+          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/30 border-2 border-white/20 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -919,7 +968,7 @@ export function Bookmarks() {
                 onChange={(e) => setFolderSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
                           rounded-lg placeholder-white/60 text-base
-                          border-2 border-transparent focus:border-white/30
+                          border-2 border-white/20 focus:border-white/40
                           transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-white/20"
                 style={{ color: textColor }}
@@ -979,7 +1028,7 @@ export function Bookmarks() {
           </div>
 
           {/* Separated Scrollable Content Area with Border */}
-          <div className="flex-1 mt-2 bg-black/30 backdrop-blur-lg rounded-lg border border-white/10 overflow-hidden flex flex-col">
+          <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
             <div className="overflow-y-auto p-3 h-full">
               {!isGrouped ? (
                 // Render regular grid when not grouped
@@ -1001,7 +1050,7 @@ export function Bookmarks() {
                             }
                           }
                         }}
-                        className="glass-effect flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                        className="bookmark-selector-item flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
@@ -1039,7 +1088,7 @@ export function Bookmarks() {
                       <div key={group.title} className="space-y-1">
                         {/* Group header - Updated sticky positioning */}
                         <div
-                          className="sticky top-0 z-10 bg-white/20 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
+                          className="sticky top-0 z-10 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
                           style={{ color: textColor }}
                         >
                           {group.title === "Folders" ? (
@@ -1073,7 +1122,7 @@ export function Bookmarks() {
                                     }
                                   }
                                 }}
-                                className="glass-effect flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                                className="bookmark-selector-item flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
