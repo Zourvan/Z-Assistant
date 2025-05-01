@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
 import Select, { StylesConfig } from "react-select";
 import { ChromePicker } from "react-color";
-import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp } from "lucide-react";
+import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp, RotateCcw } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 
 //
@@ -1739,12 +1739,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       {isOpen && (
         <div
           ref={selectorRef}
-          className="mt-2 backdrop-blur-md rounded-xl p-4 shadow-lg w-full h-full flex flex-col overflow-hidden"
+          className="mt-2 backdrop-blur-md rounded-xl p-4 shadow-lg flex flex-col overflow-hidden"
           style={{
             width: "50vw",
+            maxWidth: "800px",
             height: "80vh",
-            minWidth: "250px",
-            minHeight: "500px",
+            maxHeight: "800px",
+            minWidth: "280px",
+            minHeight: "400px",
             backgroundColor,
             color: textColor,
           }}
@@ -1753,22 +1755,22 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           <div className="flex gap-2 mb-4 flex-shrink-0">
             <button
               onClick={() => setMainTab("settings")}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+              className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
                 mainTab === "settings" ? "bg-white/30" : "hover:bg-white/20"
               } transition-colors`}
               style={{ color: textColor }}
             >
-              <SlidersHorizontal className="w-4 h-4" style={{ color: textColor }} />
+              <SlidersHorizontal className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
               Settings
             </button>
             <button
               onClick={() => setMainTab("backgrounds")}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+              className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
                 mainTab === "backgrounds" ? "bg-white/30" : "hover:bg-white/20"
               } transition-colors`}
               style={{ color: textColor }}
             >
-              <Image className="w-4 h-4" style={{ color: textColor }} />
+              <Image className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
               Backgrounds
             </button>
           </div>
@@ -1779,22 +1781,22 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               <div className="flex gap-2 mb-4 flex-shrink-0">
                 <button
                   onClick={() => setActiveTab("images")}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
                     activeTab === "images" ? "bg-white/30" : "hover:bg-white/20"
                   } transition-colors`}
                   style={{ color: textColor }}
                 >
-                  <Image className="w-4 h-4" style={{ color: textColor }} />
+                  <Image className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
                   Images
                 </button>
                 <button
                   onClick={() => setActiveTab("colors")}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm flex items-center justify-center gap-2 ${
+                  className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
                     activeTab === "colors" ? "bg-white/30" : "hover:bg-white/20"
                   } transition-colors`}
                   style={{ color: textColor }}
                 >
-                  <Palette className="w-4 h-4" style={{ color: textColor }} />
+                  <Palette className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
                   Colors
                 </button>
               </div>
@@ -1803,7 +1805,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               {activeTab === "images" ? (
                 <div className="flex flex-col flex-grow overflow-hidden">
                   {/* Image List */}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 overflow-auto flex-grow custom-scrollbar">
                     {[...defaultBackgrounds, ...savedBackgrounds.filter((bg) => bg.type === "image")].map((bg) => (
                       <BackgroundThumbnail
                         key={bg.id}
@@ -1819,10 +1821,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     {/* Upload File */}
                     <button
                       onClick={() => imageFileInputRef.current?.click()}
-                      className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white flex items-center justify-center gap-2"
+                      className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2"
                       disabled={isUploading}
                     >
-                      <Upload className="w-4 h-4" />
+                      <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
                       {isUploading ? "Uploading..." : "Upload Image"}
                     </button>
                     <input ref={imageFileInputRef} type="file" accept="image/*,.gif" onChange={handleFileUpload} className="hidden" />
@@ -1834,20 +1836,20 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
                         placeholder="Paste image URL"
-                        className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm text-white placeholder-white/50 outline-none"
+                        className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base text-white placeholder-white/50 outline-none"
                       />
                       <button
                         type="submit"
                         className="bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-white flex items-center justify-center"
                       >
-                        <Link className="w-4 h-4" />
+                        <Link className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                     </form>
                   </div>
                 </div>
               ) : (
                 // Colors Tab Content
-                <div className="grid grid-cols-4 gap-4 overflow-auto flex-grow">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 overflow-auto flex-grow">
                   {colorOptions.map((color) => (
                     <BackgroundThumbnail key={color.id} bg={color} onSelect={() => handleSelectBackground(color)} />
                   ))}
@@ -1861,28 +1863,28 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               <div className="flex flex-col gap-4 w-full">
                 {/* Weekend Days Selector & Color */}
                 <div className="flex flex-col w-full gap-2">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                  <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
                     Weekend Days (select up to 3)
                   </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 flex justify-between gap-1">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="flex-1 flex justify-between">
                       {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
                         <button
                           key={day}
                           onClick={() => handleWeekendDayToggle(day as DayOfWeek)}
-                          className={`w-10 h-10 flex items-center justify-center rounded-full text-sm ${
+                          className={`w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full text-[10px] xs:text-xs sm:text-sm ${
                             weekendDays.includes(day as DayOfWeek) ? "bg-green-500" : "bg-white/30"
                           } hover:bg-white/40 transition-colors`}
                           style={{ color: textColor }}
                         >
-                          {day.slice(0, 2)}
+                          {day.slice(0, 1)}
                         </button>
                       ))}
                     </div>
 
-                    <div className="relative" title="Weekend Color">
+                    <div className="relative ml-1 sm:ml-2" title="Weekend Color">
                       <div
-                        className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                        className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded border border-gray-300 cursor-pointer flex-shrink-0"
                         style={{ backgroundColor: weekendColor }}
                         onClick={() => setIsWeekendPickerOpen(!isWeekendPickerOpen)}
                       ></div>
@@ -1906,16 +1908,16 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 {/* Text & Background Color Pickers */}
                 <div className="flex flex-col w-full gap-4">
                   {/* Text & Background Colors & Reset in one row */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     {/* Text Color */}
-                    <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>
-                        Text Color
+                    <div className="flex items-center gap-1 sm:gap-2 flex-1">
+                      <label className="text-[10px] xs:text-xs sm:text-sm whitespace-nowrap" style={{ color: textColor }}>
+                        Text
                       </label>
-                      <div className="flex ml-auto items-center gap-2">
+                      <div className="flex ml-auto items-center gap-1 sm:gap-2">
                         <div className="relative" title="Text Color">
                           <div
-                            className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                            className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 rounded border border-gray-300 cursor-pointer"
                             style={{ backgroundColor: textColor }}
                             onClick={() => setIsTextPickerOpen(!isTextPickerOpen)}
                           ></div>
@@ -1934,7 +1936,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                           )}
                         </div>
                         <div
-                          className="w-8 h-8 rounded flex items-center justify-center"
+                          className="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center"
                           style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
                         >
                           T
@@ -1943,14 +1945,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     </div>
 
                     {/* Background Color */}
-                    <div className="flex items-center gap-2 flex-1">
-                      <label className="text-sm whitespace-nowrap" style={{ color: textColor }}>
-                        Background Color
+                    <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1">
+                      <label className="text-[10px] xs:text-xs whitespace-nowrap" style={{ color: textColor }}>
+                        Background
                       </label>
                       <div className="flex ml-auto items-center gap-2">
                         <div className="relative" title="Background Color">
                           <div
-                            className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded border border-gray-300 cursor-pointer"
                             style={{ backgroundColor }}
                             onClick={() => setIsPickerOpen(!isPickerOpen)}
                           ></div>
@@ -1968,17 +1970,11 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                             </div>
                           )}
                         </div>
-                        <div
-                          className="w-8 h-8 rounded flex items-center justify-center"
-                          style={{ backgroundColor: "rgba(0,0,0,0.4)", color: textColor }}
-                        >
-                          Bg
-                        </div>
                       </div>
                     </div>
                     {/* Reset Colors Button */}
                     <button
-                      className="px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors whitespace-nowrap"
+                      className="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm md:text-base bg-black/50 hover:bg-w/60 transition-colors whitespace-nowrap"
                       style={{ color: textColor }}
                       onClick={() => {
                         // Reset to default values
@@ -1994,14 +1990,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         localStorage.setItem("backgroundColor", defaultBgColor);
                       }}
                     >
-                      Reset Colors
+                      {" "}
+                      <RotateCcw />
                     </button>
                   </div>
                 </div>
 
                 {/* First Day of the Week selector */}
                 <div className="flex flex-col w-full">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                  <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
                     First Day of the Week
                   </label>
                   <Select
@@ -2030,7 +2027,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 {/* Calendar Type Buttons */}
                 <div className="flex w-full gap-2">
                   <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm ${
+                    className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
                       calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
                     }`}
                     onClick={() => setCalendarType("gregorian")}
@@ -2039,7 +2036,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     Gregorian
                   </button>
                   <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm ${
+                    className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
                       calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
                     }`}
                     onClick={() => setCalendarType("persian")}
@@ -2051,7 +2048,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
                 {/* Tile Number Input */}
                 <div className="flex flex-col w-full">
-                  <label className="text-sm mb-2" style={{ color: textColor }}>
+                  <label className="text-xs sm:text-sm md:text-base mb-2" style={{ color: textColor }}>
                     Tile Number
                   </label>
                   <input
@@ -2060,31 +2057,31 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     onChange={handleTileNumberChange}
                     min="10"
                     max="100"
-                    className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-sm outline-none"
+                    className="w-full bg-white/30 hover:bg-white/40 transition-colors px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base outline-none"
                     style={{ color: textColor }}
                   />
                 </div>
 
                 {/* Export/Import Buttons */}
                 <div className="flex flex-col w-full gap-1 mt-1">
-                  <label className="text-sm mb-0.5" style={{ color: textColor }}>
+                  <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
                     Data Management
                   </label>
-                  <div className="flex w-full gap-2">
+                  <div className="flex flex-col sm:flex-row w-full gap-2">
                     <button
-                      className="flex-1 px-4 py-2 rounded-lg text-sm bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm md:text-base bg-green-500/50 hover:bg-green-500/60 transition-colors flex items-center justify-center gap-2"
                       onClick={handleExportData}
                       style={{ color: textColor }}
                     >
-                      <Download className="w-4 h-4" style={{ color: textColor }} />
+                      <Download className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
                       Export Data
                     </button>
                     <button
-                      className="flex-1 px-4 py-2 rounded-lg text-sm bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm md:text-base bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
                       onClick={() => dataFileInputRef.current?.click()}
                       style={{ color: textColor }}
                     >
-                      <FileUp className="w-4 h-4" style={{ color: textColor }} />
+                      <FileUp className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
                       Import Data
                     </button>
                     <input type="file" ref={dataFileInputRef} accept=".json" onChange={handleImportData} className="hidden" id="import-data-input" />
