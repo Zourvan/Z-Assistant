@@ -59,16 +59,16 @@ export function Clock() {
 
   return (
     <div
-      className="text-center backdrop-blur-md rounded-xl p-4 shadow-lg"
+      className="text-center backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-lg w-full max-w-md mx-auto"
       style={{
         fontFamily: calendarType === "persian" ? "Vazirmatn, sans-serif" : "inherit",
         backgroundColor: backgroundColor,
-        color: textColor
+        color: textColor,
       }}
     >
-      <div className="text-[6vh] font-light">{formatTime()}</div>
-      <div className="text-[3.5vh] opacity-80">{formatDate()}</div>
-      <div className="text-[3vh] opacity-80">{formatDateInvert()}</div>
+      <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">{formatTime()}</div>
+      <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl opacity-80">{formatDate()}</div>
+      <div className="text-base sm:text-lg md:text-xl lg:text-2xl opacity-80">{formatDateInvert()}</div>
     </div>
   );
 }
