@@ -646,10 +646,10 @@ export function Bookmarks() {
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
-      <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 overflow-y-auto flex items-center justify-center">
-        <div ref={selectorRef} className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 p-4 rounded-xl backdrop-blur-md overflow-y-auto relative">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between gap-2 sticky top-0 bg-black/50 p-2 z-10">
+      <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-lg p-4 flex items-center justify-center">
+        <div ref={selectorRef} className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
+          {/* Top Bar - Fixed */}
+          <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-10 rounded-t-lg">
             <button
               onClick={currentFolder ? navigateBack : closeSelector}
               className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
@@ -680,8 +680,8 @@ export function Bookmarks() {
             )}
           </div>
 
-          {/* Search and Grouping Controls with improved styling for scroll */}
-          <div className="search-controls mb-4 sticky top-[3.5rem] z-10 space-y-2 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
+          {/* Search and Grouping Controls - Fixed */}
+          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -737,109 +737,111 @@ export function Bookmarks() {
             </div>
           </div>
 
-          {/* Content with scroll padding based on control heights */}
-          <div className="pt-1">
-            {!isGrouped ? (
-              // Render regular grid when not grouped
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-                {filteredNodes.length > 0 ? (
-                  filteredNodes.map((node) => (
-                    <a
-                      key={node.id}
-                      href={node.url || "#"}
-                      onClick={(e) => {
-                        e.preventDefault(); // Prevent default for left click
-                        if (node.children) {
-                          navigateToFolder(node.id);
-                        } else {
-                          selectNode(node);
-                        }
-                      }}
-                      className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
-                      style={{ textDecoration: "none" }}
-                    >
-                      {node.children ? (
-                        <Folder className="w-6 h-6 mb-1 text-white" />
-                      ) : (
-                        <img
-                          src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                          alt=""
-                          className="w-6 h-6 mb-1"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                          }}
-                        />
-                      )}
-                      <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
-                        {truncateTitle(node.title)}
-                      </span>
-                    </a>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
-                )}
-              </div>
-            ) : (
-              // Render grouped content with headers
-              <div className="space-y-4">
-                {isGroupedData(groupedData) &&
-                  groupedData.map((group) => (
-                    <div key={group.title} className="space-y-1">
-                      {/* Group header - Adjust top position for better scrolling */}
-                      <div className="sticky top-[calc(var(--scroll-padding-top)_-_16px)] z-10 bg-white/10 backdrop-blur-md text-white font-medium px-3 py-1 rounded-md flex items-center">
-                        {group.title === "Folders" ? (
-                          <Folder className="w-4 h-4 mr-2" />
-                        ) : group.title === "Bookmarks" ? (
-                          <List className="w-4 h-4 mr-2" />
+          {/* Separated Scrollable Content Area with Border */}
+          <div className="flex-1 mt-2 bg-black/30 backdrop-blur-lg rounded-lg border border-white/10 overflow-hidden flex flex-col">
+            <div className="overflow-y-auto p-3 h-full">
+              {!isGrouped ? (
+                // Render regular grid when not grouped
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                  {filteredNodes.length > 0 ? (
+                    filteredNodes.map((node) => (
+                      <a
+                        key={node.id}
+                        href={node.url || "#"}
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent default for left click
+                          if (node.children) {
+                            navigateToFolder(node.id);
+                          } else {
+                            selectNode(node);
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                        style={{ textDecoration: "none" }}
+                      >
+                        {node.children ? (
+                          <Folder className="w-6 h-6 mb-1 text-white" />
                         ) : (
-                          <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                          <img
+                            src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                            alt=""
+                            className="w-6 h-6 mb-1"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                            }}
+                          />
                         )}
-                        <span>{group.title}</span>
-                        <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                        <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                          {truncateTitle(node.title)}
+                        </span>
+                      </a>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                  )}
+                </div>
+              ) : (
+                // Render grouped content with headers
+                <div className="space-y-4">
+                  {isGroupedData(groupedData) &&
+                    groupedData.map((group) => (
+                      <div key={group.title} className="space-y-1">
+                        {/* Group header - Updated sticky positioning */}
+                        <div className="sticky top-0 z-10 bg-white/20 backdrop-blur-md text-white font-medium px-3 py-2 rounded-md flex items-center">
+                          {group.title === "Folders" ? (
+                            <Folder className="w-4 h-4 mr-2" />
+                          ) : group.title === "Bookmarks" ? (
+                            <List className="w-4 h-4 mr-2" />
+                          ) : (
+                            <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                          )}
+                          <span>{group.title}</span>
+                          <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                        </div>
+                        {/* Group items */}
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                          {group.nodes &&
+                            group.nodes.map((node) => (
+                              <a
+                                key={node.id}
+                                href={node.url || "#"}
+                                onClick={(e) => {
+                                  e.preventDefault(); // Prevent default for left click
+                                  if (node.children) {
+                                    navigateToFolder(node.id);
+                                  } else {
+                                    selectNode(node);
+                                  }
+                                }}
+                                className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                                style={{ textDecoration: "none" }}
+                              >
+                                {node.children ? (
+                                  <Folder className="w-6 h-6 mb-1 text-white" />
+                                ) : (
+                                  <img
+                                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                    alt=""
+                                    className="w-6 h-6 mb-1"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                                    }}
+                                  />
+                                )}
+                                <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                                  {truncateTitle(node.title)}
+                                </span>
+                              </a>
+                            ))}
+                        </div>
                       </div>
-                      {/* Group items */}
-                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-                        {group.nodes &&
-                          group.nodes.map((node) => (
-                            <a
-                              key={node.id}
-                              href={node.url || "#"}
-                              onClick={(e) => {
-                                e.preventDefault(); // Prevent default for left click
-                                if (node.children) {
-                                  navigateToFolder(node.id);
-                                } else {
-                                  selectNode(node);
-                                }
-                              }}
-                              className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
-                              style={{ textDecoration: "none" }}
-                            >
-                              {node.children ? (
-                                <Folder className="w-6 h-6 mb-1 text-white" />
-                              ) : (
-                                <img
-                                  src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                                  alt=""
-                                  className="w-6 h-6 mb-1"
-                                  onError={(e) => {
-                                    e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                                  }}
-                                />
-                              )}
-                              <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
-                                {truncateTitle(node.title)}
-                              </span>
-                            </a>
-                          ))}
-                      </div>
-                    </div>
-                  ))}
-                {isGroupedData(groupedData) && groupedData.length === 0 && (
-                  <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
-                )}
-              </div>
-            )}
+                    ))}
+                  {isGroupedData(groupedData) && groupedData.length === 0 && (
+                    <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -857,9 +859,9 @@ export function Bookmarks() {
 
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div ref={folderContentRef} className="w-[70vw] h-[70vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between gap-2 sticky top-0 bg-black/50 p-2 z-20">
+        <div ref={folderContentRef} className="w-[70vw] h-[70vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
+          {/* Top Bar - Fixed */}
+          <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-20 rounded-t-lg">
             <button
               onClick={navigateBack}
               className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
@@ -870,8 +872,8 @@ export function Bookmarks() {
             <h3 className="text-white text-lg font-medium">{activeFolderContent.title}</h3>
           </div>
 
-          {/* Search and Grouping Controls with improved styling for scroll */}
-          <div className="search-controls mt-2 mb-4 space-y-2 sticky top-[3.5rem] z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
+          {/* Search and Grouping Controls - Fixed */}
+          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/40 backdrop-blur-lg p-3 rounded-lg shadow-md">
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -927,120 +929,125 @@ export function Bookmarks() {
             </div>
           </div>
 
-          {/* Content Grid with improved scroll behavior */}
-          <div className="overflow-y-auto h-[70%] pt-2">
-            {!isGrouped ? (
-              // Render regular grid when not grouped
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-                {filteredFolderContent.length > 0 ? (
-                  filteredFolderContent.map((node) => (
-                    <a
-                      key={node.id}
-                      href={node.url || "#"}
-                      onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
-                        event.preventDefault(); // Prevent default only for left click
-                        if (node.children) {
-                          navigateToFolder(node.id);
-                        } else {
-                          if (event.ctrlKey) {
-                            window.open(node.url || "", "_blank");
+          {/* Separated Scrollable Content Area with Border */}
+          <div className="flex-1 mt-2 bg-black/30 backdrop-blur-lg rounded-lg border border-white/10 overflow-hidden flex flex-col">
+            <div className="overflow-y-auto p-3 h-full">
+              {!isGrouped ? (
+                // Render regular grid when not grouped
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                  {filteredFolderContent.length > 0 ? (
+                    filteredFolderContent.map((node) => (
+                      <a
+                        key={node.id}
+                        href={node.url || "#"}
+                        onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                          event.preventDefault(); // Prevent default only for left click
+                          if (node.children) {
+                            navigateToFolder(node.id);
                           } else {
-                            window.location.href = node.url || "";
+                            if (event.ctrlKey) {
+                              window.open(node.url || "", "_blank");
+                            } else {
+                              window.location.href = node.url || "";
+                            }
                           }
-                        }
-                      }}
-                      className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
-                      style={{ textDecoration: "none" }}
-                    >
-                      {node.children ? (
-                        <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
-                      ) : (
-                        <img
-                          src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                          alt=""
-                          className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                          }}
-                        />
-                      )}
-                      <span className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2" title={node.title}>
-                        {truncateTitle(node.title)}
-                      </span>
-                    </a>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
-                )}
-              </div>
-            ) : (
-              // Render grouped content with headers
-              <div className="space-y-4">
-                {isGroupedData(groupedData) &&
-                  groupedData.map((group) => (
-                    <div key={group.title} className="space-y-1">
-                      {/* Group header - Adjust top position for better scrolling */}
-                      <div className="sticky top-0 z-10 bg-white/10 backdrop-blur-md text-white font-medium px-3 py-1 rounded-md flex items-center">
-                        {group.title === "Folders" ? (
-                          <Folder className="w-4 h-4 mr-2" />
-                        ) : group.title === "Bookmarks" ? (
-                          <List className="w-4 h-4 mr-2" />
+                        }}
+                        className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                        style={{ textDecoration: "none" }}
+                      >
+                        {node.children ? (
+                          <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
                         ) : (
-                          <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                          <img
+                            src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                            alt=""
+                            className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                            }}
+                          />
                         )}
-                        <span>{group.title}</span>
-                        <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
-                      </div>
-                      {/* Group items */}
-                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1">
-                        {group.nodes &&
-                          group.nodes.map((node) => (
-                            <a
-                              key={node.id}
-                              href={node.url || "#"}
-                              onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
-                                event.preventDefault(); // Prevent default only for left click
-                                if (node.children) {
-                                  navigateToFolder(node.id);
-                                } else {
-                                  if (event.ctrlKey) {
-                                    window.open(node.url || "", "_blank");
+                        <span
+                          className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                          title={node.title}
+                        >
+                          {truncateTitle(node.title)}
+                        </span>
+                      </a>
+                    ))
+                  ) : (
+                    <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                  )}
+                </div>
+              ) : (
+                // Render grouped content with headers
+                <div className="space-y-4">
+                  {isGroupedData(groupedData) &&
+                    groupedData.map((group) => (
+                      <div key={group.title} className="space-y-1">
+                        {/* Group header - Updated sticky positioning */}
+                        <div className="sticky top-0 z-10 bg-white/20 backdrop-blur-md text-white font-medium px-3 py-2 rounded-md flex items-center">
+                          {group.title === "Folders" ? (
+                            <Folder className="w-4 h-4 mr-2" />
+                          ) : group.title === "Bookmarks" ? (
+                            <List className="w-4 h-4 mr-2" />
+                          ) : (
+                            <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                          )}
+                          <span>{group.title}</span>
+                          <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                        </div>
+                        {/* Group items */}
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                          {group.nodes &&
+                            group.nodes.map((node) => (
+                              <a
+                                key={node.id}
+                                href={node.url || "#"}
+                                onClick={(event: React.MouseEvent<HTMLAnchorElement>) => {
+                                  event.preventDefault(); // Prevent default only for left click
+                                  if (node.children) {
+                                    navigateToFolder(node.id);
                                   } else {
-                                    window.location.href = node.url || "";
+                                    if (event.ctrlKey) {
+                                      window.open(node.url || "", "_blank");
+                                    } else {
+                                      window.location.href = node.url || "";
+                                    }
                                   }
-                                }
-                              }}
-                              className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
-                              style={{ textDecoration: "none" }}
-                            >
-                              {node.children ? (
-                                <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
-                              ) : (
-                                <img
-                                  src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
-                                  alt=""
-                                  className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
-                                  onError={(e) => {
-                                    e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                                  }}
-                                />
-                              )}
-                              <span
-                                className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
-                                title={node.title}
+                                }}
+                                className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                                style={{ textDecoration: "none" }}
                               >
-                                {truncateTitle(node.title)}
-                              </span>
-                            </a>
-                          ))}
+                                {node.children ? (
+                                  <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                                ) : (
+                                  <img
+                                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                    alt=""
+                                    className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+                                    }}
+                                  />
+                                )}
+                                <span
+                                  className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                                  title={node.title}
+                                >
+                                  {truncateTitle(node.title)}
+                                </span>
+                              </a>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                {isGroupedData(groupedData) && groupedData.length === 0 && (
-                  <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
-                )}
-              </div>
-            )}
+                    ))}
+                  {isGroupedData(groupedData) && groupedData.length === 0 && (
+                    <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
