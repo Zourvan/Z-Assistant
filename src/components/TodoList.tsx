@@ -175,9 +175,45 @@ export function TodoList() {
 
   return (
     <div className="backdrop-blur-md rounded-xl p-4 shadow-lg overflow-hidden" style={{ backgroundColor, color: textColor }}>
-      <h4 className="text-lg font-medium mb-2">Tasks</h4>
+      <div className="flex items-center justify-between mb-2">
+        <h4 className="text-lg font-medium">Tasks</h4>
+        <div className="flex items-center gap-2">
+          <Select
+            className="basic-single w-20"
+            classNamePrefix="select"
+            defaultValue={emojiOptions[0]}
+            isDisabled={false}
+            isLoading={false}
+            isClearable={false}
+            isRtl={false}
+            isSearchable={false}
+            name="emoji"
+            options={emojiOptions}
+            menuPortalTarget={document.body}
+            menuPosition="absolute"
+            menuShouldScrollIntoView={false}
+            styles={customStyles}
+            onChange={(selectedOption) => {
+              if (selectedOption) {
+                setNewEmoji(selectedOption.value);
+              }
+            }}
+          />
+          <button
+            onClick={(e) => {
+              if (newTodo.trim()) {
+                addTodo(e);
+              }
+            }}
+            className="bg-black/20 hover:bg-black/30 text-white rounded-lg p-1.5 transition-colors min-w-[30px]"
+            disabled={!newTodo.trim()}
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-      <form onSubmit={addTodo} className="flex flex-wrap gap-2 mb-4 items-center rounded-lg p-2 bg-black/10">
+      <div className="flex mb-4 items-center rounded-lg p-2 bg-black/10">
         <input
           type="text"
           value={newTodo}
@@ -187,38 +223,19 @@ export function TodoList() {
             isPersian(newTodo) ? "rtl" : "ltr"
           }`}
           style={{ color: textColor }}
-        />
-        <Select
-          className="basic-single"
-          classNamePrefix="select"
-          defaultValue={emojiOptions[0]}
-          isDisabled={false}
-          isLoading={false}
-          isClearable={false}
-          isRtl={false}
-          isSearchable={false}
-          name="emoji"
-          options={emojiOptions}
-          menuPortalTarget={document.body}
-          menuPosition="absolute"
-          menuShouldScrollIntoView={false}
-          styles={customStyles}
-          onChange={(selectedOption) => {
-            if (selectedOption) {
-              setNewEmoji(selectedOption.value);
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && newTodo.trim()) {
+              e.preventDefault();
+              addTodo(e);
             }
           }}
         />
-
-        <button type="submit" className="bg-black/20 hover:bg-black/30 text-white rounded-lg p-1.5 transition-colors min-w-[30px]">
-          <Plus className="w-5 h-5" />
-        </button>
-      </form>
+      </div>
 
       <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar">
         {todos.map((todo) => (
-          <div 
-            key={todo.id} 
+          <div
+            key={todo.id}
             className={`flex items-center gap-2 rounded-lg p-2 ${todo.completed ? "bg-green-500/10" : "bg-white/10"}`}
             style={{ color: textColor }}
           >
@@ -268,7 +285,10 @@ export function TodoList() {
               </>
             ) : (
               <>
-                <span className={`flex-1 text-white ${todo.completed ? "line-through opacity-50" : ""} ${isPersian(todo.text) ? "rtl" : "ltr"}`} style={{ color: textColor }}>
+                <span
+                  className={`flex-1 text-white ${todo.completed ? "line-through opacity-50" : ""} ${isPersian(todo.text) ? "rtl" : "ltr"}`}
+                  style={{ color: textColor }}
+                >
                   {todo.emoji} {todo.text}
                 </span>
                 <button onClick={() => startEditing(todo)} className="text-white hover:text-blue-400 transition-colors">

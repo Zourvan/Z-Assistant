@@ -336,7 +336,7 @@ export function Notes({}: NotesProps) {
                   <p className="break-words">{note.text}</p>
                   <span className="text-xs opacity-70 mt-1">{formatDate(note.createdAt)}</span>
                 </div>
-                <div className="flex gap-2 items-start shrink-0">
+                <div className="flex flex-col gap-2 items-start shrink-0">
                   <button onClick={() => startEditing(note)} className="p-1 bg-white/20 hover:bg-white/30 rounded-md">
                     <Edit2 className="w-3.5 h-3.5" style={{ color: textColor }} />
                   </button>
