@@ -52,13 +52,6 @@ interface GroupedData {
   nodes: BookmarkNode[];
 }
 
-// Interface for bookmark settings
-interface BookmarkSettings {
-  id: string;
-  value: string | GroupingType;
-  updatedAt: number;
-}
-
 // --- Database Setup ---
 const bookmarkDB = createDatabase({
   dbName: "bookmarkManagerDB",
@@ -72,13 +65,15 @@ const bookmarkDB = createDatabase({
 });
 
 // Create a database for bookmark settings
-const bookmarkSettingsDB = createDatabase({
-  dbName: "bookmarkSettingsDB",
-  storeName: "settings",
-  version: 1,
-  keyPath: "id",
-  indexes: [{ name: "updatedAt", keyPath: "updatedAt", unique: false }],
-});
+// const bookmarkSettingsDB = createDatabase({
+//   dbName: "bookmarkSettingsDB",
+//   storeName: "settings",
+//   version: 1,
+//   keyPath: "id",
+//   indexes: [
+//     { name: "updatedAt", keyPath: "updatedAt", unique: false },
+//   ],
+// });
 
 // --- Helper Functions ---
 function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): BookmarkNode {
@@ -244,7 +239,7 @@ export function Bookmarks() {
   const [menuButtonRect, setMenuButtonRect] = useState<DOMRect | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [folderSearchTerm, setFolderSearchTerm] = useState<string>(""); // New state for folder panel search
-  const [groupingType, setGroupingType] = useState<GroupingType>("none"); // New state for grouping
+  const [groupingType, setGroupingTypeState] = useState<GroupingType>("none"); // New state for grouping
 
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -256,6 +251,12 @@ export function Bookmarks() {
   const tileGridRef = useRef<HTMLDivElement>(null);
   const sortableRef = useRef<Sortable | null>(null);
   const menuButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Custom setter for groupingType that also saves to localStorage
+  const setGroupingType = (type: GroupingType) => {
+    setGroupingTypeState(type);
+    localStorage.setItem("typeofBookmarkForm", type);
+  };
 
   // --- Data Loading ---
   // Load initial data (bookmarks and tiles)
@@ -286,15 +287,15 @@ export function Bookmarks() {
           setBookmarks(transformedNodes);
         });
 
-        // Load grouping preference from settings database
+        // Load grouping preference from localStorage
         try {
-          const groupingPref = await bookmarkSettingsDB.getItem<BookmarkSettings>("groupingType");
-          if (groupingPref) {
-            setGroupingType(groupingPref.value as GroupingType);
-          } else {
+          const savedGroupingType = localStorage.getItem("typeofBookmarkForm");
+          if (savedGroupingType) {
+            // Use the state setter directly to avoid double-saving to localStorage
+            setGroupingTypeState(savedGroupingType as GroupingType);
           }
         } catch (error) {
-          console.error("Error loading grouping preference:", error);
+          console.error("Error loading grouping preference from localStorage:", error);
         }
       } catch (error) {
         console.error("Error loading tile data:", error);
@@ -303,24 +304,6 @@ export function Bookmarks() {
 
     loadData();
   }, [tileNumber]);
-
-  // Save grouping preference when it changes
-  useEffect(() => {
-    const saveGroupingPreference = async () => {
-      try {
-        const settings: BookmarkSettings = {
-          id: "groupingType",
-          value: groupingType,
-          updatedAt: Date.now(),
-        };
-        await bookmarkSettingsDB.saveItem(settings);
-      } catch (error) {
-        console.error("Error saving grouping preference:", error);
-      }
-    };
-
-    saveGroupingPreference();
-  }, [groupingType]);
 
   // Save tiles to Chrome sync storage
   useEffect(() => {
