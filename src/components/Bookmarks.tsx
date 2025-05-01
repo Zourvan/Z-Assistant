@@ -6,6 +6,7 @@ import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
+import "./Bookmarks.css";
 
 // Constants
 const ASPECT_RATIO = "aspect-ratio";
@@ -652,12 +653,15 @@ export function Bookmarks() {
           <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-10 rounded-t-lg">
             <button
               onClick={currentFolder ? navigateBack : closeSelector}
-              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
+              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-sm"
+              style={{ color: textColor }}
             >
-              <ChevronLeft className="w-3 h-3" />
+              <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
               {currentFolder ? "Back" : "Cancel"}
             </button>
-            <h3 className="text-white text-lg font-medium flex-grow">{currentFolder ? currentFolder.title : "Select"}</h3>
+            <h3 className="text-lg font-medium flex-grow" style={{ color: textColor }}>
+              {currentFolder ? currentFolder.title : "Select"}
+            </h3>
             {/* Confirm Button (only when inside a folder) */}
             {currentFolder && (
               <button
@@ -673,7 +677,8 @@ export function Bookmarks() {
                     createdAt: Date.now(),
                   })
                 }
-                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm"
+                className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-lg text-sm"
+                style={{ color: textColor }}
               >
                 Confirm
               </button>
@@ -685,7 +690,7 @@ export function Bookmarks() {
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-5 h-5 text-white/70" />
+                <Search className="w-5 h-5" style={{ color: `${textColor}70` }} />
               </div>
               <input
                 type="text"
@@ -693,15 +698,17 @@ export function Bookmarks() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
-                          rounded-lg text-white placeholder-white/60 text-base
+                          rounded-lg placeholder-white/60 text-base
                           border-2 border-transparent focus:border-white/30
                           transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-white/20"
+                style={{ color: textColor }}
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70 hover:text-white"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-white"
+                  style={{ color: `${textColor}70` }}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -710,27 +717,41 @@ export function Bookmarks() {
 
             {/* Grouping Controls */}
             <div className="flex items-center space-x-2">
-              <span className="text-white/70 text-sm">Group by:</span>
+              <span className="text-sm" style={{ color: `${textColor}` }}>
+                Group by:
+              </span>
               <div className="flex bg-white/10 rounded-lg p-1">
                 <button
                   onClick={() => setGroupingType("none")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "none" ? "bold" : "normal",
+                  }}
                 >
-                  <Grid className="w-4 h-4 inline mr-1" />
+                  <Grid className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   None
                 </button>
                 <button
                   onClick={() => setGroupingType("alphabetical")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "alphabetical" ? "bold" : "normal",
+                  }}
                 >
-                  <SortDesc className="w-4 h-4 inline mr-1" />
+                  <SortDesc className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   A-Z
                 </button>
                 <button
                   onClick={() => setGroupingType("type")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "type" ? "bold" : "normal",
+                  }}
                 >
-                  <List className="w-4 h-4 inline mr-1" />
+                  <List className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   Type
                 </button>
               </div>
@@ -756,11 +777,11 @@ export function Bookmarks() {
                             selectNode(node);
                           }
                         }}
-                        className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                        className="glass-effect flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
-                          <Folder className="w-6 h-6 mb-1 text-white" />
+                          <Folder className="w-6 h-6 mb-1" style={{ color: textColor }} />
                         ) : (
                           <img
                             src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -771,13 +792,15 @@ export function Bookmarks() {
                             }}
                           />
                         )}
-                        <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                        <span className="text-center text-xs sm:text-sm font-medium line-clamp-2" style={{ color: textColor }} title={node.title}>
                           {truncateTitle(node.title)}
                         </span>
                       </a>
                     ))
                   ) : (
-                    <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                    <div className="col-span-full text-center py-8" style={{ color: `${textColor}70` }}>
+                      No bookmarks match your search
+                    </div>
                   )}
                 </div>
               ) : (
@@ -787,16 +810,21 @@ export function Bookmarks() {
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
                         {/* Group header - Updated sticky positioning */}
-                        <div className="sticky top-0 z-10 bg-white/20 backdrop-blur-md text-white font-medium px-3 py-2 rounded-md flex items-center">
+                        <div
+                          className="sticky top-0 z-10 bg-white/20 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
+                          style={{ color: textColor }}
+                        >
                           {group.title === "Folders" ? (
-                            <Folder className="w-4 h-4 mr-2" />
+                            <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
                           ) : group.title === "Bookmarks" ? (
-                            <List className="w-4 h-4 mr-2" />
+                            <List className="w-4 h-4 mr-2" style={{ color: textColor }} />
                           ) : (
                             <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
                           )}
                           <span>{group.title}</span>
-                          <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                          <span className="ml-2 text-xs" style={{ color: `${textColor}70` }}>
+                            ({group.nodes.length})
+                          </span>
                         </div>
                         {/* Group items */}
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -813,11 +841,11 @@ export function Bookmarks() {
                                     selectNode(node);
                                   }
                                 }}
-                                className={`flex flex-col items-center justify-center p-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors`}
+                                className="glass-effect flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
-                                  <Folder className="w-6 h-6 mb-1 text-white" />
+                                  <Folder className="w-6 h-6 mb-1" style={{ color: textColor }} />
                                 ) : (
                                   <img
                                     src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -828,7 +856,11 @@ export function Bookmarks() {
                                     }}
                                   />
                                 )}
-                                <span className="text-white text-center text-xs sm:text-sm font-medium line-clamp-2" title={node.title}>
+                                <span
+                                  className="text-center text-xs sm:text-sm font-medium line-clamp-2"
+                                  style={{ color: textColor }}
+                                  title={node.title}
+                                >
                                   {truncateTitle(node.title)}
                                 </span>
                               </a>
@@ -837,7 +869,9 @@ export function Bookmarks() {
                       </div>
                     ))}
                   {isGroupedData(groupedData) && groupedData.length === 0 && (
-                    <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                    <div className="text-center py-8" style={{ color: `${textColor}70` }}>
+                      No bookmarks match your search
+                    </div>
                   )}
                 </div>
               )}
@@ -864,12 +898,15 @@ export function Bookmarks() {
           <div className="flex items-center justify-between gap-2 bg-black/50 p-2 z-20 rounded-t-lg">
             <button
               onClick={navigateBack}
-              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-white text-sm"
+              className="flex items-center gap-1 bg-black/20 hover:bg-black/30 transition-colors rounded-lg px-2 py-1 text-sm"
+              style={{ color: textColor }}
             >
-              <ChevronLeft className="w-3 h-3" />
+              <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
               Back
             </button>
-            <h3 className="text-white text-lg font-medium">{activeFolderContent.title}</h3>
+            <h3 className="text-lg font-medium" style={{ color: textColor }}>
+              {activeFolderContent.title}
+            </h3>
           </div>
 
           {/* Search and Grouping Controls - Fixed */}
@@ -877,7 +914,7 @@ export function Bookmarks() {
             {/* Search Input */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-5 h-5 text-white/70" />
+                <Search className="w-5 h-5" style={{ color: `${textColor}70` }} />
               </div>
               <input
                 type="text"
@@ -885,15 +922,17 @@ export function Bookmarks() {
                 value={folderSearchTerm}
                 onChange={(e) => setFolderSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
-                          rounded-lg text-white placeholder-white/60 text-base
+                          rounded-lg placeholder-white/60 text-base
                           border-2 border-transparent focus:border-white/30
                           transition-all duration-200 ease-in-out
                           focus:outline-none focus:ring-2 focus:ring-white/20"
+                style={{ color: textColor }}
               />
               {folderSearchTerm && (
                 <button
                   onClick={() => setFolderSearchTerm("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-white/70 hover:text-white"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-white"
+                  style={{ color: `${textColor}70` }}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -902,27 +941,41 @@ export function Bookmarks() {
 
             {/* Grouping Controls */}
             <div className="flex items-center space-x-2">
-              <span className="text-white/70 text-sm">Group by:</span>
+              <span className="text-sm" style={{ color: `${textColor}` }}>
+                Group by:
+              </span>
               <div className="flex bg-white/10 rounded-lg p-1">
                 <button
                   onClick={() => setGroupingType("none")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "none" ? "bold" : "normal",
+                  }}
                 >
-                  <Grid className="w-4 h-4 inline mr-1" />
+                  <Grid className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   None
                 </button>
                 <button
                   onClick={() => setGroupingType("alphabetical")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "alphabetical" ? "bold" : "normal",
+                  }}
                 >
-                  <SortDesc className="w-4 h-4 inline mr-1" />
+                  <SortDesc className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   A-Z
                 </button>
                 <button
                   onClick={() => setGroupingType("type")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20 text-white" : "text-white/70 hover:text-white"}`}
+                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20" : "hover:bg-white/10"}`}
+                  style={{
+                    color: textColor,
+                    fontWeight: groupingType === "type" ? "bold" : "normal",
+                  }}
                 >
-                  <List className="w-4 h-4 inline mr-1" />
+                  <List className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
                   Type
                 </button>
               </div>
@@ -952,11 +1005,11 @@ export function Bookmarks() {
                             }
                           }
                         }}
-                        className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                        className="glass-effect flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
-                          <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                          <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
                         ) : (
                           <img
                             src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -968,7 +1021,8 @@ export function Bookmarks() {
                           />
                         )}
                         <span
-                          className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                          className="font-medium text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                          style={{ color: textColor }}
                           title={node.title}
                         >
                           {truncateTitle(node.title)}
@@ -976,7 +1030,9 @@ export function Bookmarks() {
                       </a>
                     ))
                   ) : (
-                    <div className="col-span-full text-center text-white/70 py-8">No bookmarks match your search</div>
+                    <div className="col-span-full text-center py-8" style={{ color: `${textColor}70` }}>
+                      No bookmarks match your search
+                    </div>
                   )}
                 </div>
               ) : (
@@ -986,16 +1042,21 @@ export function Bookmarks() {
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
                         {/* Group header - Updated sticky positioning */}
-                        <div className="sticky top-0 z-10 bg-white/20 backdrop-blur-md text-white font-medium px-3 py-2 rounded-md flex items-center">
+                        <div
+                          className="sticky top-0 z-10 bg-white/20 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
+                          style={{ color: textColor }}
+                        >
                           {group.title === "Folders" ? (
-                            <Folder className="w-4 h-4 mr-2" />
+                            <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
                           ) : group.title === "Bookmarks" ? (
-                            <List className="w-4 h-4 mr-2" />
+                            <List className="w-4 h-4 mr-2" style={{ color: textColor }} />
                           ) : (
                             <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
                           )}
                           <span>{group.title}</span>
-                          <span className="ml-2 text-xs text-white/70">({group.nodes.length})</span>
+                          <span className="ml-2 text-xs" style={{ color: `${textColor}70` }}>
+                            ({group.nodes.length})
+                          </span>
                         </div>
                         {/* Group items */}
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -1016,11 +1077,11 @@ export function Bookmarks() {
                                     }
                                   }
                                 }}
-                                className="flex flex-col items-center justify-center p-2 bg-white/20 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                                className="glass-effect flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
-                                  <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1 text-white" />
+                                  <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
                                 ) : (
                                   <img
                                     src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -1032,7 +1093,8 @@ export function Bookmarks() {
                                   />
                                 )}
                                 <span
-                                  className="font-medium text-white text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                                  className="font-medium text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                                  style={{ color: textColor }}
                                   title={node.title}
                                 >
                                   {truncateTitle(node.title)}
@@ -1043,7 +1105,9 @@ export function Bookmarks() {
                       </div>
                     ))}
                   {isGroupedData(groupedData) && groupedData.length === 0 && (
-                    <div className="text-center text-white/70 py-8">No bookmarks match your search</div>
+                    <div className="text-center py-8" style={{ color: `${textColor}70` }}>
+                      No bookmarks match your search
+                    </div>
                   )}
                 </div>
               )}
@@ -1066,9 +1130,9 @@ export function Bookmarks() {
       setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
     };
 
-    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2  backdrop-blur-md rounded-xl group cursor-pointer`; //removed bg-black/20
+    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 glass-effect backdrop-blur-md rounded-xl group cursor-pointer`;
 
-    const tileBackgroundColor = tile?.tileColor || "#f0f0f0"; // Use tileColor, default to #f0f0f0
+    const tileBackgroundColor = tile?.tileColor || "rgba(0, 0, 0, 0.2)"; // Using a transparent background
 
     // --- Empty Tile ---
     if (!tile) {
@@ -1130,8 +1194,12 @@ export function Bookmarks() {
               onClose={() => setOpenMenuId(null)}
             />
           )}
-          <Folder className="w-3 h-3 mb-1 text-white relative z-10" />
-          <span className="text-white text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10" title={tile.title}>
+          <Folder className="w-3 h-3 mb-1 relative z-10" style={{ color: textColor }} />
+          <span
+            className="text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10"
+            style={{ color: textColor }}
+            title={tile.title}
+          >
             {truncateTitle(tile.title)}
           </span>
         </div>
@@ -1179,7 +1247,7 @@ export function Bookmarks() {
             e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
           }}
         />
-        <span className="text-white text-center text-[0.8vh] font-medium line-clamp-2 relative z-10" title={tile.title}>
+        <span className="text-center text-[0.8vh] font-medium line-clamp-2 relative z-10" style={{ color: textColor }} title={tile.title}>
           {truncateTitle(tile.title)}
         </span>
       </div>

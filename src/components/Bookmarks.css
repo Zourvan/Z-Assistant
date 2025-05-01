@@ -29,3 +29,29 @@
     z-index: 9999;
     /* مقدار بالا برای قرارگیری روی سایر المان‌ها */
 }
+
+/* Glass effect for bookmark and folder tiles */
+.glass-effect {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.glass-effect:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Make folder tiles distinct from bookmark tiles */
+.folder-tile.glass-effect {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.folder-tile.glass-effect:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
