@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
-import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid } from "lucide-react";
+import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid, Smile } from "lucide-react";
 import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
@@ -40,6 +40,7 @@ interface ActionMenuPortalProps {
   onEdit: () => void;
   onClear: () => void;
   onColor: () => void;
+  onIcon?: () => void;
   onClose: () => void;
 }
 
@@ -81,7 +82,7 @@ function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): Bookmar
     id: node.id,
     title: node.title,
     url: node.url,
-    tileIcon: "default",
+    tileIcon: node.children ? "📁" : "default",
     tileColor: "rgba(0, 0, 0, 0.6)", // Default color
     children: node.children?.map((child) => transformBookmarkNode(child)),
   };
@@ -168,8 +169,183 @@ function ColorPicker({
   );
 }
 
+// --- Emoji Picker Component ---
+function EmojiPicker({
+  currentEmoji,
+  onChange,
+  onConfirm,
+  onClose,
+}: {
+  currentEmoji: string;
+  onChange: (emoji: string) => void;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const emojis = [
+    "📁",
+    "📂",
+    "🗂️",
+    "📚",
+    "📒",
+    "📕",
+    "📗",
+    "📘",
+    "📙",
+    "📔",
+    "📓",
+    "📖",
+    "🏠",
+    "🏢",
+    "🏫",
+    "🏛️",
+    "⭐",
+    "🌟",
+    "💫",
+    "✨",
+    "🔥",
+    "❤️",
+    "💙",
+    "💚",
+    "💛",
+    "💜",
+    "🧡",
+    "🤍",
+    "🤎",
+    "💯",
+    "💢",
+    "💬",
+    "👁️",
+    "📩",
+    "📨",
+    "✉️",
+    "📧",
+    "📮",
+    "📦",
+    "📝",
+    "📌",
+    "📍",
+    "🔖",
+    "🏷️",
+    "✏️",
+    "📐",
+    "📏",
+    "📎",
+    "🖇️",
+    "📅",
+    "📆",
+    "🗓️",
+    "📊",
+    "📈",
+    "📉",
+    "📇",
+    "🗃️",
+    "🗄️",
+    "🗑️",
+    "🔒",
+    "🔓",
+    "🔏",
+    "🔐",
+    "🔑",
+    "🗝️",
+    "🏆",
+    "🥇",
+    "🥈",
+    "🥉",
+    "🎖️",
+    "🎯",
+    "⚽",
+    "🏀",
+    "🏈",
+    "⚾",
+    "🎲",
+    "🎮",
+    "🎨",
+    "🎭",
+    "🎬",
+    "🎤",
+    "🎧",
+    "🎵",
+    "🎹",
+    "🚗",
+    "✈️",
+    "🚀",
+    "🚁",
+    "🚢",
+    "🛸",
+    "🌍",
+    "🌎",
+    "🌏",
+    "🏔️",
+    "🏕️",
+    "🏖️",
+    "🏜️",
+    "🏝️",
+    "🏞️",
+    "🌄",
+    "🌅",
+    "🌇",
+    "🌆",
+    "🌃",
+    "🌌",
+    "🌉",
+    "🏙️",
+    "💻",
+    "🖥️",
+    "💾",
+    "💿",
+    "📀",
+    "📷",
+    "📸",
+    "📹",
+    "📼",
+    "📟",
+    "📱",
+    "🔋",
+    "🔌",
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg flex items-center justify-center">
+      <div className="bg-black/20 p-4 rounded-lg shadow-lg max-w-md w-full">
+        {/* Title */}
+        <h3 className="text-xl font-medium text-white text-center mb-4 pb-2 border-b border-white/20">Select Folder Icon</h3>
+
+        {/* Current selection */}
+        <div className="flex justify-center mb-4">
+          <div className="bg-white/10 p-3 rounded-lg">
+            <span className="text-4xl">{currentEmoji}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-6 gap-2 mb-2" style={{ maxHeight: "300px", overflowY: "auto", overflowX: "hidden" }}>
+          {emojis.map((emoji) => (
+            <button
+              key={emoji}
+              className={`w-12 h-12 rounded-lg flex items-center justify-center ${emoji === currentEmoji ? "ring-2 ring-offset-1 ring-blue-400 bg-white/20" : "hover:bg-white/10"}`}
+              onClick={() => onChange(emoji)}
+            >
+              <span className="text-2xl">{emoji}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-4 pt-2 border-t border-white/20">
+          <div className="flex justify-between space-x-4 w-full max-w-sm">
+            <button onClick={onClose} className="flex-1 px-4 py-2 text-base font-bold bg-red-300 hover:bg-red-400 text-white rounded">
+              Cancel
+            </button>
+            <button onClick={onConfirm} className="flex-1 px-4 py-2 text-base font-bold bg-blue-500 hover:bg-blue-600 text-white rounded">
+              Select
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Action Menu Component (Portal) ---
-function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose }: ActionMenuPortalProps) {
+function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, onClose }: ActionMenuPortalProps) {
   const style = {
     position: "absolute" as const,
     top: buttonRect.bottom + window.scrollY,
@@ -217,6 +393,20 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onClose 
         <Palette className="w-3 h-3" />
         <span>Color</span>
       </button>
+      {tile.type === "folder" && onIcon && (
+        <button
+          id={`icon-button-${tile.id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onIcon();
+          }}
+          className="w-full px-2 py-1 text-left text-white hover:bg-green-500/20 transition-colors flex items-center gap-1 text-sm"
+        >
+          <Smile className="w-3 h-3" />
+          <span>Icon</span>
+        </button>
+      )}
     </div>,
     document.body
   );
@@ -244,6 +434,11 @@ export function Bookmarks() {
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [tileIndexForColor, setTileIndexForColor] = useState<number | null>(null);
+
+  // Add state for emoji picker
+  const [selectedTileIcon, setSelectedTileIcon] = useState<string>("📁"); // Default folder emoji
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [tileIndexForIcon, setTileIndexForIcon] = useState<number | null>(null);
 
   // --- Refs ---
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -417,7 +612,7 @@ export function Bookmarks() {
       title: node.title,
       url: node.url,
       tileColor: node.tileColor || "rgba(0, 0, 0, 0.6)",
-      tileIcon: node.tileIcon || "default",
+      tileIcon: node.tileIcon || (node.children ? "📁" : "default"),
       position: selectedTileIndex,
       createdAt: Date.now(),
     };
@@ -425,15 +620,17 @@ export function Bookmarks() {
     await updateTile(newTile);
   };
 
-  const updateTile = async (tile: TileConfig, color?: string) => {
-    if (selectedTileIndex === null && tileIndexForColor === null) return;
+  const updateTile = async (tile: TileConfig, color?: string, icon?: string) => {
+    if (selectedTileIndex === null && tileIndexForColor === null && tileIndexForIcon === null) return;
 
-    const indexToUpdate = selectedTileIndex !== null ? selectedTileIndex : tileIndexForColor;
+    const indexToUpdate = selectedTileIndex !== null ? selectedTileIndex : tileIndexForColor !== null ? tileIndexForColor : tileIndexForIcon;
 
     if (indexToUpdate === null) return;
 
-    // If updating color, update the tile with new color
-    const updatedTile = color ? { ...tile, tileColor: color } : tile;
+    // Create an updated tile with new properties if provided
+    let updatedTile = { ...tile };
+    if (color) updatedTile.tileColor = color;
+    if (icon) updatedTile.tileIcon = icon;
 
     // Save to database directly like in Notes.tsx
     await bookmarkDB.saveItem(updatedTile);
@@ -450,6 +647,8 @@ export function Bookmarks() {
     setSelectedTileIndex(null);
     setIsColorPickerOpen(false);
     setTileIndexForColor(null);
+    setIsEmojiPickerOpen(false);
+    setTileIndexForIcon(null);
   };
 
   const clearTile = async (index: number) => {
@@ -487,6 +686,33 @@ export function Bookmarks() {
     if (!currentTile) return;
 
     updateTile(currentTile, selectedTileColor);
+  };
+
+  // Icon picker handlers
+  const handleIconClick = (index: number) => {
+    setTileIndexForIcon(index);
+    const tile = tiles[index];
+    // Check if tile exists and has a non-default icon
+    let initialIcon = "📁"; // Default emoji
+    if (tile && tile.tileIcon && tile.tileIcon !== "default") {
+      initialIcon = tile.tileIcon;
+    }
+    setSelectedTileIcon(initialIcon);
+    setIsEmojiPickerOpen(true);
+    setOpenMenuId(null);
+  };
+
+  const handleIconChange = (icon: string) => {
+    setSelectedTileIcon(icon);
+  };
+
+  const handleIconConfirm = () => {
+    if (tileIndexForIcon === null) return;
+
+    const currentTile = tiles[tileIndexForIcon];
+    if (!currentTile) return;
+
+    updateTile(currentTile, undefined, selectedTileIcon);
   };
 
   // --- Navigation Functions ---
@@ -700,7 +926,7 @@ export function Bookmarks() {
                     nodeId: currentFolder.id,
                     title: currentFolder.title,
                     tileColor: "rgba(0, 0, 0, 0.6)",
-                    tileIcon: "Luci",
+                    tileIcon: "📁",
                     position: selectedTileIndex !== null ? selectedTileIndex : 0,
                     createdAt: Date.now(),
                   })
@@ -809,7 +1035,11 @@ export function Bookmarks() {
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
-                          <Folder className="w-6 h-6 mb-1" style={{ color: textColor }} />
+                          node.tileIcon && node.tileIcon !== "default" ? (
+                            <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
+                          ) : (
+                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                          )
                         ) : (
                           <img
                             src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -873,7 +1103,11 @@ export function Bookmarks() {
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
-                                  <Folder className="w-6 h-6 mb-1" style={{ color: textColor }} />
+                                  node.tileIcon && node.tileIcon !== "default" ? (
+                                    <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
+                                  ) : (
+                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                                  )
                                 ) : (
                                   <img
                                     src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -1037,7 +1271,11 @@ export function Bookmarks() {
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
-                          <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                          node.tileIcon && node.tileIcon !== "default" ? (
+                            <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
+                          ) : (
+                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                          )
                         ) : (
                           <img
                             src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -1109,7 +1347,11 @@ export function Bookmarks() {
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
-                                  <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                                  node.tileIcon && node.tileIcon !== "default" ? (
+                                    <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
+                                  ) : (
+                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                                  )
                                 ) : (
                                   <img
                                     src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
@@ -1213,10 +1455,15 @@ export function Bookmarks() {
               onEdit={handleEdit}
               onClear={handleClear}
               onColor={() => handleColorClick(index)}
+              onIcon={() => handleIconClick(index)}
               onClose={() => setOpenMenuId(null)}
             />
           )}
-          <Folder className="w-3 h-3 mb-1 relative z-10" style={{ color: textColor }} />
+          {tile.tileIcon && tile.tileIcon !== "default" ? (
+            <span className="text-2xl mb-1 relative z-10">{tile.tileIcon}</span>
+          ) : (
+            <Folder className="w-3 h-3 mb-1 relative z-10" style={{ color: textColor }} />
+          )}
           <span
             className="text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10"
             style={{ color: textColor }}
@@ -1275,6 +1522,7 @@ export function Bookmarks() {
             onEdit={handleEdit}
             onClear={handleClear}
             onColor={() => handleColorClick(index)}
+            onIcon={() => handleIconClick(index)}
             onClose={() => setOpenMenuId(null)}
           />
         )}
@@ -1312,6 +1560,18 @@ export function Bookmarks() {
           onClose={() => {
             setIsColorPickerOpen(false);
             setTileIndexForColor(null);
+          }}
+        />
+      )}
+      {/* Emoji Picker */}
+      {isEmojiPickerOpen && (
+        <EmojiPicker
+          currentEmoji={selectedTileIcon}
+          onChange={handleIconChange}
+          onConfirm={handleIconConfirm}
+          onClose={() => {
+            setIsEmojiPickerOpen(false);
+            setTileIndexForIcon(null);
           }}
         />
       )}
