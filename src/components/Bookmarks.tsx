@@ -7,6 +7,9 @@ import Sortable from "sortablejs";
 import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
 import "./Bookmarks.css";
+// Import emoji-mart
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 // Constants
 const ASPECT_RATIO = "aspect-ratio";
@@ -161,181 +164,6 @@ function ColorPicker({
             </button>
             <button onClick={onConfirm} className="flex-1 px-4 py-2 text-base font-bold bg-blue-500 hover:bg-blue-600 text-white rounded">
               <span className="mr-2">✓</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Emoji Picker Component ---
-function EmojiPicker({
-  currentEmoji,
-  onChange,
-  onConfirm,
-  onClose,
-}: {
-  currentEmoji: string;
-  onChange: (emoji: string) => void;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const emojis = [
-    "📁",
-    "📂",
-    "🗂️",
-    "📚",
-    "📒",
-    "📕",
-    "📗",
-    "📘",
-    "📙",
-    "📔",
-    "📓",
-    "📖",
-    "🏠",
-    "🏢",
-    "🏫",
-    "🏛️",
-    "⭐",
-    "🌟",
-    "💫",
-    "✨",
-    "🔥",
-    "❤️",
-    "💙",
-    "💚",
-    "💛",
-    "💜",
-    "🧡",
-    "🤍",
-    "🤎",
-    "💯",
-    "💢",
-    "💬",
-    "👁️",
-    "📩",
-    "📨",
-    "✉️",
-    "📧",
-    "📮",
-    "📦",
-    "📝",
-    "📌",
-    "📍",
-    "🔖",
-    "🏷️",
-    "✏️",
-    "📐",
-    "📏",
-    "📎",
-    "🖇️",
-    "📅",
-    "📆",
-    "🗓️",
-    "📊",
-    "📈",
-    "📉",
-    "📇",
-    "🗃️",
-    "🗄️",
-    "🗑️",
-    "🔒",
-    "🔓",
-    "🔏",
-    "🔐",
-    "🔑",
-    "🗝️",
-    "🏆",
-    "🥇",
-    "🥈",
-    "🥉",
-    "🎖️",
-    "🎯",
-    "⚽",
-    "🏀",
-    "🏈",
-    "⚾",
-    "🎲",
-    "🎮",
-    "🎨",
-    "🎭",
-    "🎬",
-    "🎤",
-    "🎧",
-    "🎵",
-    "🎹",
-    "🚗",
-    "✈️",
-    "🚀",
-    "🚁",
-    "🚢",
-    "🛸",
-    "🌍",
-    "🌎",
-    "🌏",
-    "🏔️",
-    "🏕️",
-    "🏖️",
-    "🏜️",
-    "🏝️",
-    "🏞️",
-    "🌄",
-    "🌅",
-    "🌇",
-    "🌆",
-    "🌃",
-    "🌌",
-    "🌉",
-    "🏙️",
-    "💻",
-    "🖥️",
-    "💾",
-    "💿",
-    "📀",
-    "📷",
-    "📸",
-    "📹",
-    "📼",
-    "📟",
-    "📱",
-    "🔋",
-    "🔌",
-  ];
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg flex items-center justify-center">
-      <div className="bg-black/20 p-4 rounded-lg shadow-lg max-w-md w-full">
-        {/* Title */}
-        <h3 className="text-xl font-medium text-white text-center mb-4 pb-2 border-b border-white/20">Select Folder Icon</h3>
-
-        {/* Current selection */}
-        <div className="flex justify-center mb-4">
-          <div className="bg-white/10 p-3 rounded-lg">
-            <span className="text-4xl">{currentEmoji}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-6 gap-2 mb-2" style={{ maxHeight: "300px", overflowY: "auto", overflowX: "hidden" }}>
-          {emojis.map((emoji) => (
-            <button
-              key={emoji}
-              className={`w-12 h-12 rounded-lg flex items-center justify-center ${emoji === currentEmoji ? "ring-2 ring-offset-1 ring-blue-400 bg-white/20" : "hover:bg-white/10"}`}
-              onClick={() => onChange(emoji)}
-            >
-              <span className="text-2xl">{emoji}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-4 pt-2 border-t border-white/20">
-          <div className="flex justify-between space-x-4 w-full max-w-sm">
-            <button onClick={onClose} className="flex-1 px-4 py-2 text-base font-bold bg-red-300 hover:bg-red-400 text-white rounded">
-              Cancel
-            </button>
-            <button onClick={onConfirm} className="flex-1 px-4 py-2 text-base font-bold bg-blue-500 hover:bg-blue-600 text-white rounded">
-              Select
             </button>
           </div>
         </div>
@@ -702,17 +530,20 @@ export function Bookmarks() {
     setOpenMenuId(null);
   };
 
-  const handleIconChange = (icon: string) => {
-    setSelectedTileIcon(icon);
-  };
-
-  const handleIconConfirm = () => {
+  // Handler for when an emoji is selected in emoji-mart
+  const handleEmojiSelect = (emojiData: { native: string }) => {
     if (tileIndexForIcon === null) return;
 
     const currentTile = tiles[tileIndexForIcon];
     if (!currentTile) return;
 
-    updateTile(currentTile, undefined, selectedTileIcon);
+    updateTile(currentTile, undefined, emojiData.native); // Update tile with native emoji
+    handleEmojiPickerClose(); // Close the picker after selection
+  };
+
+  const handleEmojiPickerClose = () => {
+    setIsEmojiPickerOpen(false);
+    setTileIndexForIcon(null);
   };
 
   // --- Navigation Functions ---
@@ -1563,17 +1394,20 @@ export function Bookmarks() {
           }}
         />
       )}
-      {/* Emoji Picker */}
+      {/* Emoji Picker using emoji-mart */}
       {isEmojiPickerOpen && (
-        <EmojiPicker
-          currentEmoji={selectedTileIcon}
-          onChange={handleIconChange}
-          onConfirm={handleIconConfirm}
-          onClose={() => {
-            setIsEmojiPickerOpen(false);
-            setTileIndexForIcon(null);
-          }}
-        />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg flex items-center justify-center">
+          <div className="bg-black/20 p-4 rounded-lg shadow-lg">
+            <Picker
+              data={data}
+              onEmojiSelect={handleEmojiSelect}
+              onClickOutside={handleEmojiPickerClose} // Close picker on clicking outside
+              theme="dark" // Optional: set theme
+
+              // You might need additional props based on emoji-mart documentation
+            />
+          </div>
+        </div>
       )}
     </div>
   );
