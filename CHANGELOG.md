@@ -72,3 +72,13 @@ Components affected:
 - Fixed SocialLinks component layout in RTL mode by swapping the order of social links and text
 - Social links now appear on the left side of "Nima has built it with ♥" text in RTL mode
 - Components affected: SocialLinks.tsx 
+
+## 2025-05-23 00:44:58
+- Modified the Settings component to maintain consistent position and appearance regardless of language direction changes.
+- Removed dir attributes from Settings component elements to prevent UI shifts when switching languages.
+Components affected: Settings.tsx 
+
+## 2025-05-23 00:50:34
+- Fixed Settings button positioning to always stay on the right side of the screen in both LTR and RTL modes
+- Added explicit dir="ltr" attribute and CSS positioning to override automatic RTL adjustments
+Components affected: Settings.tsx 

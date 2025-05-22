@@ -496,7 +496,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   } = useCalendar();
 
   // Access i18n
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
 
   // Generate daysOptions from translations
   const daysOptions: EmojiOption[] = useMemo(
@@ -1833,7 +1833,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
   // ─── RENDER ─────────────────────────────────────────────────────
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container" dir={dir}>
+    <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container" dir="ltr" style={{ right: "1rem", left: "auto" }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-black/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
@@ -1856,10 +1856,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             backgroundColor,
             color: textColor,
           }}
-          dir={dir} // Add explicit dir attribute here
         >
           {/* ─── MAIN TABS ─── */}
-          <div className="flex gap-2 mb-4 flex-shrink-0" dir={dir}>
+          <div className="flex gap-2 mb-4 flex-shrink-0">
             <button
               onClick={() => setMainTab("settings")}
               className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
@@ -2116,7 +2115,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     isDisabled={false}
                     isLoading={false}
                     isClearable={false}
-                    isRtl={dir === "rtl"}
+                    isRtl={false}
                     isSearchable={false}
                     name="emoji"
                     options={daysOptions}
