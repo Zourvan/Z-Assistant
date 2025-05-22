@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2025-05-23 01:21:54
+- Modified group headers in Bookmarks component to scroll with content instead of staying fixed
+- Removed sticky positioning from group headers to ensure they move together with their content
+- Removed scrollPaddingTop as it's no longer needed without sticky headers
+- Components affected: src/components/Bookmarks.tsx
+
 ## 2025-05-23 01:10:47
 - Fixed sticky positioning of group headers in Bookmarks component
 - Enhanced group headers with higher z-index and shadow for better visual separation

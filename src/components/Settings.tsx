@@ -1853,7 +1853,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               maxHeight: "800px",
               minWidth: "280px",
               minHeight: "400px",
-              backgroundColor: "#1e293b", // Solid background color (slate-800)
+              backgroundColor: "#000000", // Solid background color (slate-800)
               color: textColor,
             }}
           >
