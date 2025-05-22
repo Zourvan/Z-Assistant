@@ -67,15 +67,17 @@ const taskTypeOptions = [
 const ColourOption = (props: OptionProps<{ value: string; label: string; color: string }, false>) => {
   return (
     <components.Option {...props}>
-      <div
-        style={{
-          backgroundColor: props.data.color,
-          width: 20,
-          height: 20,
-          borderRadius: 4,
-          margin: "0 auto",
-        }}
-      ></div>
+      <div className="flex items-center gap-2">
+        <div
+          style={{
+            backgroundColor: props.data.color,
+            width: 20,
+            height: 20,
+            borderRadius: 4,
+          }}
+        ></div>
+        <span>{props.data.label}</span>
+      </div>
     </components.Option>
   );
 };
@@ -84,15 +86,41 @@ const ColourOption = (props: OptionProps<{ value: string; label: string; color: 
 const ColourValue = (props: SingleValueProps<{ value: string; label: string; color: string }, false>) => {
   return (
     <components.SingleValue {...props}>
-      <div
-        style={{
-          backgroundColor: props.data.color,
-          width: 25,
-          height: 25,
-          borderRadius: 4,
-          margin: "0 auto",
-        }}
-      ></div>
+      <div className="flex items-center gap-2">
+        <div
+          style={{
+            backgroundColor: props.data.color,
+            width: 20,
+            height: 20,
+            borderRadius: 4,
+          }}
+        ></div>
+        <span>{props.data.label}</span>
+      </div>
+    </components.SingleValue>
+  );
+};
+
+// Custom component for emoji option
+const EmojiOption = (props: OptionProps<{ value: string; label: string; color: string }, false>) => {
+  return (
+    <components.Option {...props}>
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{props.data.value}</span>
+        <span>Emoji</span>
+      </div>
+    </components.Option>
+  );
+};
+
+// Custom component for emoji value
+const EmojiValue = (props: SingleValueProps<{ value: string; label: string; color: string }, false>) => {
+  return (
+    <components.SingleValue {...props}>
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{props.data.value}</span>
+        <span>Emoji</span>
+      </div>
     </components.SingleValue>
   );
 };
@@ -127,19 +155,15 @@ const TaskTypeValue = (props: SingleValueProps<{ value: string; label: string; i
 const colorSelectStyles: StylesConfig<{ value: string; label: string; color: string }, false> = {
   control: (provided) => ({
     ...provided,
-    backgroundColor: "transparent",
-    border: "none",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderColor: "transparent",
     boxShadow: "none",
-    minWidth: "20px",
-    width: "20px",
-    height: "32px",
+    minWidth: "110px",
     cursor: "pointer",
   }),
   menu: (provided: any) => ({
     ...provided,
     backgroundColor: "rgba(0,0,0,0.95)",
-    minWidth: "30px",
-    width: "30px",
     borderRadius: "4px",
     zIndex: 9999,
     position: "absolute",
@@ -158,25 +182,17 @@ const colorSelectStyles: StylesConfig<{ value: string; label: string; color: str
   }),
   valueContainer: (provided) => ({
     ...provided,
-    padding: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: "0 8px",
   }),
   option: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isFocused ? state.data.color : "transparent",
-    color: state.isFocused ? "#fff" : "#000",
-    textAlign: "center",
-    padding: "8px 0",
+    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent",
+    color: "white",
+    padding: "8px 12px",
   }),
-  input: (provided) => ({
+  singleValue: (provided) => ({
     ...provided,
-    opacity: 0,
-    position: "absolute",
-    width: 0,
-    height: 0,
-    padding: 0,
+    color: "white",
   }),
 };
 
@@ -185,26 +201,41 @@ const emojiSelectStyles: StylesConfig<{ value: string; label: string; color: str
   menu: (provided) => ({
     ...provided,
     zIndex: 9999,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
     color: "white",
+    borderRadius: "4px",
   }),
   option: (provided, state) => ({
     ...provided,
     color: "white",
     backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent",
+    padding: "8px 12px",
   }),
   control: (provided) => ({
     ...provided,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "transparent",
+    boxShadow: "none",
     color: "white",
     display: "flex",
-    minWidth: "60px",
-    width: "60px",
+    minWidth: "110px",
+    cursor: "pointer",
   }),
   singleValue: (provided) => ({
     ...provided,
     color: "white",
+  }),
+  indicatorsContainer: (provided) => ({
+    ...provided,
+    display: "none",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    display: "none",
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    padding: "0 8px",
   }),
 };
 
@@ -213,25 +244,36 @@ const taskTypeSelectStyles: StylesConfig<{ value: string; label: string; icon: a
   menu: (provided) => ({
     ...provided,
     zIndex: 9999,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
     color: "white",
+    borderRadius: "4px",
   }),
   option: (provided, state) => ({
     ...provided,
     color: "white",
     backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.2)" : "transparent",
+    padding: "8px 12px",
   }),
   control: (provided) => ({
     ...provided,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderColor: "transparent",
+    boxShadow: "none",
     color: "white",
     display: "flex",
-    minWidth: "120px",
+    minWidth: "110px",
   }),
   singleValue: (provided) => ({
     ...provided,
     color: "white",
+  }),
+  indicatorsContainer: (provided) => ({
+    ...provided,
+    display: "none",
+  }),
+  dropdownIndicator: (provided) => ({
+    ...provided,
+    display: "none",
   }),
 };
 
@@ -362,8 +404,8 @@ export function TasksAndNotes() {
 
   return (
     <div className="backdrop-blur-md rounded-xl p-4 shadow-lg overflow-hidden" style={{ backgroundColor, color: textColor }}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center gap-2">
           <Select
             className="basic-single"
             classNamePrefix="select"
@@ -386,6 +428,7 @@ export function TasksAndNotes() {
               classNamePrefix="select"
               defaultValue={emojiOptions[0]}
               options={emojiOptions}
+              components={{ Option: EmojiOption, SingleValue: EmojiValue }}
               menuPortalTarget={document.body}
               menuPosition="absolute"
               menuShouldScrollIntoView={false}
@@ -404,44 +447,7 @@ export function TasksAndNotes() {
               value={newColor}
               onChange={(option) => option && setNewColor(option)}
               components={{ Option: ColourOption, SingleValue: ColourValue }}
-              styles={{
-                ...colorSelectStyles,
-                menu: (provided) => ({
-                  ...provided,
-                  zIndex: 50,
-                  backgroundColor: "#121212",
-                  width: "auto",
-                  minWidth: "100%",
-                  boxSizing: "content-box",
-                }),
-                menuList: (provided) => ({
-                  ...provided,
-                  backgroundColor: "#121212",
-                }),
-                menuPortal: (provided) => ({
-                  ...provided,
-                  zIndex: 9999,
-                }),
-                option: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.1)" : state.isSelected ? "rgba(255, 255, 255, 0.2)" : "#121212",
-                  color: "white",
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.15)",
-                  },
-                }),
-                control: (provided) => ({
-                  ...provided,
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                  border: "none",
-                  borderRadius: "0.5rem",
-                  minHeight: "2rem",
-                  boxShadow: "none",
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                }),
-              }}
+              styles={colorSelectStyles}
               menuPortalTarget={document.body}
               menuPosition="fixed"
               menuPlacement="auto"
@@ -504,6 +510,7 @@ export function TasksAndNotes() {
                     classNamePrefix="select"
                     defaultValue={emojiOptions.find((option) => option.value === editingTask.emoji) || emojiOptions[0]}
                     options={emojiOptions}
+                    components={{ Option: EmojiOption, SingleValue: EmojiValue }}
                     menuPortalTarget={document.body}
                     menuPosition="absolute"
                     menuShouldScrollIntoView={false}
@@ -561,6 +568,22 @@ export function TasksAndNotes() {
 
                 {task.taskType === "todo" && (
                   <>
+                    <Select
+                      className="basic-single"
+                      classNamePrefix="select"
+                      defaultValue={emojiOptions.find((option) => option.value === editingTask.emoji) || emojiOptions[0]}
+                      options={emojiOptions}
+                      components={{ Option: EmojiOption, SingleValue: EmojiValue }}
+                      menuPortalTarget={document.body}
+                      menuPosition="absolute"
+                      menuShouldScrollIntoView={false}
+                      styles={emojiSelectStyles}
+                      onChange={(selected) => {
+                        if (selected && editingTask) {
+                          setEditingTask({ ...editingTask, emoji: selected.value });
+                        }
+                      }}
+                    />
                     <button onClick={saveEditedTask} className="text-white hover:text-green-500 transition-colors">
                       <CheckCircle2 className="w-4 h-4" />
                     </button>

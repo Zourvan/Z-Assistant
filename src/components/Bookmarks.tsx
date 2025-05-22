@@ -1118,7 +1118,7 @@ export function Bookmarks() {
                           />
                         )}
                         <span
-                          className="font-medium text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                          className="font-medium text-center text-secondary-800 text-xs line-clamp-2"
                           style={{ color: textColor }}
                           title={node.title}
                         >
@@ -1194,7 +1194,7 @@ export function Bookmarks() {
                                   />
                                 )}
                                 <span
-                                  className="font-medium text-center text-secondary-800 text-[10px] sm:text-xs line-clamp-2"
+                                  className="font-medium text-center text-secondary-800 text-xs line-clamp-2"
                                   style={{ color: textColor }}
                                   title={node.title}
                                 >
@@ -1365,7 +1365,7 @@ export function Bookmarks() {
             e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
           }}
         />
-        <span className="text-center text-[0.8vh] font-medium line-clamp-2 relative z-10" style={{ color: textColor }} title={tile.title}>
+        <span className="text-center text-xs font-medium line-clamp-2 relative z-10" style={{ color: textColor }} title={tile.title}>
           {truncateTitle(tile.title)}
         </span>
       </div>

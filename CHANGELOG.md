@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2025-05-23 01:54:07
+- Enhanced UI in TasksAndNotes component by improving organization and styling
+- Made Select components (color and emoji) more consistent in appearance
+- Removed dropdown arrows from all Select components for cleaner interface
+- Centered task controls for better visual alignment
+- Standardized the size and appearance of all selector controls
+- Components affected: src/components/TasksAndNotes.tsx
+
+## 2025-05-23 01:42:28
+- Standardized font sizes across bookmark and folder tiles in Bookmarks component
+- Changed bookmark tile font size from text-[0.8vh] to text-xs to match folder tiles
+- Removed responsive text size variations (sm:text-xs) in folder content view for consistency
+- Ensured consistent typography across all bookmark and folder elements
+- Components affected: src/components/Bookmarks.tsx
+
 ## 2025-05-23 01:38:33
 - Modified background image display to show images clearly without filters or overlays
 - Removed backdrop blur effect from the main container
@@ -129,3 +144,21 @@ Components affected: Settings.tsx
 - Added a close button to the Settings modal for better usability
 - Added overlay background for better focus on the Settings panel
 - Components affected: Settings.tsx
+
+## 2025-05-23 01:44:56
+- Fixed Settings modal to properly close when clicking outside the dialog
+- Modified modal overlay click handling to improve user experience
+- Components affected: Settings.tsx
+
+## 2025-05-23 01:46:50
+- Applied ThemeProvider to SocialLinks component
+- Modified SocialLinks.tsx to use theme settings (textColor and backgroundColor) from ThemeProvider
+- Removed hardcoded color values and replaced with dynamic theming
+- Components affected: SocialLinks.tsx
+
+## 2025-05-23 01:57:41
+- Updated color and emoji selectors in TasksAndNotes component to match the style of task type selector
+- Modified selectors to display both the visual element (color/emoji) and text labels
+- Standardized selector width and appearance for better UI consistency
+- Improved readability by showing descriptive text alongside visual elements
+- Components affected: src/components/TasksAndNotes.tsx

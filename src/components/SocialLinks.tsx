@@ -1,5 +1,6 @@
 import React from "react";
 import { Instagram, Linkedin, Github, Globe } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
 // Note: Make sure this CSS file exists or move the styles inline
 import "./SocialLinks.css";
 
@@ -45,11 +46,17 @@ const socialLinks: SocialLink[] = [
 //rounded-xl p-2 shadow-lg flex flex-col gap-2 scale-70
 
 const SocialLinks = () => {
+  // Use theme context
+  const { textColor, backgroundColor } = useTheme();
+
   return (
     // Force LTR direction with dir="ltr" to prevent inheritance from document direction
     <div dir="ltr" style={{ direction: "ltr" }} className="fixed bottom-0 right-0 p-4 z-10 pointer-events-none">
       <div dir="ltr" style={{ direction: "ltr" }} className="flex flex-row-reverse items-end gap-4">
-        <div className="bg-black/10 backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 transform scale-70 pointer-events-auto">
+        <div
+          className="backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 transform scale-70 pointer-events-auto"
+          style={{ backgroundColor }}
+        >
           {socialLinks.map((link) => (
             <a
               key={link.id}
@@ -57,8 +64,9 @@ const SocialLinks = () => {
               target="_blank"
               rel="noopener noreferrer"
               className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 
-                                ${link.color} hover:text-white bg-white/20 text-gray-200
+                                ${link.color} hover:text-white bg-white/20
                                 transform hover:scale-110 hover:shadow-lg`}
+              style={{ color: textColor }}
               aria-label={link.name}
               title={link.name}
             >
@@ -67,8 +75,8 @@ const SocialLinks = () => {
           ))}
         </div>
 
-        <div className="bg-black/10 backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto">
-          <p dir="ltr" style={{ direction: "ltr" }} className="text-gray-200 text-sm font-medium flex items-center gap-1">
+        <div className="backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto" style={{ backgroundColor }}>
+          <p dir="ltr" style={{ direction: "ltr", color: textColor }} className="text-sm font-medium flex items-center gap-1">
             Nima has built it with
             <span className="text-red-500 animate-pulse text-xl">♥</span>
           </p>

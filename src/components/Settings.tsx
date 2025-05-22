@@ -1830,8 +1830,13 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       </button>
 
       {isOpen && (
-        <div ref={selectorRef} className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          onClick={() => setIsOpen(false)}
+        >
           <div
+            ref={selectorRef}
             className="rounded-xl p-4 shadow-lg flex flex-col overflow-hidden"
             style={{
               width: "50vw",
@@ -1843,6 +1848,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               backgroundColor: "#000000", // Solid background color (slate-800)
               color: textColor,
             }}
+            onClick={(e) => e.stopPropagation()} // Prevent clicks inside the modal from closing it
           >
             {/* ─── MAIN TABS ─── */}
             <div className="flex gap-2 mb-4 flex-shrink-0">
