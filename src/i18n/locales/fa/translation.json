@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "تنظیمات",
+    "backgrounds": "پس‌زمینه‌ها",
+    "images": "تصاویر",
+    "colors": "رنگ‌ها",
+    "uploadImage": "بارگذاری تصویر",
+    "uploading": "در حال بارگذاری...",
+    "pasteImageUrl": "آدرس تصویر را وارد کنید",
+    "weekendDays": "روزهای آخر هفته (حداکثر ۳ روز)",
+    "firstDayOfWeek": "اولین روز هفته",
+    "textColor": "متن",
+    "backgroundColor": "پس‌زمینه",
+    "reset": "بازنشانی",
+    "calendarType": {
+      "title": "نوع تقویم",
+      "gregorian": "میلادی",
+      "persian": "شمسی"
+    },
+    "language": {
+      "title": "زبان",
+      "english": "انگلیسی",
+      "persian": "فارسی"
+    },
+    "tileNumber": "تعداد کاشی‌ها",
+    "dataManagement": "مدیریت داده‌ها",
+    "exportData": "خروجی داده‌ها",
+    "importData": "ورود داده‌ها"
+  },
+  "days": {
+    "Saturday": "شنبه",
+    "Sunday": "یکشنبه",
+    "Monday": "دوشنبه",
+    "Tuesday": "سه‌شنبه",
+    "Wednesday": "چهارشنبه",
+    "Thursday": "پنجشنبه",
+    "Friday": "جمعه"
+  },
+  "daysShort": {
+    "Saturday": "ش",
+    "Sunday": "ی",
+    "Monday": "د",
+    "Tuesday": "س",
+    "Wednesday": "چ",
+    "Thursday": "پ",
+    "Friday": "ج"
+  }
+}

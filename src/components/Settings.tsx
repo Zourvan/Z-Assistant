@@ -1,8 +1,13 @@
 import React, { createContext, useState, useContext, useRef, useEffect, useCallback, useMemo, ReactNode } from "react";
 import Select, { StylesConfig } from "react-select";
 import { ChromePicker } from "react-color";
-import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp, RotateCcw } from "lucide-react";
+import { SlidersHorizontal, Image, Upload, Link, X, Palette, Download, FileUp, RotateCcw, Globe } from "lucide-react";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
+// Import i18n hooks and components
+import { useI18n } from "../i18n/LanguageProvider";
+import "../i18n/i18n"; // Import i18n initialization
+// Import the changeLanguageAndDirection function
+import { changeLanguageAndDirection } from "../i18n/i18n";
 
 //
 // ─── TYPE DEFINITIONS ─────────────────────────────────────────────────────────────
@@ -22,16 +27,6 @@ interface EmojiOption {
 // Days options and DayOfWeek type
 export type DayOfWeek = "Saturday" | "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
 
-const daysOptions: EmojiOption[] = [
-  { value: "Saturday", label: "Saturday" },
-  { value: "Sunday", label: "Sunday" },
-  { value: "Monday", label: "Monday" },
-  { value: "Tuesday", label: "Tuesday" },
-  { value: "Wednesday", label: "Wednesday" },
-  { value: "Thursday", label: "Thursday" },
-  { value: "Friday", label: "Friday" },
-];
-
 // Props for BackgroundSelector component
 interface SettingsProps {
   onSelectBackground: (background: string) => void;
@@ -49,6 +44,7 @@ interface CalendarSettings {
   firstDayOfWeek: DayOfWeek;
   textColor: string;
   backgroundColor: string;
+  language: "en" | "fa";
 }
 
 // Type for stored background data
@@ -86,6 +82,20 @@ const bookmarksDB = createDatabase({
   indexes: [{ name: "createdAt", keyPath: "createdAt", unique: false }],
 });
 
+// Unified tasks database
+const tasksDB = createDatabase({
+  dbName: "unifiedTasksDB",
+  storeName: "tasks",
+  version: 1,
+  keyPath: "id",
+  indexes: [
+    { name: "taskType", keyPath: "taskType", unique: false },
+    { name: "completed", keyPath: "completed", unique: false },
+    { name: "createdAt", keyPath: "createdAt", unique: false },
+  ],
+});
+
+// Legacy databases - kept for backward compatibility with imports
 const notesDB = createDatabase({
   dbName: "notesManagerDB",
   storeName: "notes",
@@ -287,6 +297,7 @@ const BackgroundThumbnail: React.FC<{
 const CalendarContext = createContext({
   calendarType: "gregorian" as "gregorian" | "persian",
   setCalendarType: (_type: "gregorian" | "persian") => {},
+  updateCalendarType: (_type: "gregorian" | "persian") => {}, // Add this function to context
   weekendDays: ["Friday"] as DayOfWeek[],
   setWeekendDays: (_days: DayOfWeek[]) => {},
   weekendColor: "#1B4D3E",
@@ -299,6 +310,8 @@ const CalendarContext = createContext({
   setTextColor: (_color: string) => {},
   backgroundColor: "rgba(0, 0, 0, 0.2)",
   setBackgroundColor: (_color: string) => {},
+  language: "en" as "en" | "fa",
+  setLanguage: (_lang: "en" | "fa") => {},
 });
 
 // CalendarProvider component which provides calendar settings via context
@@ -350,9 +363,23 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     return saved || "rgba(0, 0, 0, 0.2)";
   });
 
+  const [language, setLanguage] = useState<"en" | "fa">(() => {
+    const saved = localStorage.getItem("language");
+    return saved === "en" || saved === "fa" ? (saved as "en" | "fa") : "en";
+  });
+
   const updateCalendarType = (type: "gregorian" | "persian") => {
     setCalendarType(type);
     localStorage.setItem("calendarType", type);
+
+    // Also update language to match calendar type
+    const newLanguage = type === "persian" ? "fa" : "en";
+
+    // Use the safe language change function instead
+    changeLanguageAndDirection(newLanguage);
+
+    // Still update local state
+    setLanguage(newLanguage);
   };
 
   const updateWeekendDays = (days: DayOfWeek[]) => {
@@ -385,11 +412,17 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     localStorage.setItem("backgroundColor", color);
   };
 
+  const updateLanguage = (lang: "en" | "fa") => {
+    setLanguage(lang);
+    localStorage.setItem("language", lang);
+  };
+
   return (
     <CalendarContext.Provider
       value={{
         calendarType,
-        setCalendarType: updateCalendarType,
+        setCalendarType: updateCalendarType, // Replace with updateCalendarType
+        updateCalendarType, // Add this function to the provided context
         weekendDays,
         setWeekendDays: updateWeekendDays,
         weekendColor,
@@ -402,6 +435,8 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         setTextColor: updateTextColor,
         backgroundColor,
         setBackgroundColor: updateBackgroundColor,
+        language,
+        setLanguage: updateLanguage,
       }}
     >
       {children}
@@ -433,6 +468,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isTextPickerOpen, setIsTextPickerOpen] = useState(false);
   const [isWeekendPickerOpen, setIsWeekendPickerOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const dataFileInputRef = useRef<HTMLInputElement>(null);
@@ -442,6 +478,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const {
     calendarType,
     setCalendarType,
+    updateCalendarType, // Add this function to the provided context
     weekendDays,
     setWeekendDays,
     weekendColor,
@@ -454,7 +491,26 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     setTextColor,
     backgroundColor,
     setBackgroundColor,
+    language,
+    setLanguage,
   } = useCalendar();
+
+  // Access i18n
+  const { t, dir } = useI18n();
+
+  // Generate daysOptions from translations
+  const daysOptions: EmojiOption[] = useMemo(
+    () => [
+      { value: "Saturday", label: t("days.Saturday") },
+      { value: "Sunday", label: t("days.Sunday") },
+      { value: "Monday", label: t("days.Monday") },
+      { value: "Tuesday", label: t("days.Tuesday") },
+      { value: "Wednesday", label: t("days.Wednesday") },
+      { value: "Thursday", label: t("days.Thursday") },
+      { value: "Friday", label: t("days.Friday") },
+    ],
+    [t]
+  );
 
   // ─── DEFAULT DATA (Backgrounds & Colors) ───────────────────────
   const defaultBackgrounds = useMemo(
@@ -1271,7 +1327,16 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
   // ─── CALENDAR SETTINGS: SAVE & LOAD ───────────────────────────
   const saveCalendarSettings = useCallback(
-    (type: "gregorian" | "persian", tiles: number, weekend: DayOfWeek[], color: string, firstDay: DayOfWeek, txtColor: string, bgColor: string) => {
+    (
+      type: "gregorian" | "persian",
+      tiles: number,
+      weekend: DayOfWeek[],
+      color: string,
+      firstDay: DayOfWeek,
+      txtColor: string,
+      bgColor: string,
+      lang: "en" | "fa"
+    ) => {
       const settings: CalendarSettings = {
         type,
         tileNumber: tiles,
@@ -1280,6 +1345,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         firstDayOfWeek: firstDay,
         textColor: txtColor,
         backgroundColor: bgColor,
+        language: lang,
       };
       localStorage.setItem("calendarSettings", JSON.stringify(settings));
       localStorage.setItem("calendarType", type);
@@ -1289,13 +1355,14 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       localStorage.setItem("firstDayOfWeek", firstDay);
       localStorage.setItem("textColor", txtColor);
       localStorage.setItem("backgroundColor", bgColor);
+      localStorage.setItem("language", lang);
     },
     []
   );
 
   useEffect(() => {
-    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor);
-  }, [tileNumber, calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, saveCalendarSettings]);
+    saveCalendarSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, language);
+  }, [tileNumber, calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, language, saveCalendarSettings]);
 
   useEffect(() => {
     const loadCalendarSettings = async () => {
@@ -1310,6 +1377,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           if (settings.firstDayOfWeek) setFirstDayOfWeek(settings.firstDayOfWeek);
           if (settings.textColor) setTextColor(settings.textColor);
           if (settings.backgroundColor) setBackgroundColor(settings.backgroundColor);
+          if (settings.language) setLanguage(settings.language);
         } else {
           // Set defaults
           setCalendarType("gregorian");
@@ -1319,7 +1387,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           setFirstDayOfWeek("Saturday");
           setTextColor("#FFFFFF");
           setBackgroundColor("rgba(0, 0, 0, 0.2)");
-          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)");
+          setLanguage("en");
+          saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)", "en");
         }
       } catch (error) {
         console.error("Error loading calendar settings:", error);
@@ -1331,7 +1400,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         setFirstDayOfWeek("Saturday");
         setTextColor("#FFFFFF");
         setBackgroundColor("rgba(0, 0, 0, 0.5)");
-        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)");
+        setLanguage("en");
+        saveCalendarSettings("gregorian", 10, ["Friday"], "#1B4D3E", "Saturday", "#FFFFFF", "rgba(0, 0, 0, 0.2)", "en");
       }
     };
 
@@ -1532,51 +1602,61 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       const value = parseInt(e.target.value);
       if (value >= 10 && value <= 100) {
         setTileNumber(value);
-        saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor); // Save settings immediately when tile number changes
+        saveCalendarSettings(calendarType, value, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, language); // Save settings immediately when tile number changes
       }
     },
-    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, setTileNumber]
+    [calendarType, saveCalendarSettings, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, language, setTileNumber]
   );
 
   const handleExportData = useCallback(async () => {
     try {
-      // Gather data from all databases
-      const backgroundData = await backgroundsDB.getAllItems();
-      const bookmarkData = await bookmarksDB.getAllItems();
-      const noteData = await notesDB.getAllItems();
-      const todoData = await todosDB.getAllItems();
+      setIsExporting(true);
 
-      // Create combined data object including settings
-      const exportData = {
-        timestamp: Date.now(),
+      // Get all data
+      const backgrounds = await backgroundsDB.getAllItems();
+      const bookmarks = await bookmarksDB.getAllItems();
+      const tasks = await tasksDB.getAllItems();
+
+      // Create export object
+      const exportObj = {
+        version: "1.0",
+        exportDate: new Date().toISOString(),
         settings: {
           calendarType,
           tileNumber,
-          selectedBackground: localStorage.getItem(storageKey) || null,
+          firstDayOfWeek,
+          weekendDays,
+          weekendColor,
+          textColor,
+          backgroundColor,
+          selectedBackground: localStorage.getItem(storageKey),
         },
-        backgrounds: backgroundData,
-        bookmarks: bookmarkData,
-        notes: noteData,
-        todos: todoData,
+        backgrounds,
+        bookmarks,
+        tasks,
       };
 
-      // Create and download the file
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `z-assistant-data-${new Date().toISOString().split("T")[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error("Error exporting data:", e);
+      // Create and download export file
+      const dataStr = JSON.stringify(exportObj, null, 2);
+      const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+
+      const exportFileDefaultName = `z-assistant-backup-${new Date().toISOString().slice(0, 10)}.json`;
+
+      const linkElement = document.createElement("a");
+      linkElement.setAttribute("href", dataUri);
+      linkElement.setAttribute("download", exportFileDefaultName);
+      linkElement.click();
+    } catch (error) {
+      console.error("Export error:", error);
       alert("Error exporting data. Please try again.");
+    } finally {
+      setIsExporting(false);
     }
-  }, [storageKey, calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor]);
+  }, [storageKey, calendarType, tileNumber, firstDayOfWeek, weekendDays, weekendColor, textColor, backgroundColor, language]);
 
   const handleImportData = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
       if (!file) return;
 
       try {
@@ -1589,8 +1669,12 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             try {
               const importData = JSON.parse(text);
 
+              // Check if this is a legacy format (with notes and todos) or new format (with tasks)
+              const isLegacyFormat = importData.notes && importData.todos;
+              const isNewFormat = importData.tasks;
+
               // Validate data structure
-              if (!importData.settings || !importData.backgrounds || !importData.bookmarks || !importData.notes || !importData.todos) {
+              if (!importData.settings || !importData.backgrounds || !importData.bookmarks || (!isLegacyFormat && !isNewFormat)) {
                 throw new Error("Invalid import file format");
               }
 
@@ -1627,22 +1711,44 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 await bookmarksDB.saveItem(bookmark);
               }
 
-              // Import notes
-              const noteItems = await notesDB.getAllItems();
-              for (const item of noteItems) {
-                await notesDB.deleteItem((item as { id: string }).id);
-              }
-              for (const note of importData.notes) {
-                await notesDB.saveItem(note);
+              // Import tasks (new format) or convert legacy notes and todos
+              const tasksItems = await tasksDB.getAllItems();
+              for (const item of tasksItems) {
+                await tasksDB.deleteItem((item as { id: string }).id);
               }
 
-              // Import todos
-              const todoItems = await todosDB.getAllItems();
-              for (const item of todoItems) {
-                await todosDB.deleteItem((item as { id: string }).id);
-              }
-              for (const todo of importData.todos) {
-                await todosDB.saveItem(todo);
+              if (isNewFormat) {
+                // Import tasks directly
+                for (const task of importData.tasks) {
+                  await tasksDB.saveItem(task);
+                }
+              } else if (isLegacyFormat) {
+                // Convert legacy notes to tasks
+                for (const note of importData.notes) {
+                  const noteTask = {
+                    id: note.id,
+                    text: note.text,
+                    taskType: "note",
+                    createdAt: note.createdAt,
+                    color: note.color,
+                    emoji: "📝", // Default emoji for converted notes
+                  };
+                  await tasksDB.saveItem(noteTask);
+                }
+
+                // Convert legacy todos to tasks
+                for (const todo of importData.todos) {
+                  const todoTask = {
+                    id: todo.id,
+                    text: todo.text,
+                    taskType: "todo",
+                    createdAt: Date.now(), // Legacy todos might not have createdAt
+                    color: "rgba(255, 255, 255, 0.2)", // Default color
+                    emoji: todo.emoji || "🚀", // Use existing emoji or default
+                    completed: todo.completed,
+                  };
+                  await tasksDB.saveItem(todoTask);
+                }
               }
 
               // Reload backgrounds
@@ -1727,7 +1833,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
   // ─── RENDER ─────────────────────────────────────────────────────
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container">
+    <div className="fixed top-4 right-4 z-50 flex flex-col items-end" id="background-container" dir={dir}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-black/20 backdrop-blur-md p-2 rounded-full hover:bg-white/30 transition-colors shadow-lg"
@@ -1750,9 +1856,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             backgroundColor,
             color: textColor,
           }}
+          dir={dir} // Add explicit dir attribute here
         >
           {/* ─── MAIN TABS ─── */}
-          <div className="flex gap-2 mb-4 flex-shrink-0">
+          <div className="flex gap-2 mb-4 flex-shrink-0" dir={dir}>
             <button
               onClick={() => setMainTab("settings")}
               className={`flex-1 px-3 py-2 rounded-lg text-xs sm:text-sm md:text-base flex items-center justify-center gap-2 ${
@@ -1761,7 +1868,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               style={{ color: textColor }}
             >
               <SlidersHorizontal className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-              Settings
+              {t("settings.title")}
             </button>
             <button
               onClick={() => setMainTab("backgrounds")}
@@ -1771,7 +1878,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               style={{ color: textColor }}
             >
               <Image className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-              Backgrounds
+              {t("settings.backgrounds")}
             </button>
           </div>
 
@@ -1787,7 +1894,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                   style={{ color: textColor }}
                 >
                   <Image className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-                  Images
+                  {t("settings.images")}
                 </button>
                 <button
                   onClick={() => setActiveTab("colors")}
@@ -1797,7 +1904,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                   style={{ color: textColor }}
                 >
                   <Palette className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-                  Colors
+                  {t("settings.colors")}
                 </button>
               </div>
 
@@ -1825,7 +1932,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       disabled={isUploading}
                     >
                       <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {isUploading ? "Uploading..." : "Upload Image"}
+                      {isUploading ? t("settings.uploading") : t("settings.uploadImage")}
                     </button>
                     <input ref={imageFileInputRef} type="file" accept="image/*,.gif" onChange={handleFileUpload} className="hidden" />
 
@@ -1835,7 +1942,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         type="text"
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
-                        placeholder="Paste image URL"
+                        placeholder={t("settings.pasteImageUrl")}
                         className="flex-1 bg-white/30 hover:bg-white/40 focus:bg-white/40 transition-colors px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base text-white placeholder-white/50 outline-none"
                       />
                       <button
@@ -1861,10 +1968,12 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
             <div className="flex flex-col gap-4 overflow-auto flex-grow custom-scrollbar">
               {/* ─── SETTINGS SECTION ─── */}
               <div className="flex flex-col gap-4 w-full">
+                {/* Language selection is now combined with Calendar Type */}
+
                 {/* Weekend Days Selector & Color */}
                 <div className="flex flex-col w-full gap-2">
                   <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
-                    Weekend Days (select up to 3)
+                    {t("settings.weekendDays")}
                   </label>
                   <div className="flex items-center gap-1 sm:gap-2">
                     <div className="flex-1 flex justify-between">
@@ -1877,7 +1986,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                           } hover:bg-white/40 transition-colors`}
                           style={{ color: textColor }}
                         >
-                          {day.slice(0, 1)}
+                          {t(`daysShort.${day}`)}
                         </button>
                       ))}
                     </div>
@@ -1912,7 +2021,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     {/* Text Color */}
                     <div className="flex items-center gap-1 sm:gap-2 flex-1">
                       <label className="text-[10px] xs:text-xs sm:text-sm whitespace-nowrap" style={{ color: textColor }}>
-                        Text
+                        {t("settings.textColor")}
                       </label>
                       <div className="flex ml-auto items-center gap-1 sm:gap-2">
                         <div className="relative" title="Text Color">
@@ -1947,7 +2056,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     {/* Background Color */}
                     <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1">
                       <label className="text-[10px] xs:text-xs whitespace-nowrap" style={{ color: textColor }}>
-                        Background
+                        {t("settings.backgroundColor")}
                       </label>
                       <div className="flex ml-auto items-center gap-2">
                         <div className="relative" title="Background Color">
@@ -1990,8 +2099,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                         localStorage.setItem("backgroundColor", defaultBgColor);
                       }}
                     >
-                      {" "}
-                      <RotateCcw />
+                      <RotateCcw className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1999,7 +2107,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 {/* First Day of the Week selector */}
                 <div className="flex flex-col w-full">
                   <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
-                    First Day of the Week
+                    {t("settings.firstDayOfWeek")}
                   </label>
                   <Select
                     className="basic-single"
@@ -2008,7 +2116,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                     isDisabled={false}
                     isLoading={false}
                     isClearable={false}
-                    isRtl={false}
+                    isRtl={dir === "rtl"}
                     isSearchable={false}
                     name="emoji"
                     options={daysOptions}
@@ -2024,32 +2132,37 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                   />
                 </div>
 
-                {/* Calendar Type Buttons */}
-                <div className="flex w-full gap-2">
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
-                      calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
-                    }`}
-                    onClick={() => setCalendarType("gregorian")}
-                    style={{ color: textColor }}
-                  >
-                    Gregorian
-                  </button>
-                  <button
-                    className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
-                      calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
-                    }`}
-                    onClick={() => setCalendarType("persian")}
-                    style={{ color: textColor }}
-                  >
-                    Persian
-                  </button>
+                {/* Calendar Type & Language Buttons */}
+                <div className="flex flex-col w-full">
+                  <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
+                    {t("settings.calendarType.title")}
+                  </label>
+                  <div className="flex w-full gap-2">
+                    <button
+                      className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
+                        calendarType === "gregorian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
+                      }`}
+                      onClick={() => updateCalendarType("gregorian")}
+                      style={{ color: textColor }}
+                    >
+                      <Globe className="w-4 h-4 inline-block mr-2" /> {t("settings.language.english")} ({t("settings.calendarType.gregorian")})
+                    </button>
+                    <button
+                      className={`flex-1 px-4 py-2 rounded-lg text-xs sm:text-sm md:text-base ${
+                        calendarType === "persian" ? "bg-white/50 hover:bg-white/60" : "bg-white/30 hover:bg-white/40"
+                      }`}
+                      onClick={() => updateCalendarType("persian")}
+                      style={{ color: textColor }}
+                    >
+                      <Globe className="w-4 h-4 inline-block ml-2" /> {t("settings.language.persian")} ({t("settings.calendarType.persian")})
+                    </button>
+                  </div>
                 </div>
 
                 {/* Tile Number Input */}
                 <div className="flex flex-col w-full">
                   <label className="text-xs sm:text-sm md:text-base mb-2" style={{ color: textColor }}>
-                    Tile Number
+                    {t("settings.tileNumber")}
                   </label>
                   <input
                     type="number"
@@ -2065,7 +2178,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                 {/* Export/Import Buttons */}
                 <div className="flex flex-col w-full gap-1 mt-1">
                   <label className="text-xs sm:text-sm md:text-base mb-0.5" style={{ color: textColor }}>
-                    Data Management
+                    {t("settings.dataManagement")}
                   </label>
                   <div className="flex flex-col sm:flex-row w-full gap-2">
                     <button
@@ -2074,7 +2187,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       style={{ color: textColor }}
                     >
                       <Download className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-                      Export Data
+                      {t("settings.exportData")}
                     </button>
                     <button
                       className="flex-1 px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm md:text-base bg-blue-500/50 hover:bg-blue-500/60 transition-colors flex items-center justify-center gap-2"
@@ -2082,7 +2195,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       style={{ color: textColor }}
                     >
                       <FileUp className="w-3 h-3 sm:w-4 sm:h-4" style={{ color: textColor }} />
-                      Import Data
+                      {t("settings.importData")}
                     </button>
                     <input type="file" ref={dataFileInputRef} accept=".json" onChange={handleImportData} className="hidden" id="import-data-input" />
                   </div>

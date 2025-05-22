@@ -3,9 +3,10 @@ import { Clock } from "./components/Clock";
 import Calendar from "./components/Calendar";
 import { Bookmarks } from "./components/Bookmarks";
 import { Settings, CalendarProvider } from "./components/Settings";
-import { TodoList } from "./components/TodoList";
-import { Notes } from "./components/Notes";
+import { TasksAndNotes } from "./components/TasksAndNotes";
 import SocialLinks from "./components/SocialLinks";
+import { LanguageProvider } from "./i18n/LanguageProvider";
+import "./i18n/i18n"; // Import i18n initialization
 
 import "./App.css";
 
@@ -87,52 +88,53 @@ function App() {
   }, []);
 
   return (
-    <CalendarProvider>
-      {/* <MarketBoard /> */}
-      <div
-        className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
-        style={{
-          backgroundImage: background !== "none" ? `url(${background})` : "none",
-          filter: isLoading
-            ? "saturate(1) contrast(1)" // در حال لود شدن
-            : "saturate(1.2) contrast(1.25)", // تنظیم شدت رنگ‌ها بعد از لود
-        }}
-      >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+    <LanguageProvider>
+      <CalendarProvider>
+        {/* <MarketBoard /> */}
+        <div
+          className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
+          style={{
+            backgroundImage: background !== "none" ? `url(${background})` : "none",
+            filter: isLoading
+              ? "saturate(1) contrast(1)" // در حال لود شدن
+              : "saturate(1.2) contrast(1.25)", // تنظیم شدت رنگ‌ها بعد از لود
+          }}
+        >
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+            </div>
+          )}
+
+          <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300 overflow-x-hidden">
+            <div
+              className="max-w-[80vw] mx-auto box-border grid 
+                    grid-cols-1 gap-4 sm:gap-8 
+                    md:grid-cols-[25%_25%_45%]"
+            >
+              {/* بخش 1: Clock */}
+              <div className="space-y-8 order-1 ">
+                <Clock />
+                <Calendar />
+              </div>
+              {/* Left side */}
+              <div className="space-y-8 order-2">
+                <TasksAndNotes />
+              </div>
+
+              {/* Right side */}
+              <div className="space-y-8 order-3">
+                <Bookmarks />
+              </div>
+            </div>
+
+            <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
+
+            <SocialLinks />
           </div>
-        )}
-
-        <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300 overflow-x-hidden">
-          <div
-            className="max-w-[80vw] mx-auto box-border grid 
-                  grid-cols-1 gap-4 sm:gap-8 
-                  md:grid-cols-[25%_25%_45%]"
-          >
-            {/* بخش 1: Clock */}
-            <div className="space-y-8 order-1 ">
-              <Clock />
-              <Calendar />
-            </div>
-            {/* Left side */}
-            <div className="space-y-8 order-2">
-              <TodoList />
-              <Notes calendarType={"gregorian"} />
-            </div>
-
-            {/* Right side */}
-            <div className="space-y-8 order-3">
-              <Bookmarks />
-            </div>
-          </div>
-
-          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
-
-          <SocialLinks />
         </div>
-      </div>
-    </CalendarProvider>
+      </CalendarProvider>
+    </LanguageProvider>
   );
 }
 

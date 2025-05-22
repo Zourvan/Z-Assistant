@@ -1,0 +1,48 @@
+{
+  "settings": {
+    "title": "Settings",
+    "backgrounds": "Backgrounds",
+    "images": "Images",
+    "colors": "Colors",
+    "uploadImage": "Upload Image",
+    "uploading": "Uploading...",
+    "pasteImageUrl": "Paste image URL",
+    "weekendDays": "Weekend Days (select up to 3)",
+    "firstDayOfWeek": "First Day of the Week",
+    "textColor": "Text",
+    "backgroundColor": "Background",
+    "reset": "Reset",
+    "calendarType": {
+      "title": "Calendar Type",
+      "gregorian": "Gregorian",
+      "persian": "Persian"
+    },
+    "language": {
+      "title": "Language",
+      "english": "English",
+      "persian": "Persian"
+    },
+    "tileNumber": "Tile Number",
+    "dataManagement": "Data Management",
+    "exportData": "Export Data",
+    "importData": "Import Data"
+  },
+  "days": {
+    "Saturday": "Saturday",
+    "Sunday": "Sunday",
+    "Monday": "Monday",
+    "Tuesday": "Tuesday",
+    "Wednesday": "Wednesday",
+    "Thursday": "Thursday",
+    "Friday": "Friday"
+  },
+  "daysShort": {
+    "Saturday": "S",
+    "Sunday": "S",
+    "Monday": "M",
+    "Tuesday": "T",
+    "Wednesday": "W",
+    "Thursday": "T",
+    "Friday": "F"
+  }
+}

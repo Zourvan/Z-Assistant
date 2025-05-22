@@ -3,6 +3,7 @@ import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useI18n } from "../i18n/LanguageProvider";
 
 // Persian week days mapping (0 = Saturday, 1 = Sunday, etc.)
 const persianDayMap: Record<string, string> = {
@@ -18,7 +19,7 @@ const persianDayMap: Record<string, string> = {
 export function Calendar() {
   const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
-
+  const { t, dir } = useI18n();
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
@@ -81,14 +82,9 @@ export function Calendar() {
   // Create weekday labels based on the ordered day names
   const weekDayLabels = useMemo(() => {
     return orderedDayNames.map((day) => {
-      if (calendarType === "gregorian") {
-        return day.slice(0, 2); // "Su", "Mo", etc.
-      } else {
-        // Use Persian day abbreviations
-        return persianDayMap[day];
-      }
+      return t(`daysShort.${day}`);
     });
-  }, [calendarType, orderedDayNames]);
+  }, [orderedDayNames, t]);
 
   // Generate calendar days data with all needed properties
   const calendarDaysData = useMemo(() => {
@@ -146,13 +142,10 @@ export function Calendar() {
   };
 
   return (
-    <div
-      className={`backdrop-blur-md rounded-xl p-4 shadow-lg ${calendarType === "persian" ? "rtl" : ""}`}
-      style={{ backgroundColor, color: textColor }}
-    >
-      <div className={`flex justify-between items-center mb-4 ${calendarType === "persian" ? "flex-row-reverse" : ""}`}>
+    <div className={`backdrop-blur-md rounded-xl p-4 shadow-lg`} style={{ backgroundColor, color: textColor, direction: dir }}>
+      <div className={`flex justify-between items-center mb-4`}>
         <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Previous month">
-          {calendarType === "persian" ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+          {dir === "rtl" ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
 
         <h2 className="text-base sm:text-lg md:text-xl font-medium text-center" style={{ color: textColor }}>
@@ -160,7 +153,7 @@ export function Calendar() {
         </h2>
 
         <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Next month">
-          {calendarType === "persian" ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+          {dir === "rtl" ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
         </button>
       </div>
 
