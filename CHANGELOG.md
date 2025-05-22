@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2025-05-23 01:10:47
+- Fixed sticky positioning of group headers in Bookmarks component
+- Enhanced group headers with higher z-index and shadow for better visual separation
+- Added scrollPaddingTop to scrollable containers to prevent content from being hidden under sticky headers
+- Explicitly added position: sticky in the style attribute to ensure consistent behavior across browsers
+- Components affected: src/components/Bookmarks.tsx
+
 ## 2025-05-22 22:19:43
 - Implemented internationalization (i18n) with support for English and Persian languages
 - Created LanguageProvider component to manage language context and text direction
@@ -95,3 +102,10 @@ Components affected: Settings.tsx
 - Added "calendarConfig" and "appearance" section titles to both English and Persian translation files
 - Fixed issue where translation keys were displayed instead of translated text
 - Components affected: translation.json files for both en and fa locales
+
+## 2025-05-23 01:03:32
+- Modified Settings component to open in the center of the screen as a modal
+- Changed Settings panel background to solid color instead of transparent
+- Added a close button to the Settings modal for better usability
+- Added overlay background for better focus on the Settings panel
+- Components affected: Settings.tsx

@@ -845,7 +845,7 @@ export function Bookmarks() {
 
           {/* Separated Scrollable Content Area with Border */}
           <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
-            <div className="overflow-y-auto p-3 h-full">
+            <div className="overflow-y-auto p-3 h-full" style={{ scrollPaddingTop: "60px" }}>
               {!isGrouped ? (
                 // Render regular grid when not grouped
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -898,10 +898,10 @@ export function Bookmarks() {
                   {isGroupedData(groupedData) &&
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
-                        {/* Group header - Updated sticky positioning */}
+                        {/* Group header - Improved sticky positioning with higher z-index and shadow */}
                         <div
-                          className="sticky top-0 z-10 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
-                          style={{ color: textColor }}
+                          className="sticky top-0 z-20 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center shadow-md"
+                          style={{ color: textColor, position: "sticky", top: 0 }}
                         >
                           {group.title === "Folders" ? (
                             <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
@@ -986,7 +986,7 @@ export function Bookmarks() {
 
     return (
       <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div ref={folderContentRef} className="w-[70vw] h-[70vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
+        <div ref={folderContentRef} className="w-[90vw] h-[90vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
           {/* Top Bar - Fixed */}
           <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/20 p-2 z-10 rounded-lg">
             <button
@@ -1077,7 +1077,7 @@ export function Bookmarks() {
 
           {/* Separated Scrollable Content Area with Border */}
           <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
-            <div className="overflow-y-auto p-3 h-full">
+            <div className="overflow-y-auto p-3 h-full" style={{ scrollPaddingTop: "60px" }}>
               {!isGrouped ? (
                 // Render regular grid when not grouped
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -1138,10 +1138,10 @@ export function Bookmarks() {
                   {isGroupedData(groupedData) &&
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
-                        {/* Group header - Updated sticky positioning */}
+                        {/* Group header - Improved sticky positioning with higher z-index and shadow */}
                         <div
-                          className="sticky top-0 z-10 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center"
-                          style={{ color: textColor }}
+                          className="sticky top-0 z-20 bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center shadow-md"
+                          style={{ color: textColor, position: "sticky", top: 0 }}
                         >
                           {group.title === "Folders" ? (
                             <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
