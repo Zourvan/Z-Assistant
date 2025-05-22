@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Clock } from "./components/Clock";
 import Calendar from "./components/Calendar";
 import { Bookmarks } from "./components/Bookmarks";
-import { Settings, CalendarProvider } from "./components/Settings";
+import { Settings } from "./components/Settings";
 import { TasksAndNotes } from "./components/TasksAndNotes";
 import SocialLinks from "./components/SocialLinks";
 import { LanguageProvider } from "./i18n/LanguageProvider";
+import { useTheme } from "./components/ThemeProvider";
 import "./i18n/i18n"; // Import i18n initialization
 
 import "./App.css";
@@ -87,53 +88,59 @@ function App() {
     loadSavedBackground();
   }, []);
 
+  // Get theme values
+  const { textColor, backgroundColor } = useTheme();
+
   return (
     <LanguageProvider>
-      <CalendarProvider>
-        {/* <MarketBoard /> */}
+      {/* <MarketBoard /> */}
+      <div
+        className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
+        style={{
+          backgroundImage: background !== "none" ? `url(${background})` : "none",
+          // Remove all filters to display the image clearly
+          filter: isLoading ? "opacity(0.4)" : "none",
+        }}
+      >
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          </div>
+        )}
+
         <div
-          className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
+          className="min-h-screen p-4 md:p-8 transition-all duration-300 overflow-x-hidden"
           style={{
-            backgroundImage: background !== "none" ? `url(${background})` : "none",
-            filter: isLoading
-              ? "saturate(1) contrast(1)" // در حال لود شدن
-              : "saturate(1.2) contrast(1.25)", // تنظیم شدت رنگ‌ها بعد از لود
+            backgroundColor: background !== "none" ? "transparent" : backgroundColor,
+            color: textColor,
           }}
         >
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-            </div>
-          )}
-
-          <div className="min-h-screen backdrop-blur-[2px] bg-black/50 p-4 md:p-8 transition-all duration-300 overflow-x-hidden">
-            <div
-              className="max-w-[80vw] mx-auto box-border grid 
+          <div
+            className="max-w-[80vw] mx-auto box-border grid 
                     grid-cols-1 gap-4 sm:gap-8 
                     md:grid-cols-[25%_25%_45%]"
-            >
-              {/* بخش 1: Clock */}
-              <div className="space-y-8 order-1 ">
-                <Clock />
-                <Calendar />
-              </div>
-              {/* Left side */}
-              <div className="space-y-8 order-2">
-                <TasksAndNotes />
-              </div>
-
-              {/* Right side */}
-              <div className="space-y-8 order-3">
-                <Bookmarks />
-              </div>
+          >
+            {/* بخش 1: Clock */}
+            <div className="space-y-8 order-1 ">
+              <Clock />
+              <Calendar />
+            </div>
+            {/* Left side */}
+            <div className="space-y-8 order-2">
+              <TasksAndNotes />
             </div>
 
-            <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
-
-            <SocialLinks />
+            {/* Right side */}
+            <div className="space-y-8 order-3">
+              <Bookmarks />
+            </div>
           </div>
+
+          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
+
+          <SocialLinks />
         </div>
-      </CalendarProvider>
+      </div>
     </LanguageProvider>
   );
 }

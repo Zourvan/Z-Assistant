@@ -8,6 +8,8 @@ import { useI18n } from "../i18n/LanguageProvider";
 import "../i18n/i18n"; // Import i18n initialization
 // Import the changeLanguageAndDirection function
 import { changeLanguageAndDirection } from "../i18n/i18n";
+// Import the theme provider
+import { useTheme } from "./ThemeProvider";
 
 //
 // ─── TYPE DEFINITIONS ─────────────────────────────────────────────────────────────
@@ -353,15 +355,8 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     }
   });
 
-  const [textColor, setTextColor] = useState<string>(() => {
-    const saved = localStorage.getItem("textColor");
-    return saved || "#FFFFFF";
-  });
-
-  const [backgroundColor, setBackgroundColor] = useState<string>(() => {
-    const saved = localStorage.getItem("backgroundColor");
-    return saved || "rgba(0, 0, 0, 0.2)";
-  });
+  // Use theme context for text and background colors
+  const { textColor, backgroundColor, setTextColor, setBackgroundColor } = useTheme();
 
   const [language, setLanguage] = useState<"en" | "fa">(() => {
     const saved = localStorage.getItem("language");
@@ -402,15 +397,7 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
   };
 
-  const updateTextColor = (color: string) => {
-    setTextColor(color);
-    localStorage.setItem("textColor", color);
-  };
-
-  const updateBackgroundColor = (color: string) => {
-    setBackgroundColor(color);
-    localStorage.setItem("backgroundColor", color);
-  };
+  // Use setTextColor and setBackgroundColor directly from ThemeProvider
 
   const updateLanguage = (lang: "en" | "fa") => {
     setLanguage(lang);
@@ -432,9 +419,9 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         tileNumber,
         setTileNumber: updateTileNumber,
         textColor,
-        setTextColor: updateTextColor,
+        setTextColor,
         backgroundColor,
-        setBackgroundColor: updateBackgroundColor,
+        setBackgroundColor,
         language,
         setLanguage: updateLanguage,
       }}
@@ -2101,17 +2088,9 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
                       className="px-3 py-1 rounded-lg text-xs bg-black/40 hover:bg-black/50 transition-colors flex items-center gap-1"
                       style={{ color: textColor }}
                       onClick={() => {
-                        // Reset to default values
-                        const defaultTextColor = "#FFFFFF";
-                        const defaultBgColor = "rgba(0, 0, 0, 0.2)";
-
-                        // Update states
-                        setTextColor(defaultTextColor);
-                        setBackgroundColor(defaultBgColor);
-
-                        // Save to localStorage
-                        localStorage.setItem("textColor", defaultTextColor);
-                        localStorage.setItem("backgroundColor", defaultBgColor);
+                        // Reset to defaults
+                        setTextColor("#FFFFFF");
+                        setBackgroundColor("rgba(0, 0, 0, 0.2)");
                       }}
                     >
                       <RotateCcw className="w-3 h-3" /> {t("settings.reset")}

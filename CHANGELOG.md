@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2025-05-23 01:38:33
+- Modified background image display to show images clearly without filters or overlays
+- Removed backdrop blur effect from the main container
+- Made background container transparent when an image is displayed
+- Simplified loading state visual feedback
+- Components affected: src/App.tsx
+
+## 2025-05-23 01:30:56
+- Created a new ThemeProvider to centralize theme management (text color and background color)
+- Refactored Settings component to use ThemeProvider instead of local state
+- Updated App component to apply theme settings globally
+- Improved theme reset functionality with a dedicated resetTheme method
+- Components affected: src/components/ThemeProvider.tsx, src/components/Settings.tsx, src/App.tsx, src/main.tsx
+
 ## 2025-05-23 01:21:54
 - Modified group headers in Bookmarks component to scroll with content instead of staying fixed
 - Removed sticky positioning from group headers to ensure they move together with their content
