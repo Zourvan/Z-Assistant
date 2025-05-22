@@ -162,3 +162,10 @@ Components affected: Settings.tsx
 - Standardized selector width and appearance for better UI consistency
 - Improved readability by showing descriptive text alongside visual elements
 - Components affected: src/components/TasksAndNotes.tsx
+
+## 2025-05-23 02:32:29
+- Integrated Stagewise toolbar for AI-powered editing capabilities in development mode
+- Added @stagewise/toolbar-react as a development dependency
+- Implemented toolbar in a separate React root to avoid interfering with the main application
+- Configured toolbar to only initialize in development environment using import.meta.env.DEV check
+- Components affected: src/main.tsx
