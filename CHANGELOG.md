@@ -82,3 +82,16 @@ Components affected: Settings.tsx
 - Fixed Settings button positioning to always stay on the right side of the screen in both LTR and RTL modes
 - Added explicit dir="ltr" attribute and CSS positioning to override automatic RTL adjustments
 Components affected: Settings.tsx 
+
+## 2025-05-23 00:55:17
+- Improved Settings component UI organization and aesthetics
+- Reorganized settings into logical groups with better visual separation
+- Enhanced UI consistency with improved spacing, colors, and visual hierarchy
+- Added shadow effects and better visual feedback for active elements
+- Components affected: Settings.tsx
+
+## 2025-05-23 00:59:05
+- Added missing translation keys in i18n files for Settings component
+- Added "calendarConfig" and "appearance" section titles to both English and Persian translation files
+- Fixed issue where translation keys were displayed instead of translated text
+- Components affected: translation.json files for both en and fa locales

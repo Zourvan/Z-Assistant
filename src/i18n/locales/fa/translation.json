@@ -12,6 +12,8 @@
     "textColor": "متن",
     "backgroundColor": "پس‌زمینه",
     "reset": "بازنشانی",
+    "calendarConfig": "پیکربندی تقویم",
+    "appearance": "ظاهر",
     "calendarType": {
       "title": "نوع تقویم",
       "gregorian": "میلادی",

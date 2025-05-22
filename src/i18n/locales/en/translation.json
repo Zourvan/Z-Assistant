@@ -12,6 +12,8 @@
     "textColor": "Text",
     "backgroundColor": "Background",
     "reset": "Reset",
+    "calendarConfig": "Calendar Configuration",
+    "appearance": "Appearance",
     "calendarType": {
       "title": "Calendar Type",
       "gregorian": "Gregorian",
