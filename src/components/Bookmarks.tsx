@@ -1,18 +1,16 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo, type CSSProperties } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid, Smile } from "lucide-react";
-import "./Settings.css";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
+import { buildThemeCssVars } from "./settings/themeUtils";
+import { useI18n } from "../i18n/LanguageProvider";
 import "./Bookmarks.css";
 // Import emoji-mart
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-
-// Constants
-const ASPECT_RATIO = "aspect-ratio";
 
 // --- Interfaces and Types ---
 interface BookmarkNode {
@@ -45,6 +43,8 @@ interface ActionMenuPortalProps {
   onColor: () => void;
   onIcon?: () => void;
   onClose: () => void;
+  themeStyle: CSSProperties;
+  labels: { edit: string; clear: string; color: string; icon: string };
 }
 
 // Add types for grouping options
@@ -91,18 +91,24 @@ function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): Bookmar
   };
 }
 
-// Modify the truncateTitle function to enforce a 15-character limit
 function truncateTitle(title: string): string {
-  // First, apply the word limit (3 words)
   const words = title.trim().split(/\s+/);
-  let truncated = words.length <= 3 ? title : words.slice(0, 3).join(" ") + "...";
+  let truncated = words.length <= 4 ? title : words.slice(0, 4).join(" ") + "…";
 
-  // Then, enforce the character limit (15 characters)
-  if (truncated.length > 15) {
-    return truncated.substring(0, 12) + "...";
+  if (truncated.length > 20) {
+    return truncated.substring(0, 17) + "…";
   }
 
   return truncated;
+}
+
+function getHostname(url?: string): string {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 // --- Color Picker Component ---
@@ -111,11 +117,13 @@ function ColorPicker({
   onChange,
   onConfirm,
   onClose,
+  themeStyle,
 }: {
   currentColor: string;
   onChange: (color: string) => void;
   onConfirm: () => void;
   onClose: () => void;
+  themeStyle: CSSProperties;
 }) {
   const colors = [
     "rgba(255, 0, 255, 0.6)", // سرخابی (Magenta) - Hue نزدیک به 300
@@ -145,27 +153,26 @@ function ColorPicker({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg flex items-center justify-center">
-      <div className="bg-black/20 p-4 rounded-lg shadow-lg">
-        <div className="grid grid-cols-6 gap-1 mb-2">
+    <div className="bookmarks-overlay">
+      <div className="bookmarks-modal" style={{ ...themeStyle, width: "auto", height: "auto", maxWidth: "18rem" }}>
+        <div className="bookmarks-color-grid grid grid-cols-6 gap-1.5 mb-3">
           {colors.map((color) => (
             <button
               key={color}
-              className={`w-6 h-6 rounded-full ${color === currentColor ? "ring-2 ring-offset-1 ring-gray-800" : ""}`}
+              type="button"
+              className={color === currentColor ? "selected" : ""}
               style={{ backgroundColor: color }}
               onClick={() => onChange(color)}
             />
           ))}
         </div>
-        <div className="flex justify-center">
-          <div className="flex justify-between space-x-2.5 w-full max-w-sm">
-            <button onClick={onClose} className="flex-1 px-4 py-2 text-base font-bold bg-red-300 hover:bg-red-400 text-white rounded">
-              <span className="mr-2">✗</span>
-            </button>
-            <button onClick={onConfirm} className="flex-1 px-4 py-2 text-base font-bold bg-blue-500 hover:bg-blue-600 text-white rounded">
-              <span className="mr-2">✓</span>
-            </button>
-          </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={onClose} className="bookmarks-btn flex-1 justify-center">
+            ✗
+          </button>
+          <button type="button" onClick={onConfirm} className="bookmarks-btn bookmarks-btn--primary flex-1 justify-center">
+            ✓
+          </button>
         </div>
       </div>
     </div>
@@ -173,66 +180,92 @@ function ColorPicker({
 }
 
 // --- Action Menu Component (Portal) ---
-function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, onClose }: ActionMenuPortalProps) {
+const MENU_WIDTH = 112;
+const MENU_HEIGHT = 168;
+const MENU_MARGIN = 8;
+
+function getMenuPosition(buttonRect: DOMRect) {
+  let top = buttonRect.bottom + MENU_MARGIN;
+  let left = buttonRect.left;
+
+  if (top + MENU_HEIGHT > window.innerHeight - MENU_MARGIN) {
+    top = buttonRect.top - MENU_HEIGHT - MENU_MARGIN;
+  }
+  if (left + MENU_WIDTH > window.innerWidth - MENU_MARGIN) {
+    left = window.innerWidth - MENU_WIDTH - MENU_MARGIN;
+  }
+  if (left < MENU_MARGIN) {
+    left = MENU_MARGIN;
+  }
+  if (top < MENU_MARGIN) {
+    top = MENU_MARGIN;
+  }
+
+  return { top, left };
+}
+
+function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, onClose, themeStyle, labels }: ActionMenuPortalProps) {
+  const { top, left } = getMenuPosition(buttonRect);
   const style = {
-    position: "absolute" as const,
-    top: buttonRect.bottom + window.scrollY,
-    left: buttonRect.left + window.scrollX,
-    zIndex: 10000,
+    position: "fixed" as const,
+    top,
+    left,
+    zIndex: 45,
   };
 
   return ReactDOM.createPortal(
-    <div style={style} className="action-menu py-0.5 w-24 bg-black/200 backdrop-blur-md rounded-lg shadow-lg">
+    <div style={{ ...style, ...themeStyle }} className="bookmarks-action-menu" data-bookmarks-menu>
       <button
         id={`edit-button-${tile.id}`}
+        type="button"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           onEdit();
           onClose();
         }}
-        className="w-full px-2 py-1 text-left text-white hover:bg-black/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Settings className="w-3 h-3" />
-        <span>Edit</span>
+        <Settings className="w-3.5 h-3.5" />
+        <span>{labels.edit}</span>
       </button>
       <button
         id={`clear-button-${tile.id}`}
+        type="button"
+        className="danger"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           onClear();
           onClose();
         }}
-        className="w-full px-2 py-1 text-left text-white hover:bg-red-500/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Trash2 className="w-3 h-3" />
-        <span>Clear</span>
+        <Trash2 className="w-3.5 h-3.5" />
+        <span>{labels.clear}</span>
       </button>
       <button
         id={`color-button-${tile.id}`}
+        type="button"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          onColor(); // Call onColor (no more onColor prop)
+          onColor();
         }}
-        className="w-full px-2 py-1 text-left text-white hover:bg-blue-500/20 transition-colors flex items-center gap-1 text-sm"
       >
-        <Palette className="w-3 h-3" />
-        <span>Color</span>
+        <Palette className="w-3.5 h-3.5" />
+        <span>{labels.color}</span>
       </button>
       {tile.type === "folder" && onIcon && (
         <button
           id={`icon-button-${tile.id}`}
+          type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onIcon();
           }}
-          className="w-full px-2 py-1 text-left text-white hover:bg-green-500/20 transition-colors flex items-center gap-1 text-sm"
         >
-          <Smile className="w-3 h-3" />
-          <span>Icon</span>
+          <Smile className="w-3.5 h-3.5" />
+          <span>{labels.icon}</span>
         </button>
       )}
     </div>,
@@ -242,8 +275,29 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, 
 
 // --- Main Bookmarks Component ---
 export function Bookmarks() {
-  // Get tileNumber from CalendarContext
   const { tileNumber, textColor, backgroundColor } = useCalendar();
+  const { t } = useI18n();
+
+  const themeCssVars = useMemo(() => buildThemeCssVars(textColor, backgroundColor), [textColor, backgroundColor]);
+
+  const menuLabels = useMemo(
+    () => ({
+      edit: t("bookmarks.edit"),
+      clear: t("bookmarks.clear"),
+      color: t("bookmarks.color"),
+      icon: t("bookmarks.icon"),
+    }),
+    [t]
+  );
+
+  const groupLabel = useCallback(
+    (title: string) => {
+      if (title === "Folders") return t("bookmarks.folders");
+      if (title === "Bookmarks") return t("bookmarks.bookmarksGroup");
+      return title;
+    },
+    [t]
+  );
 
   // --- State ---
   const [bookmarks, setBookmarks] = useState<BookmarkNode[]>([]);
@@ -280,6 +334,24 @@ export function Bookmarks() {
     setGroupingTypeState(type);
     localStorage.setItem("typeofBookmarkForm", type);
   };
+
+  // Close bookmark popups when settings opens so they don't block the modal
+  useEffect(() => {
+    const closeAll = () => {
+      setIsSelecting(false);
+      setSelectedTileIndex(null);
+      setCurrentFolder(null);
+      setActiveFolderContent(null);
+      setOpenMenuId(null);
+      setIsColorPickerOpen(false);
+      setIsEmojiPickerOpen(false);
+      setSearchTerm("");
+      setFolderSearchTerm("");
+    };
+
+    window.addEventListener("nexx:settings-open", closeAll);
+    return () => window.removeEventListener("nexx:settings-open", closeAll);
+  }, []);
 
   // --- Data Loading ---
   // Load initial data (bookmarks and tiles)
@@ -359,7 +431,7 @@ export function Bookmarks() {
   // Handle clicks outside the action menu to close it.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openMenuId && !(event.target as Element).closest(".action-menu")) {
+      if (openMenuId && !(event.target as Element).closest("[data-bookmarks-menu]")) {
         setOpenMenuId(null);
       }
     };
@@ -729,27 +801,19 @@ export function Bookmarks() {
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
-      <div className="fixed inset-0 z-20 bg-black/40 backdrop-blur-lg p-4 flex items-center justify-center">
-        <div
-          ref={selectorRef}
-          className="w-[70vw] h-[70vh] max-w-[1120px] bg-black/10 border-2 border-white p-4 rounded-xl backdrop-blur-md relative flex flex-col"
-        >
-          {/* Top Bar - Fixed */}
-          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/20 p-2 z-10 rounded-lg">
-            <button
-              onClick={currentFolder ? navigateBack : closeSelector}
-              className="flex items-center gap-1 bg-black/30 hover:bg-black/40 border border-white/20 transition-colors rounded-lg px-2 py-1 text-sm"
-              style={{ color: textColor }}
-            >
-              <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
-              {currentFolder ? "Back" : "Cancel"}
+      <div className="bookmarks-overlay">
+        <div ref={selectorRef} className="bookmarks-modal" style={themeCssVars}>
+          <div className="bookmarks-toolbar">
+            <button type="button" onClick={currentFolder ? navigateBack : closeSelector} className="bookmarks-btn">
+              <ChevronLeft className="w-3.5 h-3.5" />
+              {currentFolder ? t("bookmarks.back") : t("bookmarks.cancel")}
             </button>
-            <h3 className="text-lg font-medium flex-grow" style={{ color: textColor }}>
-              {currentFolder ? currentFolder.title : "Select"}
+            <h3 className="text-base font-medium flex-grow text-center">
+              {currentFolder ? currentFolder.title : t("bookmarks.select")}
             </h3>
-            {/* Confirm Button (only when inside a folder) */}
             {currentFolder && (
               <button
+                type="button"
                 onClick={() =>
                   updateTile({
                     id: crypto.randomUUID(),
@@ -762,90 +826,68 @@ export function Bookmarks() {
                     createdAt: Date.now(),
                   })
                 }
-                className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-lg text-sm"
-                style={{ color: textColor }}
+                className="bookmarks-btn bookmarks-btn--primary"
               >
-                Confirm
+                {t("bookmarks.confirm")}
               </button>
             )}
           </div>
 
-          {/* Search and Grouping Controls - Fixed */}
-          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/30 border-2 border-white/20 backdrop-blur-lg p-3 rounded-lg shadow-md">
-            {/* Search Input */}
+          <div className="bookmarks-search-panel search-controls">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-5 h-5" style={{ color: `${textColor}70` }} />
+              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <Search className="w-4 h-4 opacity-60" />
               </div>
               <input
                 type="text"
-                placeholder="Search bookmarks..."
+                placeholder={t("bookmarks.search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
-                          rounded-lg placeholder-white/60 text-base
-                          border-2 border-white/20 focus:border-white/40
-                          transition-all duration-200 ease-in-out
-                          focus:outline-none focus:ring-2 focus:ring-white/20"
-                style={{ color: textColor }}
+                className="bookmarks-input"
               />
               {searchTerm && (
                 <button
+                  type="button"
                   onClick={() => setSearchTerm("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-white"
-                  style={{ color: `${textColor}70` }}
+                  className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Grouping Controls */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm" style={{ color: `${textColor}` }}>
-                Group by:
-              </span>
-              <div className="flex bg-white/10 rounded-lg p-1">
+            <div className="bookmarks-group-controls">
+              <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>
+              <div className="bookmarks-toggle-group" role="group" aria-label={t("bookmarks.groupBy")}>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("none")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "none" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "none" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <Grid className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  None
+                  <Grid className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupNone")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("alphabetical")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "alphabetical" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "alphabetical" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <SortDesc className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  A-Z
+                  <SortDesc className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupAz")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("type")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "type" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "type" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <List className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  Type
+                  <List className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupType")}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Separated Scrollable Content Area with Border */}
-          <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
-            <div className="overflow-y-auto p-3 h-full">
+          <div className="bookmarks-scroll-area">
               {!isGrouped ? (
                 // Render regular grid when not grouped
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -862,18 +904,18 @@ export function Bookmarks() {
                             selectNode(node);
                           }
                         }}
-                        className="bookmark-selector-item flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+                        className="bookmark-selector-item"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
                           node.tileIcon && node.tileIcon !== "default" ? (
                             <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
                           ) : (
-                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                           )
                         ) : (
                           <img
-                            src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                            src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
                             alt=""
                             className="w-6 h-6 mb-1"
                             onError={(e) => {
@@ -881,15 +923,13 @@ export function Bookmarks() {
                             }}
                           />
                         )}
-                        <span className="text-center text-xs sm:text-sm font-medium line-clamp-2" style={{ color: textColor }} title={node.title}>
+                        <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
                           {truncateTitle(node.title)}
                         </span>
                       </a>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-8" style={{ color: `${textColor}70` }}>
-                      No bookmarks match your search
-                    </div>
+                    <div className="bookmarks-empty col-span-full">{t("bookmarks.emptySearch")}</div>
                   )}
                 </div>
               ) : (
@@ -899,21 +939,16 @@ export function Bookmarks() {
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
                         {/* Group header - No longer sticky, scrolls with content */}
-                        <div
-                          className="bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center shadow-md"
-                          style={{ color: textColor }}
-                        >
+                        <div className="bookmarks-group-header">
                           {group.title === "Folders" ? (
-                            <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
+                            <Folder className="w-4 h-4" />
                           ) : group.title === "Bookmarks" ? (
-                            <List className="w-4 h-4 mr-2" style={{ color: textColor }} />
+                            <List className="w-4 h-4" />
                           ) : (
-                            <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                            <span className="w-4 h-4 inline-block text-center">{group.title.charAt(0)}</span>
                           )}
-                          <span>{group.title}</span>
-                          <span className="ml-2 text-xs" style={{ color: `${textColor}70` }}>
-                            ({group.nodes.length})
-                          </span>
+                          <span>{groupLabel(group.title)}</span>
+                          <span className="text-xs opacity-60">({group.nodes.length})</span>
                         </div>
                         {/* Group items */}
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -930,18 +965,18 @@ export function Bookmarks() {
                                     selectNode(node);
                                   }
                                 }}
-                                className="bookmark-selector-item flex flex-col items-center justify-center p-2 hover:bg-white/20 backdrop-blur-md rounded-xl transition-colors"
+                                className="bookmark-selector-item"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
                                   node.tileIcon && node.tileIcon !== "default" ? (
                                     <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
                                   ) : (
-                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                                   )
                                 ) : (
                                   <img
-                                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                    src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
                                     alt=""
                                     className="w-6 h-6 mb-1"
                                     onError={(e) => {
@@ -949,11 +984,7 @@ export function Bookmarks() {
                                     }}
                                   />
                                 )}
-                                <span
-                                  className="text-center text-xs sm:text-sm font-medium line-clamp-2"
-                                  style={{ color: textColor }}
-                                  title={node.title}
-                                >
+                                <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
                                   {truncateTitle(node.title)}
                                 </span>
                               </a>
@@ -962,13 +993,10 @@ export function Bookmarks() {
                       </div>
                     ))}
                   {isGroupedData(groupedData) && groupedData.length === 0 && (
-                    <div className="text-center py-8" style={{ color: `${textColor}70` }}>
-                      No bookmarks match your search
-                    </div>
+                    <div className="bookmarks-empty">{t("bookmarks.emptySearch")}</div>
                   )}
                 </div>
               )}
-            </div>
           </div>
         </div>
       </div>
@@ -985,99 +1013,72 @@ export function Bookmarks() {
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
 
     return (
-      <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4">
-        <div ref={folderContentRef} className="w-[90vw] h-[90vh] max-w-[1400px] bg-black/10 p-4 rounded-xl backdrop-blur-md relative flex flex-col">
-          {/* Top Bar - Fixed */}
-          <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/20 p-2 z-10 rounded-lg">
-            <button
-              onClick={navigateBack}
-              className="flex items-center gap-1 bg-black/30 hover:bg-black/40 border border-white/20 transition-colors rounded-lg px-2 py-1 text-sm"
-              style={{ color: textColor }}
-            >
-              <ChevronLeft className="w-3 h-3" style={{ color: textColor }} />
-              Back
+      <div className="bookmarks-overlay">
+        <div ref={folderContentRef} className="bookmarks-modal bookmarks-modal--large" style={themeCssVars}>
+          <div className="bookmarks-toolbar">
+            <button type="button" onClick={navigateBack} className="bookmarks-btn">
+              <ChevronLeft className="w-3.5 h-3.5" />
+              {t("bookmarks.back")}
             </button>
-            <h3 className="text-lg font-medium" style={{ color: textColor }}>
-              {activeFolderContent.title}
-            </h3>
+            <h3 className="text-base font-medium flex-grow text-center">{activeFolderContent.title}</h3>
+            <span className="w-16" aria-hidden />
           </div>
 
-          {/* Search and Grouping Controls - Fixed */}
-          <div className="search-controls mt-2 mb-2 space-y-2 z-10 bg-black/30 border-2 border-white/20 backdrop-blur-lg p-3 rounded-lg shadow-md">
-            {/* Search Input */}
+          <div className="bookmarks-search-panel search-controls">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-5 h-5" style={{ color: `${textColor}70` }} />
+              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <Search className="w-4 h-4 opacity-60" />
               </div>
               <input
                 type="text"
-                placeholder="Search in this folder..."
+                placeholder={t("bookmarks.searchFolder")}
                 value={folderSearchTerm}
                 onChange={(e) => setFolderSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/10 hover:bg-white/15 focus:bg-white/20 
-                          rounded-lg placeholder-white/60 text-base
-                          border-2 border-white/20 focus:border-white/40
-                          transition-all duration-200 ease-in-out
-                          focus:outline-none focus:ring-2 focus:ring-white/20"
-                style={{ color: textColor }}
+                className="bookmarks-input"
               />
               {folderSearchTerm && (
                 <button
+                  type="button"
                   onClick={() => setFolderSearchTerm("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-white"
-                  style={{ color: `${textColor}70` }}
+                  className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
-            {/* Grouping Controls */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm" style={{ color: `${textColor}` }}>
-                Group by:
-              </span>
-              <div className="flex bg-white/10 rounded-lg p-1">
+            <div className="bookmarks-group-controls">
+              <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>
+              <div className="bookmarks-toggle-group" role="group" aria-label={t("bookmarks.groupBy")}>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("none")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "none" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "none" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "none" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <Grid className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  None
+                  <Grid className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupNone")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("alphabetical")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "alphabetical" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "alphabetical" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "alphabetical" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <SortDesc className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  A-Z
+                  <SortDesc className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupAz")}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setGroupingType("type")}
-                  className={`px-2 py-1 rounded text-xs font-medium ${groupingType === "type" ? "bg-white/20" : "hover:bg-white/10"}`}
-                  style={{
-                    color: textColor,
-                    fontWeight: groupingType === "type" ? "bold" : "normal",
-                  }}
+                  className={`bookmarks-toggle-btn ${groupingType === "type" ? "bookmarks-toggle-btn--active" : ""}`}
                 >
-                  <List className="w-4 h-4 inline mr-1" style={{ color: textColor }} />
-                  Type
+                  <List className="w-3.5 h-3.5" />
+                  {t("bookmarks.groupType")}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Separated Scrollable Content Area with Border */}
-          <div className="flex-1 mt-2 bg-black/20 backdrop-blur-lg rounded-lg border-2 border-white/20 overflow-hidden flex flex-col">
-            <div className="overflow-y-auto p-3 h-full">
+          <div className="bookmarks-scroll-area">
               {!isGrouped ? (
                 // Render regular grid when not grouped
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -1098,18 +1099,18 @@ export function Bookmarks() {
                             }
                           }
                         }}
-                        className="bookmark-selector-item flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                        className="bookmark-selector-item"
                         style={{ textDecoration: "none" }}
                       >
                         {node.children ? (
                           node.tileIcon && node.tileIcon !== "default" ? (
                             <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
                           ) : (
-                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                           )
                         ) : (
                           <img
-                            src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                            src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
                             alt=""
                             className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
                             onError={(e) => {
@@ -1117,19 +1118,13 @@ export function Bookmarks() {
                             }}
                           />
                         )}
-                        <span
-                          className="font-medium text-center text-secondary-800 text-xs line-clamp-2"
-                          style={{ color: textColor }}
-                          title={node.title}
-                        >
+                        <span className="bookmark-tile__title text-xs" title={node.title}>
                           {truncateTitle(node.title)}
                         </span>
                       </a>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-8" style={{ color: `${textColor}70` }}>
-                      No bookmarks match your search
-                    </div>
+                    <div className="bookmarks-empty col-span-full">{t("bookmarks.emptySearch")}</div>
                   )}
                 </div>
               ) : (
@@ -1139,21 +1134,16 @@ export function Bookmarks() {
                     groupedData.map((group) => (
                       <div key={group.title} className="space-y-1">
                         {/* Group header - No longer sticky, scrolls with content */}
-                        <div
-                          className="bg-white/15 border border-white/30 backdrop-blur-md font-medium px-3 py-2 rounded-md flex items-center shadow-md"
-                          style={{ color: textColor }}
-                        >
+                        <div className="bookmarks-group-header">
                           {group.title === "Folders" ? (
-                            <Folder className="w-4 h-4 mr-2" style={{ color: textColor }} />
+                            <Folder className="w-4 h-4" />
                           ) : group.title === "Bookmarks" ? (
-                            <List className="w-4 h-4 mr-2" style={{ color: textColor }} />
+                            <List className="w-4 h-4" />
                           ) : (
-                            <span className="w-4 h-4 inline-block mr-2 text-center">{group.title}</span>
+                            <span className="w-4 h-4 inline-block text-center">{group.title.charAt(0)}</span>
                           )}
-                          <span>{group.title}</span>
-                          <span className="ml-2 text-xs" style={{ color: `${textColor}70` }}>
-                            ({group.nodes.length})
-                          </span>
+                          <span>{groupLabel(group.title)}</span>
+                          <span className="text-xs opacity-60">({group.nodes.length})</span>
                         </div>
                         {/* Group items */}
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
@@ -1174,18 +1164,18 @@ export function Bookmarks() {
                                     }
                                   }
                                 }}
-                                className="bookmark-selector-item flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl hover:bg-white/30 transition-colors w-full"
+                                className="bookmark-selector-item"
                                 style={{ textDecoration: "none" }}
                               >
                                 {node.children ? (
                                   node.tileIcon && node.tileIcon !== "default" ? (
                                     <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
                                   ) : (
-                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" style={{ color: textColor }} />
+                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                                   )
                                 ) : (
                                   <img
-                                    src={`https://www.google.com/s2/favicons?domain=${node.url ? new URL(node.url).hostname : ""}&sz=16`}
+                                    src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
                                     alt=""
                                     className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
                                     onError={(e) => {
@@ -1193,11 +1183,7 @@ export function Bookmarks() {
                                     }}
                                   />
                                 )}
-                                <span
-                                  className="font-medium text-center text-secondary-800 text-xs line-clamp-2"
-                                  style={{ color: textColor }}
-                                  title={node.title}
-                                >
+                                <span className="bookmark-tile__title text-xs" title={node.title}>
                                   {truncateTitle(node.title)}
                                 </span>
                               </a>
@@ -1206,115 +1192,112 @@ export function Bookmarks() {
                       </div>
                     ))}
                   {isGroupedData(groupedData) && groupedData.length === 0 && (
-                    <div className="text-center py-8" style={{ color: `${textColor}70` }}>
-                      No bookmarks match your search
-                    </div>
+                    <div className="bookmarks-empty">{t("bookmarks.emptySearch")}</div>
                   )}
                 </div>
               )}
-            </div>
           </div>
         </div>
       </div>
     );
   };
 
+  const renderTileMenu = (tile: TileConfig, index: number, onEdit: () => void, onClear: () => void) => (
+    <>
+      <button
+        type="button"
+        ref={(el) => (menuButtonRefs.current[index] = el)}
+        id={`menu-button-${tile.id}`}
+        data-bookmarks-menu
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const currentButtonRef = menuButtonRefs.current[index];
+          if (currentButtonRef) {
+            setMenuButtonRect(currentButtonRef.getBoundingClientRect());
+          }
+          setOpenMenuId(openMenuId === tile.id ? null : tile.id);
+        }}
+        className="bookmark-tile__menu"
+        title={t("bookmarks.menu")}
+      >
+        <MoreHorizontal className="w-3.5 h-3.5" />
+      </button>
+      {openMenuId === tile.id && menuButtonRect && (
+        <ActionMenuPortal
+          tile={tile}
+          index={index}
+          buttonRect={menuButtonRect}
+          onEdit={onEdit}
+          onClear={onClear}
+          onColor={() => handleColorClick(index)}
+          onIcon={() => handleIconClick(index)}
+          onClose={() => setOpenMenuId(null)}
+          themeStyle={themeCssVars}
+          labels={menuLabels}
+        />
+      )}
+    </>
+  );
+
   const renderTile = (tile: TileConfig | null, index: number) => {
-    const commonClasses = `${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 glass-effect backdrop-blur-md rounded-xl group cursor-pointer`;
-
-    const tileBackgroundColor = tile?.tileColor || "rgba(0, 0, 0, 0.2)"; // Using a transparent background
-
-    // --- Empty Tile ---
     if (!tile) {
       return (
         <div
           id={`tile-empty-${index}`}
-          className={`${ASPECT_RATIO} relative flex flex-col items-center justify-center p-2 backdrop-blur-md rounded-xl group cursor-pointer`}
+          className="bookmark-tile bookmark-tile--empty tile-handle"
           key={`tile-empty-${index}`}
           data-tile-index={index}
-          style={{ backgroundColor }}
+          onClick={() => openSelector(index)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openSelector(index);
+            }
+          }}
         >
-          <button onClick={() => openSelector(index)} className="flex flex-col items-center p-2 hover:bg-black/10 rounded-lg transition-colors">
-            <Plus className="w-6 h-6 mb-1" style={{ color: textColor }} />
-          </button>
+          <Plus className="w-6 h-6 bookmark-tile__icon opacity-70" />
+          <span className="bookmark-tile__add-label">{t("bookmarks.add")}</span>
         </div>
       );
     }
 
-    // --- Common Action Menu Button ---
-    const handleEdit = () => {
-      openSelector(index);
-    };
-    const handleClear = () => {
-      clearTile(index);
-    };
+    const tileBackgroundColor = tile.tileColor || "rgba(0, 0, 0, 0.35)";
+    const hostname = getHostname(tile.url);
 
-    // --- Folder Tile ---
     if (tile.type === "folder") {
       return (
         <div
           key={`folder-tile-${tile.nodeId}`}
           id={`folder-tile-${tile.nodeId}`}
-          className={`${commonClasses} hover:bg-black/30 transition-colors overflow-visible`}
-          style={{ position: "relative", zIndex: 1, backgroundColor: tileBackgroundColor }} // Set background color
+          className="bookmark-tile tile-handle"
+          style={{ backgroundColor: tileBackgroundColor }}
           data-tile-index={index}
           onClick={() => navigateToFolder(tile.nodeId)}
+          title={tile.title}
         >
-          <button
-            ref={(el) => (menuButtonRefs.current[index] = el)}
-            id={`menu-button-${tile.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const currentButtonRef = menuButtonRefs.current[index];
-              if (currentButtonRef) {
-                setMenuButtonRect(currentButtonRef.getBoundingClientRect());
-              }
-              setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
-            }}
-            className="absolute top-1 right-1 z-20 p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
-            title="Menu"
-            style={{ zIndex: 20 }}
-          >
-            <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
-          </button>
-          {openMenuId === tile.id && menuButtonRect && (
-            <ActionMenuPortal
-              tile={tile}
-              index={index}
-              buttonRect={menuButtonRect}
-              onEdit={handleEdit}
-              onClear={handleClear}
-              onColor={() => handleColorClick(index)}
-              onIcon={() => handleIconClick(index)}
-              onClose={() => setOpenMenuId(null)}
-            />
-          )}
+          {renderTileMenu(tile, index, () => openSelector(index), () => clearTile(index))}
           {tile.tileIcon && tile.tileIcon !== "default" ? (
-            <span className="text-2xl mb-1 relative z-10">{tile.tileIcon}</span>
+            <span className="text-2xl bookmark-tile__icon">{tile.tileIcon}</span>
           ) : (
-            <Folder className="w-3 h-3 mb-1 relative z-10" style={{ color: textColor }} />
+            <Folder className="w-5 h-5 bookmark-tile__icon" />
           )}
-          <span
-            className="text-center text-secondary-800 text-xs font-medium line-clamp-2 relative z-10"
-            style={{ color: textColor }}
-            title={tile.title}
-          >
-            {truncateTitle(tile.title)}
-          </span>
+          <span className="bookmark-tile__title">{truncateTitle(tile.title)}</span>
         </div>
       );
     }
 
-    // --- Bookmark Tile ---
     return (
       <div
         key={`bookmark-tile-${tile.nodeId}`}
         id={`bookmark-tile-${tile.nodeId}`}
-        className={`${commonClasses} hover:bg-black/30 transition-colors overflow-visible`}
-        style={{ position: "relative", zIndex: 1, backgroundColor: tileBackgroundColor }} // Set background color
+        className="bookmark-tile tile-handle"
+        style={{ backgroundColor: tileBackgroundColor }}
         data-tile-index={index}
         data-url={tile.url}
+        title={tile.title}
         onClick={(e: React.MouseEvent<HTMLDivElement>) => {
           e.preventDefault();
           const url = (e.currentTarget as HTMLDivElement).dataset.url;
@@ -1327,62 +1310,35 @@ export function Bookmarks() {
           }
         }}
       >
-        <button
-          ref={(el) => (menuButtonRefs.current[index] = el)}
-          id={`menu-button-${tile.id}`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const currentButtonRef = menuButtonRefs.current[index];
-            if (currentButtonRef) {
-              setMenuButtonRect(currentButtonRef.getBoundingClientRect());
-            }
-            setOpenMenuId(openMenuId === tile?.id ? null : tile?.id || null);
-          }}
-          className="absolute top-1 right-1 z-20 p-0.5 bg-black/0 hover:bg-black/20 rounded-md transition-colors action-menu"
-          title="Menu"
-          style={{ zIndex: 20 }}
-        >
-          <MoreHorizontal strokeWidth={0.5} className="w-3 h-3 text-white" />
-        </button>
-        {openMenuId === tile.id && menuButtonRect && (
-          <ActionMenuPortal
-            tile={tile}
-            index={index}
-            buttonRect={menuButtonRect}
-            onEdit={handleEdit}
-            onClear={handleClear}
-            onColor={() => handleColorClick(index)}
-            onIcon={() => handleIconClick(index)}
-            onClose={() => setOpenMenuId(null)}
-          />
-        )}
+        {renderTileMenu(tile, index, () => openSelector(index), () => clearTile(index))}
         <img
-          src={`https://www.google.com/s2/favicons?domain=${tile.url ? new URL(tile.url).hostname : ""}&sz=16`}
+          src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=32`}
           alt=""
-          className="w-6 h-6 mb-1 relative z-10"
+          className="w-6 h-6 bookmark-tile__icon"
           onError={(e) => {
-            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
           }}
         />
-        <span className="text-center text-xs font-medium line-clamp-2 relative z-10" style={{ color: textColor }} title={tile.title}>
-          {truncateTitle(tile.title)}
-        </span>
+        <span className="bookmark-tile__title">{truncateTitle(tile.title)}</span>
+        {hostname && <span className="bookmark-tile__domain">{hostname}</span>}
       </div>
     );
   };
 
   // --- Main Tile Grid Rendering ---
   return (
-    <div className="relative">
-      <div ref={tileGridRef} className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-5 lg:grid-cols-8 gap-1">
+    <div className="bookmarks-root" style={{ ...themeCssVars, color: textColor }}>
+      <div className="bookmarks-header">
+        <h2 className="bookmarks-title">{t("bookmarks.title")}</h2>
+        <p className="bookmarks-hint">{t("bookmarks.hint")}</p>
+      </div>
+      <div ref={tileGridRef} className="bookmarks-grid">
         {Array(tileNumber)
           .fill(null)
           .map((_, i) => renderTile(tiles[i], i))}
       </div>
       {isSelecting && renderSelector()}
       {activeFolderContent && renderFolderContent()}
-      {/* Color Picker */}
       {isColorPickerOpen && (
         <ColorPicker
           currentColor={selectedTileColor}
@@ -1392,20 +1348,13 @@ export function Bookmarks() {
             setIsColorPickerOpen(false);
             setTileIndexForColor(null);
           }}
+          themeStyle={themeCssVars}
         />
       )}
-      {/* Emoji Picker using emoji-mart */}
       {isEmojiPickerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-lg flex items-center justify-center">
-          <div className="bg-black/20 p-4 rounded-lg shadow-lg">
-            <Picker
-              data={data}
-              onEmojiSelect={handleEmojiSelect}
-              onClickOutside={handleEmojiPickerClose} // Close picker on clicking outside
-              theme="dark" // Optional: set theme
-
-              // You might need additional props based on emoji-mart documentation
-            />
+        <div className="bookmarks-overlay">
+          <div className="bookmarks-modal" style={{ ...themeCssVars, width: "auto", height: "auto" }}>
+            <Picker data={data} onEmojiSelect={handleEmojiSelect} onClickOutside={handleEmojiPickerClose} theme="auto" />
           </div>
         </div>
       )}

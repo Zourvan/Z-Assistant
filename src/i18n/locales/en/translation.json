@@ -69,6 +69,29 @@
       "maxWeekendDays": "You can select up to 3 weekend days."
     }
   },
+  "bookmarks": {
+    "title": "Bookmarks",
+    "hint": "Click + to add · ⋯ menu to edit · Ctrl+click opens in a new tab",
+    "add": "Add",
+    "select": "Choose bookmark",
+    "cancel": "Cancel",
+    "back": "Back",
+    "confirm": "Add folder",
+    "search": "Search bookmarks…",
+    "searchFolder": "Search in this folder…",
+    "groupBy": "Group by",
+    "groupNone": "All",
+    "groupAz": "A–Z",
+    "groupType": "Type",
+    "emptySearch": "No bookmarks match your search",
+    "edit": "Edit",
+    "clear": "Remove",
+    "color": "Color",
+    "icon": "Icon",
+    "menu": "Menu",
+    "folders": "Folders",
+    "bookmarksGroup": "Bookmarks"
+  },
   "days": {
     "Saturday": "Saturday",
     "Sunday": "Sunday",

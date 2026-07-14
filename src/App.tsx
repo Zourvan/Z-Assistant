@@ -117,7 +117,7 @@ function App() {
           }}
         >
           <div
-            className="max-w-[80vw] mx-auto box-border grid 
+            className="max-w-[80vw] mx-auto box-border grid min-w-0
                     grid-cols-1 gap-4 sm:gap-8 
                     md:grid-cols-[25%_25%_45%]"
           >

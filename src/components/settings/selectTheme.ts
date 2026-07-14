@@ -20,11 +20,11 @@ export const createSettingsSelectStyles = (
   return {
     menuPortal: (provided) => ({
       ...provided,
-      zIndex: 10001,
+      zIndex: 11001,
     }),
     menu: (provided) => ({
       ...provided,
-      zIndex: 10001,
+      zIndex: 11001,
       backgroundColor: menuBg,
       backdropFilter: "blur(12px)",
       WebkitBackdropFilter: "blur(12px)",

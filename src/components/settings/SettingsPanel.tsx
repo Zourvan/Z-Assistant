@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import ReactDOM from "react-dom";
 import Select from "react-select";
 import { ChromePicker, ColorResult } from "react-color";
 import {
@@ -810,7 +811,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     <div className="settings-trigger-wrap" dir="ltr" style={triggerThemeVars}>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent("nexx:settings-open"));
+          setIsOpen(true);
+        }}
         className="settings-trigger backdrop-blur-md"
         style={{ backgroundColor, color: textColor }}
         aria-label={t("settings.title")}
@@ -818,44 +822,46 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         <SlidersHorizontal className="w-5 h-5" />
       </button>
 
-      {isOpen && (
-        <div className="settings-overlay" onClick={() => setIsOpen(false)}>
-          <div
-            className="settings-modal backdrop-blur-md"
-            dir={dir}
-            style={themeVars}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("settings.title")}
-          >
-            <header className="settings-header">
-              <h2 className="settings-title">{t("settings.title")}</h2>
-              <button type="button" className="settings-close-btn" onClick={() => setIsOpen(false)} aria-label="Close">
-                <X className="w-5 h-5" />
-              </button>
-            </header>
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div className="settings-overlay" onClick={() => setIsOpen(false)}>
+            <div
+              className="settings-modal backdrop-blur-md"
+              dir={dir}
+              style={themeVars}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("settings.title")}
+            >
+              <header className="settings-header">
+                <h2 className="settings-title">{t("settings.title")}</h2>
+                <button type="button" className="settings-close-btn" onClick={() => setIsOpen(false)} aria-label="Close">
+                  <X className="w-5 h-5" />
+                </button>
+              </header>
 
-            <div className="settings-body">
-              <nav className="settings-nav custom-scrollbar">
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`settings-nav-btn ${section === item.id ? "settings-nav-btn--active" : ""}`}
-                    onClick={() => setSection(item.id)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </nav>
+              <div className="settings-body">
+                <nav className="settings-nav custom-scrollbar">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`settings-nav-btn ${section === item.id ? "settings-nav-btn--active" : ""}`}
+                      onClick={() => setSection(item.id)}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                </nav>
 
-              <div className="settings-content custom-scrollbar">{sectionContent}</div>
+                <div className="settings-content custom-scrollbar">{sectionContent}</div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

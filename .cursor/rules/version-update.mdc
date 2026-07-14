@@ -1,0 +1,60 @@
+---
+description: Bump app version and update CHANGELOG based on the nature of changes
+alwaysApply: true
+---
+
+# Version Update (Semantic Versioning)
+
+When completing **user-facing or release-worthy** work, bump the version and record the change.
+
+## Source of Truth
+
+| File | Field | Format |
+|------|-------|--------|
+| `extension/manifest.json` | `version` | `MAJOR.MINOR.PATCH` (e.g. `1.2.3`) |
+| `package.json` | `version` | Same as manifest — keep in sync |
+| `CHANGELOG.md` | new entry at top | Date + bullet list of changes |
+
+Current version lives in `extension/manifest.json`. Read it before bumping.
+
+## Bump Rules
+
+| Change type | Bump | Examples |
+|-------------|------|----------|
+| Bug fix, UI polish, typo, perf fix | **PATCH** | Fix sticky header, correct translation |
+| New feature, new setting, new component | **MINOR** | Add theme picker, calendar events |
+| Breaking change (data loss, removed API, incompatible schema) | **MAJOR** | Remove export format, rename DB stores |
+
+When a session includes multiple change types, use the **highest** applicable bump.
+
+## Do NOT Bump
+
+- Refactors with no user-visible effect
+- Comments, formatting, lint-only fixes
+- Dev-only tooling (`vite.config`, ESLint, Stagewise)
+- IndexedDB internal `version` in `settingsDb.ts` / `IndexedDatabase` — that is a **schema migration**, not app version
+
+## Workflow
+
+1. Classify the session's changes using the table above.
+2. Increment `extension/manifest.json` → `version`.
+3. Set the same value in `package.json` → `version`.
+4. Prepend a dated section to `CHANGELOG.md`:
+
+```markdown
+## YYYY-MM-DD HH:mm:ss
+- Short description of what changed and why
+- Components affected: path/to/file.tsx
+```
+
+5. Mention the new version in the final summary to the user.
+
+## Examples
+
+```
+1.0.0 → 1.0.1   Fixed Settings modal not closing on overlay click
+1.0.1 → 1.1.0   Added Persian/English i18n support
+1.1.0 → 2.0.0   Removed legacy todo import format (breaking)
+```
+
+If changes are trivial or the user explicitly says "no version bump", skip this rule.

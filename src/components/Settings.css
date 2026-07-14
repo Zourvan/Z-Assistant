@@ -3,7 +3,7 @@
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 50;
+  z-index: 11000;
   display: inline-flex;
   background: transparent;
   pointer-events: none;
@@ -30,13 +30,14 @@
 .settings-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 11000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
+  pointer-events: auto;
 }
 
 .settings-modal {
@@ -51,6 +52,7 @@
   border: 1px solid var(--theme-border);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .settings-header {
@@ -606,7 +608,8 @@
 
 .settings-select-portal-root,
 .settings-select-portal-root .settings-select__menu-portal {
-  z-index: 10001 !important;
+  z-index: 11001 !important;
+  pointer-events: auto !important;
 }
 
 .settings-select-portal-root .settings-select__menu,

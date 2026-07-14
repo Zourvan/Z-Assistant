@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2026-07-14 21:39:03
+- Improved spacing and layout of the Group by controls in the Choose bookmark modal
+- Stacked label above full-width toggle buttons with clearer separation from search
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css
+
 ## 2025-05-23 01:54:07
 - Enhanced UI in TasksAndNotes component by improving organization and styling
 - Made Select components (color and emoji) more consistent in appearance
