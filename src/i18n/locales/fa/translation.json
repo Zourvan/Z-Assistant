@@ -142,5 +142,161 @@
       "weekends": "آخر هفته",
       "custom": "سفارشی"
     }
+  },
+  "tools": {
+    "title": "ابزارها",
+    "subtitle": "ابزارهای روزمره برای کار سریع‌تر",
+    "close": "بستن",
+    "copy": "کپی",
+    "categories": {
+      "general": "عمومی",
+      "devops": "DevOps",
+      "programming": "برنامه‌نویسی"
+    },
+    "items": {
+      "color": "تبدیل رنگ",
+      "dateConverter": "تبدیل تاریخ",
+      "timestamp": "تبدیل تایم‌استمپ",
+      "base64": "Base64",
+      "password": "رمز عبور",
+      "json": "JSON",
+      "url": "URL",
+      "uuid": "UUID",
+      "hash": "هش",
+      "regex": "Regex",
+      "base": "مبناهای عددی",
+      "escape": "Escape",
+      "jwt": "JWT"
+    },
+    "descriptions": {
+      "color": "تبدیل بین HEX، RGB، RGBA، HSL و HSLA با پیش‌نمایش زنده",
+      "dateConverter": "تبدیل تاریخ شمسی و میلادی",
+      "timestamp": "تبدیل Unix timestamp به تاریخ خوانا",
+      "base64": "رمزگذاری و رمزگشایی متن Base64",
+      "password": "تولید رمز عبور امن و تصادفی",
+      "json": "فرمت‌دهی و فشرده‌سازی JSON",
+      "url": "رمزگذاری و رمزگشایی آدرس URL",
+      "uuid": "تولید شناسه UUID یکتا",
+      "hash": "محاسبه هش SHA-256، SHA-384 و SHA-512",
+      "regex": "تست عبارت باقاعده روی متن",
+      "base": "تبدیل بین مبناهای دودویی، دهدهی، هگز و هشت‌تایی",
+      "escape": "Escape و Unescape رشته‌های برنامه‌نویسی",
+      "jwt": "دیکود Header و Payload توکن JWT"
+    },
+    "color": {
+      "picker": "انتخاب رنگ",
+      "input": "ورودی رنگ",
+      "placeholder": "#8B5CF6 یا rgb(139, 92, 246)",
+      "hint": "HEX، RGB، RGBA یا HSL پشتیبانی می‌شود",
+      "formats": "فرمت‌های خروجی",
+      "errors": {
+        "invalid": "فرمت رنگ نامعتبر است"
+      }
+    },
+    "dateConverter": {
+      "jalaliToGregorian": "شمسی → میلادی",
+      "gregorianToJalali": "میلادی → شمسی",
+      "input": "ورودی",
+      "output": "خروجی",
+      "jalaliPlaceholder": "1403/01/01",
+      "gregorianPlaceholder": "2024-03-20",
+      "errors": {
+        "jalaliFormat": "فرمت شمسی: yyyy/MM/dd",
+        "gregorianFormat": "فرمت میلادی: yyyy-MM-dd",
+        "invalid": "تاریخ نامعتبر است"
+      }
+    },
+    "timestamp": {
+      "seconds": "ثانیه",
+      "milliseconds": "میلی‌ثانیه",
+      "input": "تایم‌استمپ",
+      "placeholder": "1700000000",
+      "now": "زمان فعلی",
+      "gregorian": "میلادی",
+      "jalali": "شمسی",
+      "errors": {
+        "invalid": "تایم‌استمپ نامعتبر است"
+      }
+    },
+    "base64": {
+      "encode": "رمزگذاری",
+      "decode": "رمزگشایی",
+      "input": "ورودی",
+      "output": "خروجی",
+      "errors": {
+        "invalid": "متن Base64 نامعتبر است"
+      }
+    },
+    "password": {
+      "length": "طول",
+      "lowercase": "حروف کوچک",
+      "uppercase": "حروف بزرگ",
+      "digits": "اعداد",
+      "symbols": "نمادها",
+      "generate": "تولید",
+      "result": "رمز عبور",
+      "options": "تنظیمات",
+      "empty": "رمزی تولید نشده — دکمه تولید را بزنید",
+      "selectCharset": "حداقل یک نوع کاراکتر انتخاب کنید"
+    },
+    "json": {
+      "format": "فرمت",
+      "minify": "فشرده",
+      "input": "JSON ورودی",
+      "output": "JSON خروجی",
+      "errors": {
+        "invalid": "JSON نامعتبر است"
+      }
+    },
+    "url": {
+      "encode": "رمزگذاری",
+      "decode": "رمزگشایی",
+      "input": "ورودی",
+      "output": "خروجی"
+    },
+    "uuid": {
+      "count": "تعداد",
+      "generate": "تولید",
+      "result": "UUID"
+    },
+    "hash": {
+      "input": "متن ورودی",
+      "output": "هش"
+    },
+    "regex": {
+      "pattern": "الگو",
+      "flags": "پرچم‌ها",
+      "text": "متن",
+      "matches": "نتایج",
+      "noMatch": "موردی یافت نشد",
+      "errors": {
+        "invalid": "عبارت باقاعده نامعتبر است"
+      }
+    },
+    "base": {
+      "binary": "دودویی",
+      "decimal": "دهدهی",
+      "hex": "هگز",
+      "octal": "هشت‌تایی",
+      "input": "ورودی",
+      "errors": {
+        "invalid": "عدد نامعتبر برای مبنای انتخاب‌شده"
+      }
+    },
+    "escape": {
+      "escape": "Escape",
+      "unescape": "Unescape",
+      "input": "ورودی",
+      "output": "خروجی"
+    },
+    "jwt": {
+      "input": "توکن JWT",
+      "placeholder": "eyJhbGciOiJIUzI1NiIs...",
+      "header": "Header",
+      "payload": "Payload",
+      "errors": {
+        "invalid": "توکن JWT نامعتبر است"
+      }
+    }
   }
 }

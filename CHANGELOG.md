@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2026-07-14 22:50:00
+- Redesigned all Tools panels for compact no-scroll layout: split input/output columns, smaller sidebar, removed intro header
+- Unified ToolWorkspace/ToolToolbar layout system; textareas fill available height with internal scroll only
+- Components affected: src/components/Tools.tsx, src/components/Tools.css, src/components/tools/shared.tsx, src/components/tools/*.tsx
+
+## 2026-07-14 22:45:00
+- Redesigned Password Generator layout: single-column flow, slider + length input, toggle grid, full-width generate button, dedicated result card
+- Components affected: src/components/tools/PasswordGenerator.tsx, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-14 22:40:00
+- Redesigned Tools modal with sidebar navigation, tool descriptions, and polished visual hierarchy
+- Moved Color Converter to Programming category; improved color tool with hero preview and format output list
+- Components affected: src/components/Tools.tsx, src/components/Tools.css, src/components/tools/shared.tsx, src/components/tools/ColorConverter.tsx, src/components/tools/registry.ts, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-14 22:35:00
+- Added Color Converter tool (HEX, RGB, RGBA, HSL, HSLA) with visual picker in General category
+- Moved Tools floating button below Settings (top-right stack)
+- Components affected: src/components/tools/ColorConverter.tsx, src/components/tools/registry.ts, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-14 22:30:00
+- Converted Tools from inline dashboard widget to a modal opened via a floating button (bottom-left)
+- Close with X button, overlay click, or Escape key
+- Components affected: src/components/Tools.tsx, src/components/Tools.css, src/App.tsx, src/App.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-14 22:25:00
+- Added Tools widget with three categories: General, DevOps, and Programming
+- General: Jalali/Gregorian date converter, timestamp converter, Base64, password generator
+- DevOps: JSON formatter, URL encoder, UUID generator, SHA hash generator
+- Programming: Regex tester, number base converter, string escape, JWT decoder
+- Components affected: src/components/Tools.tsx, src/components/Tools.css, src/components/tools/, src/App.tsx, src/App.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-14 22:12:00
 - Increased embedded calendar day number size for better readability
 - Components affected: src/components/Calendar.tsx

@@ -5,6 +5,7 @@ import { Bookmarks } from "./components/Bookmarks";
 import { Settings } from "./components/Settings";
 import { TasksAndNotes } from "./components/TasksAndNotes";
 import SocialLinks from "./components/SocialLinks";
+import { Tools } from "./components/Tools";
 import { LanguageProvider } from "./i18n/LanguageProvider";
 import { useTheme } from "./components/ThemeProvider";
 import "./i18n/i18n"; // Import i18n initialization
@@ -142,6 +143,7 @@ function App() {
           </div>
 
           <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" />
+          <Tools />
 
           <SocialLinks />
         </div>

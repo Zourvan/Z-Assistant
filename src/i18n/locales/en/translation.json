@@ -142,5 +142,161 @@
       "weekends": "Weekends",
       "custom": "Custom"
     }
+  },
+  "tools": {
+    "title": "Tools",
+    "subtitle": "Everyday utilities for faster workflows",
+    "close": "Close",
+    "copy": "Copy",
+    "categories": {
+      "general": "General",
+      "devops": "DevOps",
+      "programming": "Programming"
+    },
+    "items": {
+      "color": "Color Converter",
+      "dateConverter": "Date Converter",
+      "timestamp": "Timestamp",
+      "base64": "Base64",
+      "password": "Password",
+      "json": "JSON",
+      "url": "URL",
+      "uuid": "UUID",
+      "hash": "Hash",
+      "regex": "Regex",
+      "base": "Number Bases",
+      "escape": "Escape",
+      "jwt": "JWT"
+    },
+    "descriptions": {
+      "color": "Convert between HEX, RGB, RGBA, HSL, and HSLA with live preview",
+      "dateConverter": "Convert dates between Jalali and Gregorian calendars",
+      "timestamp": "Convert Unix timestamps to readable dates",
+      "base64": "Encode and decode Base64 text",
+      "password": "Generate secure random passwords",
+      "json": "Format and minify JSON",
+      "url": "Encode and decode URL strings",
+      "uuid": "Generate unique UUID identifiers",
+      "hash": "Compute SHA-256, SHA-384, and SHA-512 hashes",
+      "regex": "Test regular expressions against text",
+      "base": "Convert between binary, decimal, hex, and octal",
+      "escape": "Escape and unescape programming strings",
+      "jwt": "Decode JWT header and payload"
+    },
+    "color": {
+      "picker": "Pick color",
+      "input": "Color input",
+      "placeholder": "#8B5CF6 or rgb(139, 92, 246)",
+      "hint": "Supports HEX, RGB, RGBA, and HSL",
+      "formats": "Output formats",
+      "errors": {
+        "invalid": "Invalid color format"
+      }
+    },
+    "dateConverter": {
+      "jalaliToGregorian": "Jalali → Gregorian",
+      "gregorianToJalali": "Gregorian → Jalali",
+      "input": "Input",
+      "output": "Output",
+      "jalaliPlaceholder": "1403/01/01",
+      "gregorianPlaceholder": "2024-03-20",
+      "errors": {
+        "jalaliFormat": "Jalali format: yyyy/MM/dd",
+        "gregorianFormat": "Gregorian format: yyyy-MM-dd",
+        "invalid": "Invalid date"
+      }
+    },
+    "timestamp": {
+      "seconds": "Seconds",
+      "milliseconds": "Milliseconds",
+      "input": "Timestamp",
+      "placeholder": "1700000000",
+      "now": "Now",
+      "gregorian": "Gregorian",
+      "jalali": "Jalali",
+      "errors": {
+        "invalid": "Invalid timestamp"
+      }
+    },
+    "base64": {
+      "encode": "Encode",
+      "decode": "Decode",
+      "input": "Input",
+      "output": "Output",
+      "errors": {
+        "invalid": "Invalid Base64 text"
+      }
+    },
+    "password": {
+      "length": "Length",
+      "lowercase": "Lowercase",
+      "uppercase": "Uppercase",
+      "digits": "Digits",
+      "symbols": "Symbols",
+      "generate": "Generate",
+      "result": "Password",
+      "options": "Options",
+      "empty": "No password yet — click Generate",
+      "selectCharset": "Select at least one character type"
+    },
+    "json": {
+      "format": "Format",
+      "minify": "Minify",
+      "input": "Input JSON",
+      "output": "Output JSON",
+      "errors": {
+        "invalid": "Invalid JSON"
+      }
+    },
+    "url": {
+      "encode": "Encode",
+      "decode": "Decode",
+      "input": "Input",
+      "output": "Output"
+    },
+    "uuid": {
+      "count": "Count",
+      "generate": "Generate",
+      "result": "UUID"
+    },
+    "hash": {
+      "input": "Input text",
+      "output": "Hash"
+    },
+    "regex": {
+      "pattern": "Pattern",
+      "flags": "Flags",
+      "text": "Text",
+      "matches": "Matches",
+      "noMatch": "No matches",
+      "errors": {
+        "invalid": "Invalid regular expression"
+      }
+    },
+    "base": {
+      "binary": "Binary",
+      "decimal": "Decimal",
+      "hex": "Hex",
+      "octal": "Octal",
+      "input": "Input",
+      "errors": {
+        "invalid": "Invalid number for selected base"
+      }
+    },
+    "escape": {
+      "escape": "Escape",
+      "unescape": "Unescape",
+      "input": "Input",
+      "output": "Output"
+    },
+    "jwt": {
+      "input": "JWT Token",
+      "placeholder": "eyJhbGciOiJIUzI1NiIs...",
+      "header": "Header",
+      "payload": "Payload",
+      "errors": {
+        "invalid": "Invalid JWT token"
+      }
+    }
   }
 }
