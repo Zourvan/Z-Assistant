@@ -110,6 +110,47 @@
     "Thursday": "T",
     "Friday": "F"
   },
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "hasTasks": "Has tasks or notes"
+  },
+  "tasks": {
+    "title": "Tasks & Notes",
+    "hint": "Add todos or notes, assign a date, and click a calendar day to view items for that day.",
+    "add": "Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "dueDate": "Due date",
+    "empty": "No items yet. Create your first task or note above.",
+    "markComplete": "Mark complete",
+    "markIncomplete": "Mark incomplete",
+    "types": {
+      "todo": "Todo",
+      "note": "Note"
+    },
+    "filters": {
+      "label": "Filter tasks",
+      "all": "All",
+      "todo": "Todos",
+      "note": "Notes",
+      "scheduled": "Scheduled"
+    },
+    "placeholders": {
+      "todo": "Add a task…",
+      "note": "Write a note or reminder…",
+      "todoForDay": "Add a task for this day…",
+      "noteForDay": "Add a note for this day…"
+    },
+    "dayDetail": {
+      "title": "Items for {{date}}",
+      "empty": "Nothing scheduled",
+      "noItems": "No tasks or notes for this day yet.",
+      "summary": "{{todos}} todos · {{notes}} notes"
+    }
+  },
   "timerAlarm": {
     "timer": "Timer",
     "alarm": "Alarm",

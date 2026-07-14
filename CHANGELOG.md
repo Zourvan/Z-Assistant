@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2026-07-14 23:00:00
+- Redesigned Tasks & Notes: filters (all/todo/note/scheduled), due dates, cleaner add/edit UI, full fa/en i18n
+- Calendar shows task/note markers on scheduled days; clicking a day opens a modal with that day's items and quick-add form
+- Shared TasksProvider syncs tasks between calendar and list via IndexedDB
+- Components affected: src/components/TasksAndNotes.tsx, src/components/TasksAndNotes.css, src/components/Calendar.tsx, src/components/tasks/*, src/main.tsx, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-14 22:50:00
 - Redesigned all Tools panels for compact no-scroll layout: split input/output columns, smaller sidebar, removed intro header
 - Unified ToolWorkspace/ToolToolbar layout system; textareas fill available height with internal scroll only

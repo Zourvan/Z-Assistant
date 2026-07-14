@@ -1,32 +1,25 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
 import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "../i18n/LanguageProvider";
-
-// Persian week days mapping (0 = Saturday, 1 = Sunday, etc.)
-const persianDayMap: Record<string, string> = {
-  Saturday: "ش",
-  Sunday: "ی",
-  Monday: "د",
-  Tuesday: "س",
-  Wednesday: "چ",
-  Thursday: "پ",
-  Friday: "ج",
-};
+import { useTasks } from "./tasks/TasksContext";
+import { DayDetailModal } from "./tasks/DayDetailModal";
+import { getDayTaskSummary, toDateKey } from "./tasks/taskUtils";
 
 export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { t, dir } = useI18n();
+  const { tasks } = useTasks();
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
   const daysInMonth = dateLib.getDaysInMonth(currentDate);
   const firstDayOfMonth = dateLib.startOfMonth(currentDate);
 
-  // Map day name to index (0-6), using standard Sunday=0 to Saturday=6
   const dayNameToIndex: Record<DayOfWeek, number> = {
     Sunday: 0,
     Monday: 1,
@@ -37,7 +30,6 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     Saturday: 6,
   };
 
-  // Map day index (0-6) to day name
   const dayIndexToName: Record<number, DayOfWeek> = {
     0: "Sunday",
     1: "Monday",
@@ -48,28 +40,18 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     6: "Saturday",
   };
 
-  // Get the index of the first day of week setting
   const firstDayIndex = dayNameToIndex[firstDayOfWeek];
 
-  // Helper function to convert between date-fns weekday and our representation
-  // date-fns: 0 = Sunday, 6 = Saturday (for both Gregorian and Jalali)
-  // Our standard: 0 = Sunday, 6 = Saturday
   const getStandardWeekdayIndex = (date: Date): number => {
-    return dateLib.getDay(date); // Already in our standard format
+    return dateLib.getDay(date);
   };
 
-  // Get weekday for first day of month in standard format
   const firstDayOfMonthWeekday = getStandardWeekdayIndex(firstDayOfMonth);
 
-  // Calculate empty cells needed before first day of month
   const emptyDayCount = useMemo(() => {
-    // How many cells to skip before the 1st day of month
-    const emptyCells = (7 + firstDayOfMonthWeekday - firstDayIndex) % 7;
+    return (7 + firstDayOfMonthWeekday - firstDayIndex) % 7;
+  }, [firstDayOfMonthWeekday, firstDayIndex]);
 
-    return emptyCells;
-  }, [firstDayOfMonthWeekday, firstDayIndex, firstDayOfWeek]);
-
-  // Generate ordered list of day names based on firstDayOfWeek
   const orderedDayNames = useMemo(() => {
     const days: DayOfWeek[] = [];
     for (let i = 0; i < 7; i++) {
@@ -79,47 +61,59 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     return days;
   }, [firstDayIndex]);
 
-  // Create weekday labels based on the ordered day names
   const weekDayLabels = useMemo(() => {
-    return orderedDayNames.map((day) => {
-      return t(`daysShort.${day}`);
-    });
+    return orderedDayNames.map((day) => t(`daysShort.${day}`));
   }, [orderedDayNames, t]);
 
-  // Generate calendar days data with all needed properties
   const calendarDaysData = useMemo(() => {
-    const days = [];
+    const days: Array<
+      | { type: "empty"; id: string }
+      | {
+          type: "day";
+          day: number;
+          date: Date;
+          dateKey: string;
+          dayName: DayOfWeek;
+          isWeekendDay: boolean;
+          isCurrentDay: boolean;
+          displayText: string | number;
+          hasTasks: boolean;
+          hasPendingTodos: boolean;
+          hasNotes: boolean;
+        }
+    > = [];
 
-    // Add empty cells at the beginning
     for (let i = 0; i < emptyDayCount; i++) {
       days.push({ type: "empty", id: `empty-${i}` });
     }
 
-    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = dateLib.setDate(firstDayOfMonth, day);
       const weekdayIndex = getStandardWeekdayIndex(date);
       const dayName = dayIndexToName[weekdayIndex];
-
-      // Check if it's a weekend
       const isWeekendDay = weekendDays.includes(dayName);
-
-      // Check if it's today
       const today = new Date();
       const isCurrentDay = dateLib.isSameDay(date, today);
+      const dateKey = toDateKey(date);
+      const summary = getDayTaskSummary(tasks, dateKey);
 
       days.push({
         type: "day",
         day,
+        date,
+        dateKey,
         dayName,
         isWeekendDay,
         isCurrentDay,
         displayText: calendarType === "persian" ? day.toLocaleString("fa-IR") : day,
+        hasTasks: summary.hasItems,
+        hasPendingTodos: summary.pendingTodos.length > 0,
+        hasNotes: summary.notes.length > 0,
       });
     }
 
     return days;
-  }, [daysInMonth, firstDayOfMonth, emptyDayCount, calendarType, weekendDays, dateLib]);
+  }, [daysInMonth, firstDayOfMonth, emptyDayCount, calendarType, weekendDays, dateLib, tasks]);
 
   function convertToPersianNumbers(input: string): string {
     return input.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
@@ -128,9 +122,8 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const formatMonth = () => {
     if (calendarType === "gregorian") {
       return dateFns.format(currentDate, "dd MMMM yyyy");
-    } else {
-      return convertToPersianNumbers(dateFnsJalali.format(currentDate, "dd MMMM yyyy"));
     }
+    return convertToPersianNumbers(dateFnsJalali.format(currentDate, "dd MMMM yyyy"));
   };
 
   const handlePreviousMonth = () => {
@@ -144,7 +137,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const calendarContent = (
     <>
       <div className={`flex justify-between items-center ${embedded ? "mb-1.5" : "mb-4"}`}>
-        <button onClick={handlePreviousMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Previous month">
+        <button onClick={handlePreviousMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label={t("calendar.previousMonth")}>
           {dir === "rtl" ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
 
@@ -155,7 +148,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
           {formatMonth()}
         </h2>
 
-        <button onClick={handleNextMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Next month">
+        <button onClick={handleNextMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label={t("calendar.nextMonth")}>
           {dir === "rtl" ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
       </div>
@@ -181,14 +174,17 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
             return <div key={item.id} className={embedded ? "py-0.5" : "p-1 sm:p-2"} />;
           }
 
+          const markerTitle = item.hasTasks ? t("calendar.hasTasks") : undefined;
+
           return (
-            <div
-              key={`day-${item.day}`}
-              className={`text-center flex items-center justify-center font-semibold ${
+            <button
+              key={`day-${item.dateKey}`}
+              type="button"
+              className={`calendar-day text-center flex flex-col items-center justify-center font-semibold cursor-pointer transition-colors ${
                 embedded
-                  ? "text-xs sm:text-sm h-7 w-7 sm:h-8 sm:w-8 mx-auto"
+                  ? "text-xs sm:text-sm h-8 w-8 sm:h-9 sm:w-9 mx-auto"
                   : "text-xs sm:text-sm md:text-base p-1 sm:p-1.5 md:p-2 aspect-square"
-              } ${item.isCurrentDay ? "rounded-full" : item.isWeekendDay ? "hover:bg-opacity-50 rounded-full" : "hover:bg-white/0 rounded-full"}`}
+              } ${item.isCurrentDay ? "rounded-full" : "rounded-full hover:bg-white/10"}`}
               style={{
                 color: item.isWeekendDay ? weekendColor : textColor,
                 backgroundColor: item.isCurrentDay
@@ -197,28 +193,40 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
                     ? `${weekendColor}33`
                     : "transparent",
               }}
+              onClick={() => setSelectedDate(item.date)}
+              aria-label={markerTitle}
+              title={markerTitle}
             >
-              {item.displayText}
-            </div>
+              <span className="calendar-day__number leading-none">{item.displayText}</span>
+              {item.hasTasks && (
+                <span className="calendar-day__markers" aria-hidden="true">
+                  {item.hasPendingTodos && <span className="calendar-day__dot calendar-day__dot--todo" />}
+                  {item.hasNotes && <span className="calendar-day__dot calendar-day__dot--note" />}
+                  {!item.hasPendingTodos && !item.hasNotes && (
+                    <span className="calendar-day__dot calendar-day__dot--done" />
+                  )}
+                </span>
+              )}
+            </button>
           );
         })}
       </div>
     </>
   );
 
-  if (embedded) {
-    return (
-      <div className="px-2.5 pb-2.5 pt-1.5" style={{ direction: dir }}>
-        {calendarContent}
-      </div>
-    );
-  }
-
-  return (
-    <div className={`backdrop-blur-md rounded-xl p-4 shadow-lg`} style={{ backgroundColor, color: textColor, direction: dir }}>
+  const calendarNode = embedded ? (
+    <div className="px-2.5 pb-2.5 pt-1.5 calendar-embedded" style={{ direction: dir }}>
       {calendarContent}
+      {selectedDate && <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />}
+    </div>
+  ) : (
+    <div className={`backdrop-blur-md rounded-xl p-4 shadow-lg calendar-standalone`} style={{ backgroundColor, color: textColor, direction: dir }}>
+      {calendarContent}
+      {selectedDate && <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />}
     </div>
   );
+
+  return calendarNode;
 }
 
 export default Calendar;

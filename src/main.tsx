@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { CalendarProvider } from "./components/Settings";
+import { TasksProvider } from "./components/tasks/TasksContext";
 import "./index.css";
 
 // Stagewise toolbar integration - only in development mode
@@ -26,7 +27,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
       <CalendarProvider>
-        <App />
+        <TasksProvider>
+          <App />
+        </TasksProvider>
       </CalendarProvider>
     </ThemeProvider>
   </React.StrictMode>
