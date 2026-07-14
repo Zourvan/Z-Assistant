@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-07-14 23:04:22
+- Grouped Settings and Tools triggers in the same frosted panel style as social links (rounded box, blur, shadow)
+- Components affected: src/App.tsx, src/App.css, src/components/settings/SettingsPanel.tsx, src/components/Tools.tsx, src/components/Settings.css, src/components/Tools.css
+
+## 2026-07-14 22:57:49
+- Enlarged social links column: removed scale-down transform, bigger icons and credit text for better visibility
+- Components affected: src/components/SocialLinks.tsx, src/components/SocialLinks.css
+
 ## 2026-07-14 23:00:00
 - Redesigned Tasks & Notes: filters (all/todo/note/scheduled), due dates, cleaner add/edit UI, full fa/en i18n
 - Calendar shows task/note markers on scheduled days; clicking a day opens a modal with that day's items and quick-add form

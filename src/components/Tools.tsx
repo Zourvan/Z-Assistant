@@ -29,16 +29,16 @@ export function Tools() {
   const ActiveComponent = activeTool?.component;
 
   return (
-    <div className="tools-trigger-wrap" dir="ltr" style={themeStyle}>
+    <>
       <button
         type="button"
-        className="tools-trigger backdrop-blur-md"
-        style={{ backgroundColor, color: textColor }}
+        className="app-floating-btn hover:bg-white/30"
+        style={{ color: textColor }}
         onClick={() => setIsOpen(true)}
         aria-label={t("tools.title")}
         title={t("tools.title")}
       >
-        <Wrench className="w-5 h-5" />
+        <Wrench size={20} />
       </button>
 
       {isOpen &&
@@ -103,6 +103,6 @@ export function Tools() {
           </div>,
           document.body,
         )}
-    </div>
+    </>
   );
 }

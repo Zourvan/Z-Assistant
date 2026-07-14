@@ -142,8 +142,15 @@ function App() {
             </div>
           </div>
 
-          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" />
-          <Tools />
+          <div className="app-actions-wrap" dir="ltr" style={{ direction: "ltr" }}>
+            <div
+              className="app-actions-panel backdrop-blur-md rounded-xl p-3 shadow-lg flex flex-col gap-3 pointer-events-auto"
+              style={{ backgroundColor }}
+            >
+              <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" />
+              <Tools />
+            </div>
+          </div>
 
           <SocialLinks />
         </div>

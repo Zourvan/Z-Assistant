@@ -53,7 +53,7 @@ const SocialLinks = () => {
     <div dir="ltr" style={{ direction: "ltr" }} className="social-links-wrap">
       <div dir="ltr" style={{ direction: "ltr" }} className="flex flex-row-reverse items-end gap-2 sm:gap-4">
         <div
-          className="social-links-icons backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 pointer-events-auto"
+          className="social-links-icons backdrop-blur-md rounded-xl p-3 shadow-lg flex flex-col gap-3 pointer-events-auto"
           style={{ backgroundColor }}
         >
           {socialLinks.map((link) => (
@@ -62,20 +62,20 @@ const SocialLinks = () => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 
                                 ${link.color} hover:text-white bg-white/20
                                 transform hover:scale-110 hover:shadow-lg`}
               style={{ color: textColor }}
               aria-label={link.name}
               title={link.name}
             >
-              <link.Icon size={14} />
+              <link.Icon size={20} />
             </a>
           ))}
         </div>
 
-        <div className="social-links-credit backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto" style={{ backgroundColor }}>
-          <p dir="ltr" style={{ direction: "ltr", color: textColor }} className="text-sm font-medium flex items-center gap-1">
+        <div className="social-links-credit backdrop-blur-md rounded-xl px-4 py-3 shadow-lg pointer-events-auto" style={{ backgroundColor }}>
+          <p dir="ltr" style={{ direction: "ltr", color: textColor }} className="text-base font-medium flex items-center gap-1">
             Nima has built it with
             <span className="text-red-500 animate-pulse text-xl">♥</span>
           </p>

@@ -29,7 +29,7 @@ import { useCalendar, DayOfWeek } from "./CalendarContext";
 import { DEFAULT_BACKGROUNDS, COLOR_OPTIONS } from "./defaultBackgrounds";
 import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
 import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground } from "./backgroundUtils";
-import { buildThemeVars, buildThemeCssVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
+import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
 import { createSettingsSelectStyles } from "./selectTheme";
 import { THEME_PRESETS } from "./themePresets";
 import type { SettingsSection, StoredBackground } from "./types";
@@ -178,7 +178,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   } = useCalendar();
 
   const themeVars = useMemo(() => buildThemeVars(textColor, backgroundColor), [textColor, backgroundColor]);
-  const triggerThemeVars = useMemo(() => buildThemeCssVars(textColor, backgroundColor), [textColor, backgroundColor]);
   const selectStyles = useMemo(() => createSettingsSelectStyles(textColor, backgroundColor), [textColor, backgroundColor]);
 
   useEffect(() => {
@@ -813,18 +812,19 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   }[section]();
 
   return (
-    <div className="settings-trigger-wrap" dir="ltr" style={triggerThemeVars}>
+    <>
       <button
         type="button"
         onClick={() => {
           window.dispatchEvent(new CustomEvent("nexx:settings-open"));
           setIsOpen(true);
         }}
-        className="settings-trigger backdrop-blur-md"
-        style={{ backgroundColor, color: textColor }}
+        className="app-floating-btn hover:bg-white/30"
+        style={{ color: textColor }}
         aria-label={t("settings.title")}
+        title={t("settings.title")}
       >
-        <SlidersHorizontal className="w-5 h-5" />
+        <SlidersHorizontal size={20} />
       </button>
 
       {isOpen &&
@@ -867,6 +867,6 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           </div>,
           document.body
         )}
-    </div>
+    </>
   );
 };

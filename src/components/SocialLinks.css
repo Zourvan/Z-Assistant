@@ -24,11 +24,11 @@
 }
 
 .social-links-icons {
-  transform: scale(0.85);
+  transform: scale(1);
 }
 
 @media (min-width: 640px) {
   .social-links-icons {
-    transform: scale(0.7);
+    transform: scale(1);
   }
 }

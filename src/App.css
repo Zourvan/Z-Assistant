@@ -3,6 +3,40 @@
   padding-bottom: 5.5rem;
 }
 
+.app-actions-wrap {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 11000;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .app-actions-wrap {
+    padding: 1rem;
+  }
+}
+
+.app-floating-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.app-floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
 .dashboard {
   width: 100%;
   max-width: min(90rem, 100%);
