@@ -53,7 +53,7 @@
     },
     "tileNumber": "Bookmark Tile Count",
     "dataManagement": "Data Management",
-    "dataDescription": "Back up or restore your settings, bookmarks, and tasks.",
+    "dataDescription": "Back up or restore your settings, bookmarks, tasks, and alarms.",
     "exportData": "Export Data",
     "importData": "Import Data",
     "importConfirm": "This will replace your current settings and data. Continue?",
@@ -109,5 +109,38 @@
     "Wednesday": "W",
     "Thursday": "T",
     "Friday": "F"
+  },
+  "timerAlarm": {
+    "timer": "Timer",
+    "alarm": "Alarm",
+    "hours": "H",
+    "minutes": "M",
+    "seconds": "S",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset",
+    "addAlarm": "Add Alarm",
+    "time": "Time",
+    "label": "Label",
+    "labelPlaceholder": "Alarm name",
+    "repeatLabel": "Repeat",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noAlarms": "No alarms yet",
+    "defaultLabel": "Alarm",
+    "timerDone": "Timer finished!",
+    "alarmRinging": "Alarm",
+    "dismiss": "Dismiss",
+    "snooze": "Snooze 5 min",
+    "enable": "Enable",
+    "disable": "Disable",
+    "delete": "Delete",
+    "repeat": {
+      "once": "Once",
+      "daily": "Daily",
+      "weekdays": "Weekdays",
+      "weekends": "Weekends",
+      "custom": "Custom"
+    }
   }
 }

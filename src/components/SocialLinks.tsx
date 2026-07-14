@@ -50,11 +50,10 @@ const SocialLinks = () => {
   const { textColor, backgroundColor } = useTheme();
 
   return (
-    // Force LTR direction with dir="ltr" to prevent inheritance from document direction
-    <div dir="ltr" style={{ direction: "ltr" }} className="fixed bottom-0 right-0 p-4 z-10 pointer-events-none">
-      <div dir="ltr" style={{ direction: "ltr" }} className="flex flex-row-reverse items-end gap-4">
+    <div dir="ltr" style={{ direction: "ltr" }} className="social-links-wrap">
+      <div dir="ltr" style={{ direction: "ltr" }} className="flex flex-row-reverse items-end gap-2 sm:gap-4">
         <div
-          className="backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 transform scale-70 pointer-events-auto"
+          className="social-links-icons backdrop-blur-md rounded-xl p-2 shadow-lg flex flex-col gap-2 pointer-events-auto"
           style={{ backgroundColor }}
         >
           {socialLinks.map((link) => (
@@ -75,7 +74,7 @@ const SocialLinks = () => {
           ))}
         </div>
 
-        <div className="backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto" style={{ backgroundColor }}>
+        <div className="social-links-credit backdrop-blur-md rounded-xl px-4 py-2 shadow-lg pointer-events-auto" style={{ backgroundColor }}>
           <p dir="ltr" style={{ direction: "ltr", color: textColor }} className="text-sm font-medium flex items-center gap-1">
             Nima has built it with
             <span className="text-red-500 animate-pulse text-xl">♥</span>

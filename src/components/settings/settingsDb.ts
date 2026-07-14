@@ -32,4 +32,15 @@ export const tasksDB = createDatabase({
   ],
 });
 
+export const alarmsDB = createDatabase({
+  dbName: "timerAlarmDB",
+  storeName: "alarms",
+  version: 1,
+  keyPath: "id",
+  indexes: [
+    { name: "enabled", keyPath: "enabled", unique: false },
+    { name: "createdAt", keyPath: "createdAt", unique: false },
+  ],
+});
+
 export type { StoredBackground };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Clock } from "./components/Clock";
-import Calendar from "./components/Calendar";
+import { ClockCalendar } from "./components/ClockCalendar";
+import { TimerAlarm } from "./components/TimerAlarm";
 import { Bookmarks } from "./components/Bookmarks";
 import { Settings } from "./components/Settings";
 import { TasksAndNotes } from "./components/TasksAndNotes";
@@ -110,30 +110,34 @@ function App() {
         )}
 
         <div
-          className="min-h-screen p-4 md:p-8 transition-all duration-300 overflow-x-hidden"
+          className="app-content p-3 sm:p-4 md:p-6 lg:p-8 transition-all duration-300 overflow-x-hidden"
           style={{
             backgroundColor: background !== "none" ? "transparent" : backgroundColor,
             color: textColor,
           }}
         >
-          <div
-            className="max-w-[80vw] mx-auto box-border grid min-w-0
-                    grid-cols-1 gap-4 sm:gap-8 
-                    md:grid-cols-[25%_25%_45%]"
-          >
-            {/* بخش 1: Clock */}
-            <div className="space-y-8 order-1 ">
-              <Clock />
-              <Calendar />
-            </div>
-            {/* Left side */}
-            <div className="space-y-8 order-2">
-              <TasksAndNotes />
-            </div>
+          <div className="dashboard">
+            <div className="dashboard-grid">
+              <div className="dashboard-col dashboard-col--time">
+                <div className="dashboard-widget">
+                  <ClockCalendar />
+                </div>
+                <div className="dashboard-widget">
+                  <TimerAlarm />
+                </div>
+              </div>
 
-            {/* Right side */}
-            <div className="space-y-8 order-3">
-              <Bookmarks />
+              <div className="dashboard-col dashboard-col--tasks">
+                <div className="dashboard-widget">
+                  <TasksAndNotes />
+                </div>
+              </div>
+
+              <div className="dashboard-col dashboard-col--bookmarks">
+                <div className="dashboard-widget">
+                  <Bookmarks />
+                </div>
+              </div>
             </div>
           </div>
 

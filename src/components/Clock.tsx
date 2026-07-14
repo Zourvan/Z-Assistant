@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useCalendar } from "./Settings";
 
-export function Clock() {
+interface ClockProps {
+  embedded?: boolean;
+}
+
+export function Clock({ embedded = false }: ClockProps) {
   const { calendarType, textColor, backgroundColor } = useCalendar();
   const [time, setTime] = useState(new Date());
   useEffect(() => {
@@ -57,6 +61,36 @@ export function Clock() {
     return time.toLocaleDateString("fa-IR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
 
+  const content = (
+    <>
+      <div
+        className={
+          embedded
+            ? "text-xl sm:text-2xl font-light"
+            : "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light"
+        }
+      >
+        {formatTime()}
+      </div>
+      <div
+        className={
+          embedded
+            ? "text-xs sm:text-sm opacity-80 mt-0.5"
+            : "text-lg sm:text-xl md:text-2xl lg:text-3xl opacity-80"
+        }
+      >
+        {formatDate()}
+      </div>
+      {!embedded && (
+        <div className="text-base sm:text-lg md:text-xl lg:text-2xl opacity-80">{formatDateInvert()}</div>
+      )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="text-center px-3 pt-2.5 pb-1.5">{content}</div>;
+  }
+
   return (
     <div
       className="text-center backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-lg w-full max-w-md mx-auto"
@@ -66,9 +100,7 @@ export function Clock() {
         color: textColor,
       }}
     >
-      <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light">{formatTime()}</div>
-      <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl opacity-80">{formatDate()}</div>
-      <div className="text-base sm:text-lg md:text-xl lg:text-2xl opacity-80">{formatDateInvert()}</div>
+      {content}
     </div>
   );
 }

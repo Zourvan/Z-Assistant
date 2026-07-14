@@ -53,7 +53,7 @@
     },
     "tileNumber": "تعداد کاشی بوک‌مارک",
     "dataManagement": "مدیریت داده‌ها",
-    "dataDescription": "از تنظیمات، بوک‌مارک‌ها و وظایف خود پشتیبان بگیرید یا بازیابی کنید.",
+    "dataDescription": "از تنظیمات، بوک‌مارک‌ها، وظایف و آلارم‌های خود پشتیبان بگیرید یا بازیابی کنید.",
     "exportData": "خروجی داده‌ها",
     "importData": "ورود داده‌ها",
     "importConfirm": "این عمل تنظیمات و داده‌های فعلی را جایگزین می‌کند. ادامه می‌دهید؟",
@@ -109,5 +109,38 @@
     "Wednesday": "چ",
     "Thursday": "پ",
     "Friday": "ج"
+  },
+  "timerAlarm": {
+    "timer": "تایمر",
+    "alarm": "آلارم",
+    "hours": "س",
+    "minutes": "د",
+    "seconds": "ث",
+    "start": "شروع",
+    "pause": "توقف",
+    "reset": "بازنشانی",
+    "addAlarm": "افزودن آلارم",
+    "time": "زمان",
+    "label": "عنوان",
+    "labelPlaceholder": "نام آلارم",
+    "repeatLabel": "تکرار",
+    "save": "ذخیره",
+    "cancel": "انصراف",
+    "noAlarms": "هنوز آلارمی تنظیم نشده",
+    "defaultLabel": "آلارم",
+    "timerDone": "تایمر تمام شد!",
+    "alarmRinging": "زنگ آلارم",
+    "dismiss": "خاموش",
+    "snooze": "تعویق ۵ دقیقه",
+    "enable": "فعال",
+    "disable": "غیرفعال",
+    "delete": "حذف",
+    "repeat": {
+      "once": "یک‌بار",
+      "daily": "هر روز",
+      "weekdays": "روزهای کاری",
+      "weekends": "آخر هفته",
+      "custom": "سفارشی"
+    }
   }
 }

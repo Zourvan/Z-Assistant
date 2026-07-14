@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 2026-07-14 22:12:00
+- Increased embedded calendar day number size for better readability
+- Components affected: src/components/Calendar.tsx
+
+## 2026-07-14 22:08:00
+- Reduced Clock/Calendar and Timer/Alarm height after responsive layout made them too tall
+- Capped widget width, replaced calendar aspect-square cells with fixed-size days, tightened spacing
+- Components affected: src/components/ClockCalendar.tsx, src/components/ClockCalendar.css, src/components/Clock.tsx, src/components/Calendar.tsx, src/components/TimerAlarm.css, src/App.css
+
+## 2026-07-14 22:05:00
+- Made the full dashboard responsive with adaptive grid layout across mobile, tablet, and desktop
+- Mobile: single column stack; tablet: two columns with full-width bookmarks; desktop: three columns
+- Improved widget overflow handling, bookmark grid auto-fill, and mobile-friendly controls
+- Components affected: src/App.tsx, src/App.css, src/index.css, src/components/ClockCalendar.tsx, src/components/TasksAndNotes.tsx, src/components/TimerAlarm.css, src/components/Bookmarks.css, src/components/Bookmarks.tsx, src/components/Settings.css, src/components/SocialLinks.tsx, src/components/SocialLinks.css
+
+## 2026-07-14 22:01:00
+- Swapped layout order: Clock/Calendar now above Timer/Alarm in the first column
+- Components affected: src/App.tsx
+
+## 2026-07-14 22:00:00
+- Merged Clock and Calendar into a single compact card to free vertical space for Timer/Alarm
+- Timer/Alarm moved above the time widget and given full column width
+- Components affected: src/components/ClockCalendar.tsx, src/components/Clock.tsx, src/components/Calendar.tsx, src/App.tsx, src/components/TimerAlarm.css
+
+## 2026-07-14 21:52:00
+- Added Timer and Alarm widget with countdown, presets, repeat schedules, sound, and notifications
+- Placed below Clock in the time column; alarms persist in IndexedDB and export/import backup
+- Components affected: src/components/TimerAlarm.tsx, src/components/TimerAlarm.css, src/components/timerAlarm/, src/App.tsx, src/components/settings/settingsDb.ts, src/components/settings/SettingsPanel.tsx, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-14 21:39:03
 - Improved spacing and layout of the Group by controls in the Choose bookmark modal
 - Stacked label above full-width toggle buttons with clearer separation from search

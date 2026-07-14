@@ -403,9 +403,9 @@ export function TasksAndNotes() {
   }
 
   return (
-    <div className="backdrop-blur-md rounded-xl p-4 shadow-lg overflow-hidden" style={{ backgroundColor, color: textColor }}>
-      <div className="flex items-center justify-center mb-2">
-        <div className="flex items-center justify-center gap-2">
+    <div className="backdrop-blur-md rounded-xl p-3 sm:p-4 shadow-lg overflow-hidden w-full min-w-0" style={{ backgroundColor, color: textColor }}>
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
           <Select
             className="basic-single"
             classNamePrefix="select"
@@ -468,13 +468,13 @@ export function TasksAndNotes() {
         </div>
       </div>
 
-      <div className="flex mb-4 items-center rounded-lg p-2 bg-black/10">
+      <div className="flex mb-4 items-center rounded-lg p-2 bg-black/10 min-w-0">
         <input
           type="text"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           placeholder={newTaskType.value === "todo" ? "Add a new task..." : "Add a note..."}
-          className={`flex-1 min-w-[80px] bg-white/20 placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
+          className={`flex-1 min-w-0 bg-white/20 placeholder-white/50 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/30 ${
             isPersian(newText) ? "rtl" : "ltr"
           }`}
           style={{ color: textColor }}
@@ -487,7 +487,7 @@ export function TasksAndNotes() {
         />
       </div>
 
-      <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar">
+      <div className="space-y-2 max-h-[min(38vh,22rem)] sm:max-h-[min(42vh,26rem)] lg:max-h-[min(48vh,30rem)] overflow-y-auto custom-scrollbar">
         {tasks.map((task) => (
           <div
             key={task.id}

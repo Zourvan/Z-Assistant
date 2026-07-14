@@ -890,7 +890,7 @@ export function Bookmarks() {
           <div className="bookmarks-scroll-area">
               {!isGrouped ? (
                 // Render regular grid when not grouped
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                <div className="bookmarks-picker-grid">
                   {filteredNodes.length > 0 ? (
                     filteredNodes.map((node) => (
                       <a
@@ -951,7 +951,7 @@ export function Bookmarks() {
                           <span className="text-xs opacity-60">({group.nodes.length})</span>
                         </div>
                         {/* Group items */}
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                        <div className="bookmarks-picker-grid">
                           {group.nodes &&
                             group.nodes.map((node) => (
                               <a
@@ -1081,7 +1081,7 @@ export function Bookmarks() {
           <div className="bookmarks-scroll-area">
               {!isGrouped ? (
                 // Render regular grid when not grouped
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                <div className="bookmarks-picker-grid">
                   {filteredFolderContent.length > 0 ? (
                     filteredFolderContent.map((node) => (
                       <a
@@ -1146,7 +1146,7 @@ export function Bookmarks() {
                           <span className="text-xs opacity-60">({group.nodes.length})</span>
                         </div>
                         {/* Group items */}
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                        <div className="bookmarks-picker-grid">
                           {group.nodes &&
                             group.nodes.map((node) => (
                               <a

@@ -16,7 +16,7 @@ const persianDayMap: Record<string, string> = {
   Friday: "ج",
 };
 
-export function Calendar() {
+export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
   const [currentDate, setCurrentDate] = useState(new Date());
   const { t, dir } = useI18n();
@@ -141,24 +141,26 @@ export function Calendar() {
     setCurrentDate(dateLib.addMonths(currentDate, 1));
   };
 
-  return (
-    <div className={`backdrop-blur-md rounded-xl p-4 shadow-lg`} style={{ backgroundColor, color: textColor, direction: dir }}>
-      <div className={`flex justify-between items-center mb-4`}>
-        <button onClick={handlePreviousMonth} className="p-2 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Previous month">
-          {dir === "rtl" ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+  const calendarContent = (
+    <>
+      <div className={`flex justify-between items-center ${embedded ? "mb-1.5" : "mb-4"}`}>
+        <button onClick={handlePreviousMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Previous month">
+          {dir === "rtl" ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
 
-        <h2 className="text-base sm:text-lg md:text-xl font-medium text-center" style={{ color: textColor }}>
+        <h2
+          className={`font-medium text-center ${embedded ? "text-xs sm:text-sm" : "text-base sm:text-lg md:text-xl"}`}
+          style={{ color: textColor }}
+        >
           {formatMonth()}
         </h2>
 
-        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Next month">
-          {dir === "rtl" ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+        <button onClick={handleNextMonth} className="p-1.5 rounded-full hover:bg-black/10" style={{ color: textColor }} aria-label="Next month">
+          {dir === "rtl" ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {/* Week day headers */}
+      <div className={`grid grid-cols-7 ${embedded ? "gap-0.5" : "gap-1"}`}>
         {weekDayLabels.map((label, index) => {
           const dayName = orderedDayNames[index];
           const isWeekendDay = weekendDays.includes(dayName);
@@ -166,7 +168,7 @@ export function Calendar() {
           return (
             <div
               key={`header-${index}`}
-              className="text-center text-xs sm:text-sm md:text-base font-extrabold p-1 sm:p-2"
+              className={`text-center font-extrabold ${embedded ? "text-[1.1rem] sm:text-xs py-0.5" : "text-xs sm:text-sm md:text-base p-1 sm:p-2"}`}
               style={{ color: isWeekendDay ? weekendColor : textColor }}
             >
               {label}
@@ -174,32 +176,47 @@ export function Calendar() {
           );
         })}
 
-        {/* Calendar days - both empty cells and day cells */}
-        {calendarDaysData.map((item, index) => {
+        {calendarDaysData.map((item) => {
           if (item.type === "empty") {
-            return <div key={item.id} className="p-1 sm:p-2" />;
-          } else {
-            return (
-              <div
-                key={`day-${item.day}`}
-                className={`text-center p-1 sm:p-1.5 md:p-2 aspect-square flex items-center justify-center text-xs sm:text-sm md:text-base font-semibold ${
-                  item.isCurrentDay ? "rounded-full" : item.isWeekendDay ? "hover:bg-opacity-50 rounded-full" : "hover:bg-white/0 rounded-full"
-                }`}
-                style={{
-                  color: item.isWeekendDay ? weekendColor : textColor,
-                  backgroundColor: item.isCurrentDay
-                    ? "#8B5CF6" // Purple color for current day
-                    : item.isWeekendDay
-                      ? `${weekendColor}33`
-                      : "transparent",
-                }}
-              >
-                {item.displayText}
-              </div>
-            );
+            return <div key={item.id} className={embedded ? "py-0.5" : "p-1 sm:p-2"} />;
           }
+
+          return (
+            <div
+              key={`day-${item.day}`}
+              className={`text-center flex items-center justify-center font-semibold ${
+                embedded
+                  ? "text-xs sm:text-sm h-7 w-7 sm:h-8 sm:w-8 mx-auto"
+                  : "text-xs sm:text-sm md:text-base p-1 sm:p-1.5 md:p-2 aspect-square"
+              } ${item.isCurrentDay ? "rounded-full" : item.isWeekendDay ? "hover:bg-opacity-50 rounded-full" : "hover:bg-white/0 rounded-full"}`}
+              style={{
+                color: item.isWeekendDay ? weekendColor : textColor,
+                backgroundColor: item.isCurrentDay
+                  ? "#8B5CF6"
+                  : item.isWeekendDay
+                    ? `${weekendColor}33`
+                    : "transparent",
+              }}
+            >
+              {item.displayText}
+            </div>
+          );
         })}
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="px-2.5 pb-2.5 pt-1.5" style={{ direction: dir }}>
+        {calendarContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`backdrop-blur-md rounded-xl p-4 shadow-lg`} style={{ backgroundColor, color: textColor, direction: dir }}>
+      {calendarContent}
     </div>
   );
 }
