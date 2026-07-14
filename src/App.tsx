@@ -9,6 +9,7 @@ import { LanguageProvider } from "./i18n/LanguageProvider";
 import { useTheme } from "./components/ThemeProvider";
 import "./i18n/i18n"; // Import i18n initialization
 
+import { parseStoredBackground } from "./components/settings/backgroundUtils";
 import "./App.css";
 
 // Helper function to get image from IndexedDB
@@ -81,7 +82,7 @@ function App() {
     const loadSavedBackground = async () => {
       const savedBackground = localStorage.getItem("selectedBackground");
       if (savedBackground) {
-        await handleBackgroundChange(savedBackground);
+        await handleBackgroundChange(parseStoredBackground(savedBackground));
       }
     };
 
@@ -136,7 +137,7 @@ function App() {
             </div>
           </div>
 
-          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" calendarType={"gregorian"} />
+          <Settings onSelectBackground={handleBackgroundChange} storageKey="selectedBackground" />
 
           <SocialLinks />
         </div>

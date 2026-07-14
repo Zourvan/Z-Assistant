@@ -1,39 +1,43 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 
-// Interface for theme settings
+export const DEFAULT_TEXT_COLOR = "#FFFFFF";
+export const DEFAULT_BACKGROUND_COLOR = "rgba(0, 0, 0, 0.2)";
+export const DEFAULT_FONT_SIZE_RATIO = 1;
+export const MIN_FONT_SIZE_RATIO = 0.75;
+export const MAX_FONT_SIZE_RATIO = 1.5;
+export const FONT_SIZE_RATIO_STEP = 0.05;
+
+const clampFontSizeRatio = (value: number) =>
+  Math.min(MAX_FONT_SIZE_RATIO, Math.max(MIN_FONT_SIZE_RATIO, Math.round(value / FONT_SIZE_RATIO_STEP) * FONT_SIZE_RATIO_STEP));
+
 interface ThemeSettings {
   textColor: string;
   backgroundColor: string;
+  fontSizeRatio: number;
 }
 
-// Context interface with state and setters
 interface ThemeContextType extends ThemeSettings {
   setTextColor: (color: string) => void;
   setBackgroundColor: (color: string) => void;
+  setFontSizeRatio: (ratio: number) => void;
   resetTheme: () => void;
 }
 
-// Props for ThemeProvider
 interface ThemeProviderProps {
   children: ReactNode;
 }
 
-// Default theme values
-const DEFAULT_TEXT_COLOR = "#FFFFFF";
-const DEFAULT_BACKGROUND_COLOR = "rgba(0, 0, 0, 0.2)";
-
-// Create context with default values
 const ThemeContext = createContext<ThemeContextType>({
   textColor: DEFAULT_TEXT_COLOR,
   backgroundColor: DEFAULT_BACKGROUND_COLOR,
+  fontSizeRatio: DEFAULT_FONT_SIZE_RATIO,
   setTextColor: () => {},
   setBackgroundColor: () => {},
+  setFontSizeRatio: () => {},
   resetTheme: () => {},
 });
 
-// ThemeProvider component
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  // State for theme settings
   const [textColor, setTextColorState] = useState<string>(() => {
     const saved = localStorage.getItem("textColor");
     return saved || DEFAULT_TEXT_COLOR;
@@ -44,7 +48,17 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return saved || DEFAULT_BACKGROUND_COLOR;
   });
 
-  // Functions to update theme settings
+  const [fontSizeRatio, setFontSizeRatioState] = useState<number>(() => {
+    const saved = localStorage.getItem("fontSizeRatio");
+    if (!saved) return DEFAULT_FONT_SIZE_RATIO;
+    const parsed = Number.parseFloat(saved);
+    return Number.isFinite(parsed) ? clampFontSizeRatio(parsed) : DEFAULT_FONT_SIZE_RATIO;
+  });
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--font-size-ratio", String(fontSizeRatio));
+  }, [fontSizeRatio]);
+
   const setTextColor = (color: string) => {
     setTextColorState(color);
     localStorage.setItem("textColor", color);
@@ -55,10 +69,16 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     localStorage.setItem("backgroundColor", color);
   };
 
-  // Reset theme to defaults
+  const setFontSizeRatio = (ratio: number) => {
+    const clamped = clampFontSizeRatio(ratio);
+    setFontSizeRatioState(clamped);
+    localStorage.setItem("fontSizeRatio", String(clamped));
+  };
+
   const resetTheme = () => {
     setTextColor(DEFAULT_TEXT_COLOR);
     setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+    setFontSizeRatio(DEFAULT_FONT_SIZE_RATIO);
   };
 
   return (
@@ -66,8 +86,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       value={{
         textColor,
         backgroundColor,
+        fontSizeRatio,
         setTextColor,
         setBackgroundColor,
+        setFontSizeRatio,
         resetTheme,
       }}
     >
@@ -76,7 +98,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   );
 }
 
-// Custom hook to use theme context
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {

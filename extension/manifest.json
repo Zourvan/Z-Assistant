@@ -4,13 +4,12 @@
   "version": "1.0",
   "description": "A NEXX Tab page with bookmarks, calendar, and clock",
   "permissions": ["bookmarks", "storage"],
-
   "chrome_url_overrides": {
     "newtab": "index.html"
   },
   "web_accessible_resources": [
     {
-      "resources": ["images/*"],
+      "resources": ["static/background/*"],
       "matches": ["<all_urls>"]
     }
   ]

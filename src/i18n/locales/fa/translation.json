@@ -8,14 +8,19 @@
     "uploading": "در حال بارگذاری...",
     "pasteImageUrl": "آدرس تصویر را وارد کنید",
     "weekendDays": "روزهای آخر هفته (حداکثر ۳ روز)",
+    "weekendColor": "رنگ آخر هفته",
     "firstDayOfWeek": "اولین روز هفته",
-    "textColor": "متن",
-    "backgroundColor": "پس‌زمینه",
+    "textColor": "رنگ متن",
+    "backgroundColor": "رنگ پس‌زمینه",
+    "fontSizeRatio": "اندازه قلم",
+    "fontSizeRatioDesc": "اندازه همه متن‌های صفحه تب جدید را تغییر می‌دهد.",
     "reset": "بازنشانی",
     "calendarConfig": "پیکربندی تقویم",
     "appearance": "ظاهر",
+    "themePresets": "تم‌های آماده",
     "calendarType": {
       "title": "نوع تقویم",
+      "description": "تقویم میلادی یا شمسی را انتخاب کنید.",
       "gregorian": "میلادی",
       "persian": "شمسی"
     },
@@ -24,10 +29,45 @@
       "english": "انگلیسی",
       "persian": "فارسی"
     },
-    "tileNumber": "تعداد کاشی‌ها",
+    "sections": {
+      "general": "عمومی",
+      "calendar": "تقویم",
+      "appearance": "ظاهر",
+      "backgrounds": "پس‌زمینه",
+      "data": "داده‌ها"
+    },
+    "presets": {
+      "classic": "کلاسیک",
+      "dark": "تیره",
+      "ocean": "اقیانوس",
+      "midnight": "نیمه‌شب",
+      "forest": "جنگل",
+      "sunset": "غروب",
+      "lavender": "اسطوخودوس",
+      "rose": "گل‌سرخ",
+      "amber": "کهربایی",
+      "slate": "سنگی",
+      "wine": "شرابی",
+      "nord": "نورد",
+      "sky": "آسمانی"
+    },
+    "tileNumber": "تعداد کاشی بوک‌مارک",
     "dataManagement": "مدیریت داده‌ها",
+    "dataDescription": "از تنظیمات، بوک‌مارک‌ها و وظایف خود پشتیبان بگیرید یا بازیابی کنید.",
     "exportData": "خروجی داده‌ها",
-    "importData": "ورود داده‌ها"
+    "importData": "ورود داده‌ها",
+    "importConfirm": "این عمل تنظیمات و داده‌های فعلی را جایگزین می‌کند. ادامه می‌دهید؟",
+    "importSuccess": "داده‌ها با موفقیت وارد شدند.",
+    "errors": {
+      "invalidImage": "لطفاً یک فایل تصویری معتبر انتخاب کنید.",
+      "fileTooLarge": "حجم فایل باید کمتر از ۵ مگابایت باشد.",
+      "uploadFailed": "خطا در بارگذاری تصویر.",
+      "invalidUrl": "لطفاً یک آدرس تصویر معتبر وارد کنید.",
+      "deleteFailed": "حذف پس‌زمینه انجام نشد.",
+      "exportFailed": "خطا در خروجی گرفتن داده‌ها.",
+      "importFailed": "فایل ورودی نامعتبر است.",
+      "maxWeekendDays": "حداکثر ۳ روز آخر هفته قابل انتخاب است."
+    }
   },
   "days": {
     "Saturday": "شنبه",

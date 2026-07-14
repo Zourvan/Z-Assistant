@@ -111,17 +111,19 @@ React · TypeScript · Vite · Tailwind CSS · Material UI · IndexedDB · i18ne
 
 ```bash
 npm install
-npm run build    # ساخت برای Chrome
+npm run build:extension
 ```
 
 ### نصب در Chrome
 
-1. `npm run build` را اجرا کنید.
+1. `npm run build:extension` را اجرا کنید.
 2. در Chrome به `chrome://extensions` بروید.
 3. **Developer mode** را فعال کنید.
-4. **Load unpacked** را بزنید و پوشه **`dist`** را انتخاب کنید — نه ریشه پروژه.
+4. اگر قبلاً اکستنشن را از ریشه پروژه لود کرده‌اید، آن را **Remove** کنید.
+5. **Load unpacked** را بزنید و پوشه **`dist`** را انتخاب کنید.
 
-> اگر اکستنشن را از ریشه پروژه لود کنید، مرورگر فایل `/src/main.tsx` را به‌جای باندل JS می‌خواند و خطای MIME type (`application/octet-stream`) می‌دهد.
+> **مهم:** فقط پوشه `dist` را لود کنید. اگر ریشه پروژه (`Z-Assistant`) را لود کنید، Chrome فایل `/src/main.tsx` را می‌خواند و خطای MIME type می‌دهد:
+> `Expected a JavaScript module but got application/octet-stream`
 
 ### توسعه
 
@@ -129,7 +131,7 @@ npm run build    # ساخت برای Chrome
 npm run dev      # پیش‌نمایش در مرورگر (نه به‌عنوان اکستنشن)
 ```
 
-برای توسعه مستقیم اکستنشن، بعد از هر تغییر `npm run build` را دوباره اجرا کنید و در `chrome://extensions` دکمه Reload را بزنید.
+بعد از هر تغییر: `npm run build:extension` و سپس **Reload** در `chrome://extensions`.
 
 ---
 

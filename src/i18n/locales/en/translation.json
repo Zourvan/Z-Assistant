@@ -8,14 +8,19 @@
     "uploading": "Uploading...",
     "pasteImageUrl": "Paste image URL",
     "weekendDays": "Weekend Days (select up to 3)",
+    "weekendColor": "Weekend Color",
     "firstDayOfWeek": "First Day of the Week",
-    "textColor": "Text",
-    "backgroundColor": "Background",
+    "textColor": "Text Color",
+    "backgroundColor": "Background Color",
+    "fontSizeRatio": "Font Size",
+    "fontSizeRatioDesc": "Scale all text across the new tab page.",
     "reset": "Reset",
     "calendarConfig": "Calendar Configuration",
     "appearance": "Appearance",
+    "themePresets": "Quick Themes",
     "calendarType": {
       "title": "Calendar Type",
+      "description": "Choose between Gregorian or Persian calendar.",
       "gregorian": "Gregorian",
       "persian": "Persian"
     },
@@ -24,10 +29,45 @@
       "english": "English",
       "persian": "Persian"
     },
-    "tileNumber": "Tile Number",
+    "sections": {
+      "general": "General",
+      "calendar": "Calendar",
+      "appearance": "Appearance",
+      "backgrounds": "Backgrounds",
+      "data": "Data"
+    },
+    "presets": {
+      "classic": "Classic",
+      "dark": "Dark",
+      "ocean": "Ocean",
+      "midnight": "Midnight",
+      "forest": "Forest",
+      "sunset": "Sunset",
+      "lavender": "Lavender",
+      "rose": "Rose",
+      "amber": "Amber",
+      "slate": "Slate",
+      "wine": "Wine",
+      "nord": "Nord",
+      "sky": "Sky"
+    },
+    "tileNumber": "Bookmark Tile Count",
     "dataManagement": "Data Management",
+    "dataDescription": "Back up or restore your settings, bookmarks, and tasks.",
     "exportData": "Export Data",
-    "importData": "Import Data"
+    "importData": "Import Data",
+    "importConfirm": "This will replace your current settings and data. Continue?",
+    "importSuccess": "Data imported successfully.",
+    "errors": {
+      "invalidImage": "Please select a valid image file.",
+      "fileTooLarge": "File size must be less than 5MB.",
+      "uploadFailed": "Failed to upload image.",
+      "invalidUrl": "Please enter a valid image URL.",
+      "deleteFailed": "Failed to delete background.",
+      "exportFailed": "Failed to export data.",
+      "importFailed": "Invalid import file.",
+      "maxWeekendDays": "You can select up to 3 weekend days."
+    }
   },
   "days": {
     "Saturday": "Saturday",

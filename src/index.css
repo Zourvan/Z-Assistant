@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-size: calc(16px * var(--font-size-ratio, 1));
+}
+
 @layer base {
 
     h1,
