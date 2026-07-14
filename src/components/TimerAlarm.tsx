@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { Timer, Bell, Play, Pause, RotateCcw, Plus, Trash2, BellRing } from "lucide-react";
+import { Timer, Bell, Play, Pause, RotateCcw, Plus, Trash2, BellRing, CircleDot } from "lucide-react";
 import { useCalendar } from "./Settings";
 import { useI18n } from "../i18n/LanguageProvider";
 import { alarmsDB } from "./settings/settingsDb";
 import { buildThemeVars } from "./settings/themeUtils";
 import type { AlarmItem, AlarmRepeat, ActiveTimer, RingingAlert } from "./timerAlarm/types";
+import { PomodoroPanel, type PomodoroCompletion, type PomodoroPanelHandle } from "./timerAlarm/PomodoroPanel";
 import {
   ACTIVE_TIMER_KEY,
   TIMER_PRESETS_MIN,
@@ -18,7 +19,7 @@ import {
 } from "./timerAlarm/utils";
 import "./TimerAlarm.css";
 
-type Tab = "timer" | "alarm";
+type Tab = "timer" | "pomodoro" | "alarm";
 
 const REPEAT_OPTIONS: AlarmRepeat[] = ["once", "daily", "weekdays", "weekends"];
 
@@ -66,7 +67,9 @@ export function TimerAlarm() {
   const [alarmRepeat, setAlarmRepeat] = useState<AlarmRepeat>("daily");
 
   const [ringing, setRinging] = useState<RingingAlert | null>(null);
+  const [pomodoroCompletion, setPomodoroCompletion] = useState<PomodoroCompletion | null>(null);
   const soundIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pomodoroRef = useRef<PomodoroPanelHandle>(null);
 
   const themeStyle = useMemo(() => buildThemeVars(textColor, backgroundColor), [textColor, backgroundColor]);
 
@@ -257,6 +260,14 @@ export function TimerAlarm() {
         </button>
         <button
           type="button"
+          className={`timer-alarm__tab ${tab === "pomodoro" ? "timer-alarm__tab--active" : ""}`}
+          onClick={() => setTab("pomodoro")}
+        >
+          <CircleDot className="w-4 h-4" />
+          {t("timerAlarm.pomodoro.title")}
+        </button>
+        <button
+          type="button"
           className={`timer-alarm__tab ${tab === "alarm" ? "timer-alarm__tab--active" : ""}`}
           onClick={() => setTab("alarm")}
         >
@@ -360,6 +371,10 @@ export function TimerAlarm() {
           </>
         )}
 
+        {tab === "pomodoro" && (
+          <PomodoroPanel ref={pomodoroRef} usePersian={usePersian} t={t} onCompletionChange={setPomodoroCompletion} />
+        )}
+
         {tab === "alarm" && (
           <>
             <div className="timer-alarm__add-row">
@@ -460,6 +475,28 @@ export function TimerAlarm() {
           </>
         )}
       </div>
+
+      {pomodoroCompletion && (
+        <div className="timer-alarm__ring-overlay pomodoro__overlay">
+          <div className="timer-alarm__ring-title">{t("timerAlarm.pomodoro.done")}</div>
+          <div className="timer-alarm__ring-label">{pomodoroCompletion.label}</div>
+          <div className="pomodoro__next-hint">
+            {t("timerAlarm.pomodoro.upNext")}: {t(`timerAlarm.pomodoro.phases.${pomodoroCompletion.pendingNext.phase}`)}
+          </div>
+          <div className="timer-alarm__ring-actions">
+            <button
+              type="button"
+              className="timer-alarm__btn timer-alarm__btn--primary"
+              onClick={() => pomodoroRef.current?.startNextPhase()}
+            >
+              {t("timerAlarm.pomodoro.startNext")}
+            </button>
+            <button type="button" className="timer-alarm__btn" onClick={() => pomodoroRef.current?.dismissCompletion()}>
+              {t("timerAlarm.dismiss")}
+            </button>
+          </div>
+        </div>
+      )}
 
       {ringing && (
         <div className="timer-alarm__ring-overlay">

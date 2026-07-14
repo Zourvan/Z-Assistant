@@ -182,6 +182,28 @@
       "weekdays": "روزهای کاری",
       "weekends": "آخر هفته",
       "custom": "سفارشی"
+    },
+    "pomodoro": {
+      "title": "پومودورو",
+      "settings": "تنظیم زمان‌ها",
+      "min": "دقیقه",
+      "rounds": "دورها",
+      "roundCount": "{{current}} از {{total}}",
+      "skip": "رد شدن",
+      "done": "فاز تمام شد!",
+      "startNext": "شروع بعدی",
+      "upNext": "بعدی",
+      "resetDefaults": "بازنشانی پیش‌فرض",
+      "phases": {
+        "work": "تمرکز",
+        "shortBreak": "استراحت کوتاه",
+        "longBreak": "استراحت بلند"
+      },
+      "phaseDone": {
+        "work": "تمرکز تمام شد — وقت استراحت است!",
+        "shortBreak": "استراحت تمام شد — آماده تمرکز؟",
+        "longBreak": "استراحت بلند تمام شد — برگردیم به کار!"
+      }
     }
   },
   "tools": {

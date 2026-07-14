@@ -182,6 +182,28 @@
       "weekdays": "Weekdays",
       "weekends": "Weekends",
       "custom": "Custom"
+    },
+    "pomodoro": {
+      "title": "Pomodoro",
+      "settings": "Customize durations",
+      "min": "min",
+      "rounds": "Rounds",
+      "roundCount": "{{current}} / {{total}}",
+      "skip": "Skip",
+      "done": "Phase complete!",
+      "startNext": "Start next",
+      "upNext": "Up next",
+      "resetDefaults": "Reset defaults",
+      "phases": {
+        "work": "Focus",
+        "shortBreak": "Short break",
+        "longBreak": "Long break"
+      },
+      "phaseDone": {
+        "work": "Focus session complete — time for a break!",
+        "shortBreak": "Break over — ready to focus?",
+        "longBreak": "Long break done — let's get back to work!"
+      }
     }
   },
   "tools": {

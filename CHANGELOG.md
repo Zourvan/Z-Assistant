@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-14 23:16:00
+- Added Pomodoro timer tab with focus/break phases, progress ring, round tracker, and customizable durations
+- Components affected: src/components/TimerAlarm.tsx, src/components/TimerAlarm.css, src/components/timerAlarm/PomodoroPanel.tsx, src/components/timerAlarm/pomodoroUtils.ts, src/components/timerAlarm/types.ts, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-14 23:04:22
 - Grouped Settings and Tools triggers in the same frosted panel style as social links (rounded box, blur, shadow)
 - Components affected: src/App.tsx, src/App.css, src/components/settings/SettingsPanel.tsx, src/components/Tools.tsx, src/components/Settings.css, src/components/Tools.css

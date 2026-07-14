@@ -21,7 +21,26 @@ export interface ActiveTimer {
 }
 
 export interface RingingAlert {
-  kind: "timer" | "alarm";
+  kind: "timer" | "alarm" | "pomodoro";
   id: string;
   label: string;
+}
+
+export type PomodoroPhase = "work" | "shortBreak" | "longBreak";
+
+export interface PomodoroSettings {
+  workMin: number;
+  shortBreakMin: number;
+  longBreakMin: number;
+  roundsBeforeLong: number;
+}
+
+export interface ActivePomodoro {
+  phase: PomodoroPhase;
+  totalMs: number;
+  endAt: number;
+  status: "running" | "paused";
+  pausedRemainingMs?: number;
+  completedRounds: number;
+  settings: PomodoroSettings;
 }
