@@ -93,7 +93,6 @@
     "bookmarksGroup": "Bookmarks",
     "root": "All bookmarks",
     "path": "Folder path",
-    "searchRecursive": "Search in subfolders",
     "searchRecursive": "Search in subfolders"
   },
   "days": {
@@ -221,18 +220,14 @@
       "programming": "Programming"
     },
     "items": {
-      "color": "Color Converter",
       "dateConverter": "Date & Time Toolkit",
       "encodingCrypto": "Encoding & Cryptography",
-      "json": "JSON",
-      "regex": "Regex"
+      "developerTools": "Developer Toolkit"
     },
     "descriptions": {
-      "color": "Convert between HEX, RGB, RGBA, HSL, and HSLA with live preview",
       "dateConverter": "Full date & time toolkit: calendars, calculators, timezone, cron, and more",
       "encodingCrypto": "Encoding, hashing, encryption, security utilities, certificates, and more",
-      "json": "Format and minify JSON",
-      "regex": "Test regular expressions against text"
+      "developerTools": "JSON, YAML, regex, diff, JWT, cURL, DevOps, network, CSS, and 50+ developer utilities"
     },
     "color": {
       "picker": "Pick color",
@@ -835,6 +830,381 @@
         "escape": {
           "title": "Escape Characters",
           "description": "JSON, Regex, XML, SQL, CSV, and Shell escape"
+        }
+      }
+    },
+    "developerToolkit": {
+      "back": "All tools",
+      "comingSoon": "Soon",
+      "search": {
+        "placeholder": "Search developer tools…",
+        "all": "All",
+        "noResults": "No tools match your search"
+      },
+      "common": {
+        "input": "Input",
+        "output": "Output",
+        "format": "Format",
+        "minify": "Minify"
+      },
+      "errors": {
+        "invalidJson": "Invalid JSON",
+        "convertFailed": "Conversion failed",
+        "formatFailed": "Formatting failed",
+        "renderFailed": "Render failed"
+      },
+      "groups": {
+        "dataConverter": "Data Converter",
+        "textTools": "Text Tools",
+        "codeTools": "Code Tools",
+        "webTools": "Web Tools",
+        "apiTools": "API Tools",
+        "devops": "DevOps",
+        "network": "Network",
+        "frontend": "Frontend",
+        "aiDeveloper": "AI Developer",
+        "utility": "Utility"
+      },
+      "csv": {
+        "tableView": "Table view"
+      },
+      "diff": {
+        "original": "Original",
+        "modified": "Modified",
+        "result": "Diff"
+      },
+      "lorem": {
+        "paragraphs": "Paragraphs",
+        "words": "Words per paragraph"
+      },
+      "textStats": {
+        "words": "Words",
+        "characters": "Characters",
+        "lines": "Lines",
+        "bytes": "Bytes"
+      },
+      "regexGen": {
+        "pattern": "Generated pattern",
+        "email": "Email",
+        "url": "URL",
+        "ipv4": "IPv4",
+        "phone": "Phone",
+        "hexColor": "Hex color",
+        "uuid": "UUID",
+        "dateIso": "ISO date",
+        "slug": "Slug"
+      },
+      "queryParams": {
+        "pairs": "Key=value pairs",
+        "result": "Query string"
+      },
+      "httpStatus": {
+        "code": "Status code",
+        "notFound": "Status code not found"
+      },
+      "mime": {
+        "extension": "File extension",
+        "unknown": "Unknown extension"
+      },
+      "openapi": {
+        "summary": "Summary"
+      },
+      "chmod": {
+        "octal": "Octal",
+        "symbolic": "Symbolic",
+        "symbolicResult": "Symbolic result",
+        "octalResult": "Octal result"
+      },
+      "semver": {
+        "version": "Version"
+      },
+      "conventional": {
+        "scope": "Scope",
+        "message": "Message",
+        "breaking": "Breaking change"
+      },
+      "dockerTags": {
+        "name": "Image name"
+      },
+      "env": {
+        "parse": "Parse",
+        "sort": "Sort",
+        "parsed": "Parsed",
+        "sorted": "Sorted",
+        "invalidLine": "Invalid line (expected key=value)"
+      },
+      "cidr": {
+        "network": "Network",
+        "broadcast": "Broadcast",
+        "firstHost": "First host",
+        "lastHost": "Last host",
+        "hostCount": "Host count",
+        "subnetMask": "Subnet mask"
+      },
+      "ip": {
+        "number": "Integer"
+      },
+      "subnet": {
+        "prefix": "Prefix (/)"
+      },
+      "dns": {
+        "name": "Name",
+        "value": "Value",
+        "priority": "Priority"
+      },
+      "css": {
+        "angle": "Angle (deg)",
+        "color1": "Color 1",
+        "color2": "Color 2",
+        "base": "Base font size (px)",
+        "columns": "Columns",
+        "rows": "Rows"
+      },
+      "tokens": {
+        "estimated": "Estimated tokens"
+      },
+      "mdTable": {
+        "headers": "Headers (CSV)",
+        "rows": "Rows (CSV)"
+      },
+      "schema": {
+        "valid": "Valid — data matches schema"
+      },
+      "nanoid": {
+        "size": "Length"
+      },
+      "subTools": {
+        "jsonFormatter": {
+          "title": "JSON Formatter",
+          "description": "Format, minify, validate and pretty-print JSON"
+        },
+        "yamlJson": {
+          "title": "YAML ↔ JSON",
+          "description": "Convert between YAML and JSON"
+        },
+        "xml": {
+          "title": "XML Formatter & Converter",
+          "description": "Format, validate and convert XML ↔ JSON"
+        },
+        "csv": {
+          "title": "CSV Viewer & Converter",
+          "description": "View CSV as table and convert to JSON"
+        },
+        "toml": {
+          "title": "TOML Converter",
+          "description": "Convert TOML to JSON and YAML"
+        },
+        "ini": {
+          "title": "INI Parser",
+          "description": "Parse and convert INI config files"
+        },
+        "diff": {
+          "title": "Diff Checker",
+          "description": "Compare two texts and show changed lines"
+        },
+        "case": {
+          "title": "Case Converter",
+          "description": "camelCase, PascalCase, snake_case, kebab-case and more"
+        },
+        "slug": {
+          "title": "Slug Generator",
+          "description": "Convert text to URL-friendly slugs"
+        },
+        "lorem": {
+          "title": "Lorem Ipsum Generator",
+          "description": "Generate placeholder text"
+        },
+        "textStats": {
+          "title": "Text Statistics",
+          "description": "Count words, characters, lines and bytes"
+        },
+        "lineSorter": {
+          "title": "Line Sorter",
+          "description": "Sort lines alphabetically"
+        },
+        "removeDuplicates": {
+          "title": "Remove Duplicate Lines",
+          "description": "Remove duplicate lines from text"
+        },
+        "codeFormatter": {
+          "title": "Code Formatter",
+          "description": "Format JS, TS, HTML, CSS, SQL, JSON, YAML, Markdown"
+        },
+        "codeMinifier": {
+          "title": "Code Minifier",
+          "description": "Remove extra whitespace from code"
+        },
+        "escape": {
+          "title": "Escape / Unescape",
+          "description": "Escape strings for JSON, HTML, XML, JS, SQL, Shell, Regex"
+        },
+        "regexTester": {
+          "title": "Regex Tester",
+          "description": "Test regular expressions with match highlighting"
+        },
+        "regexGenerator": {
+          "title": "Regex Generator",
+          "description": "Common regex patterns for email, URL, UUID and more"
+        },
+        "urlParser": {
+          "title": "URL Parser",
+          "description": "Parse protocol, host, port, path, query and fragment"
+        },
+        "queryParams": {
+          "title": "Query Parameter Editor",
+          "description": "Build and edit URL query strings"
+        },
+        "httpStatus": {
+          "title": "HTTP Status Codes",
+          "description": "Look up HTTP status code meanings"
+        },
+        "mimeType": {
+          "title": "MIME Type Lookup",
+          "description": "Get MIME type from file extension"
+        },
+        "userAgent": {
+          "title": "User-Agent Parser",
+          "description": "Parse browser and OS from User-Agent"
+        },
+        "curlParser": {
+          "title": "cURL Parser",
+          "description": "Parse cURL commands into readable request info"
+        },
+        "curlGenerator": {
+          "title": "cURL Generator",
+          "description": "Build cURL commands from form fields"
+        },
+        "jwt": {
+          "title": "JWT Decoder",
+          "description": "Decode JWT header and payload"
+        },
+        "graphql": {
+          "title": "GraphQL Formatter",
+          "description": "Format GraphQL queries"
+        },
+        "openApi": {
+          "title": "OpenAPI Viewer",
+          "description": "Inspect OpenAPI/Swagger spec structure"
+        },
+        "chmod": {
+          "title": "chmod Calculator",
+          "description": "Convert between octal and symbolic permissions"
+        },
+        "semver": {
+          "title": "Semantic Version Calculator",
+          "description": "Bump major, minor or patch versions"
+        },
+        "gitignore": {
+          "title": "Gitignore Generator",
+          "description": "Generate .gitignore for popular stacks"
+        },
+        "conventionalCommit": {
+          "title": "Conventional Commit Generator",
+          "description": "Build standard commit messages"
+        },
+        "dockerIgnore": {
+          "title": "Docker Ignore Generator",
+          "description": "Generate .dockerignore files"
+        },
+        "dockerTags": {
+          "title": "Docker Image Tag Builder",
+          "description": "Build Docker image tags"
+        },
+        "k8sConverter": {
+          "title": "Kubernetes Resource Converter",
+          "description": "Convert CPU and memory units"
+        },
+        "envEditor": {
+          "title": "Environment Variable Editor",
+          "description": "Parse, validate and sort .env files"
+        },
+        "cidr": {
+          "title": "CIDR Calculator",
+          "description": "Calculate network, broadcast and host range"
+        },
+        "ipConverter": {
+          "title": "IP Converter",
+          "description": "Convert IP address to integer and back"
+        },
+        "subnet": {
+          "title": "Subnet Calculator",
+          "description": "Calculate subnet details from IP and prefix"
+        },
+        "dnsBuilder": {
+          "title": "DNS Record Builder",
+          "description": "Build A, AAAA, CNAME, TXT, MX and SRV records"
+        },
+        "colorPicker": {
+          "title": "Color Picker",
+          "description": "Pick colors and convert HEX, RGB, HSL, HSV"
+        },
+        "cssGradient": {
+          "title": "CSS Gradient Generator",
+          "description": "Build linear and radial CSS gradients"
+        },
+        "boxShadow": {
+          "title": "Box Shadow Generator",
+          "description": "Generate CSS box-shadow values"
+        },
+        "borderRadius": {
+          "title": "Border Radius Generator",
+          "description": "Build CSS border-radius values"
+        },
+        "cssUnit": {
+          "title": "CSS Unit Converter",
+          "description": "Convert px, rem, em, vw, vh"
+        },
+        "flexbox": {
+          "title": "Flexbox Playground",
+          "description": "Test flexbox settings with live preview"
+        },
+        "cssGrid": {
+          "title": "CSS Grid Generator",
+          "description": "Build CSS grid layouts"
+        },
+        "svgOptimizer": {
+          "title": "SVG Optimizer",
+          "description": "Minify and optimize SVG markup"
+        },
+        "tokenCounter": {
+          "title": "Token Counter",
+          "description": "Estimate LLM token count for text"
+        },
+        "markdownPreview": {
+          "title": "Markdown Preview",
+          "description": "Live Markdown preview"
+        },
+        "markdownTable": {
+          "title": "Markdown Table Generator",
+          "description": "Generate Markdown tables from CSV"
+        },
+        "mermaid": {
+          "title": "Mermaid Preview",
+          "description": "Render Mermaid diagrams"
+        },
+        "jsonSchema": {
+          "title": "JSON Schema Validator",
+          "description": "Validate JSON against a schema"
+        },
+        "uuid": {
+          "title": "UUID Generator",
+          "description": "Generate UUID v4 and v7"
+        },
+        "nanoid": {
+          "title": "NanoID Generator",
+          "description": "Generate short unique IDs"
+        },
+        "random": {
+          "title": "Random Generator",
+          "description": "Random numbers, strings, hex and colors"
+        },
+        "byteConverter": {
+          "title": "Byte Converter",
+          "description": "Convert between B, KB, MB, GB, TB"
+        },
+        "numberBase": {
+          "title": "Number Base Converter",
+          "description": "Convert between binary, decimal, hex and octal"
         }
       }
     }

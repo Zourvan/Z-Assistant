@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2026-07-15 14:45:00
+- Added Developer Toolkit with 58 sub-tools for programmers: JSON/YAML/XML/CSV/TOML converters, text tools, code formatters, regex, web/API utilities, DevOps, network, CSS generators, AI dev tools, and more
+- Replaced standalone JSON, Regex, and Color sidebar entries with unified searchable Developer Toolkit
+- Components affected: src/components/tools/developer/**, src/components/tools/registry.ts, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json, package.json
+
 ## 2026-07-15 14:30:00
 - Fixed Date & Time Toolkit date picker popover: theme colors now apply to the calendar overlay and day cells are clearly visible
 - Components affected: src/components/tools/datetime/ToolDatePicker.tsx, src/components/Tools.css

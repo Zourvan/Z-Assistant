@@ -93,7 +93,6 @@
     "bookmarksGroup": "بوک‌مارک‌ها",
     "root": "همه بوک‌مارک‌ها",
     "path": "مسیر پوشه",
-    "searchRecursive": "جستجو در زیرپوشه‌ها",
     "searchRecursive": "جستجو در زیرپوشه‌ها"
   },
   "days": {
@@ -221,18 +220,14 @@
       "programming": "برنامه‌نویسی"
     },
     "items": {
-      "color": "تبدیل رنگ",
       "dateConverter": "ابزار تاریخ و زمان",
       "encodingCrypto": "کدگذاری و رمزنگاری",
-      "json": "JSON",
-      "regex": "Regex"
+      "developerTools": "ابزارهای توسعه‌دهنده"
     },
     "descriptions": {
-      "color": "تبدیل بین HEX، RGB، RGBA، HSL و HSLA با پیش‌نمایش زنده",
       "dateConverter": "مجموعه کامل تاریخ و زمان: تقویم، محاسبات، منطقه زمانی، کرون و بیشتر",
       "encodingCrypto": "کدگذاری، هش، رمزنگاری، ابزارهای امنیتی، گواهی‌ها و بیشتر",
-      "json": "فرمت‌دهی و فشرده‌سازی JSON",
-      "regex": "تست عبارت باقاعده روی متن"
+      "developerTools": "JSON، YAML، regex، diff، JWT، cURL، DevOps، شبکه، CSS و بیش از ۵۰ ابزار"
     },
     "color": {
       "picker": "انتخاب رنگ",
@@ -835,6 +830,381 @@
         "escape": {
           "title": "Escape Characters",
           "description": "Escape برای JSON، Regex، XML، SQL، CSV و Shell"
+        }
+      }
+    },
+    "developerToolkit": {
+      "back": "همه ابزارها",
+      "comingSoon": "به‌زودی",
+      "search": {
+        "placeholder": "جستجوی ابزارهای توسعه‌دهنده…",
+        "all": "همه",
+        "noResults": "ابزاری با این جستجو پیدا نشد"
+      },
+      "common": {
+        "input": "ورودی",
+        "output": "خروجی",
+        "format": "فرمت",
+        "minify": "فشرده"
+      },
+      "errors": {
+        "invalidJson": "JSON نامعتبر است",
+        "convertFailed": "تبدیل ناموفق بود",
+        "formatFailed": "فرمت‌دهی ناموفق بود",
+        "renderFailed": "رندر ناموفق بود"
+      },
+      "groups": {
+        "dataConverter": "تبدیل داده",
+        "textTools": "ابزار متن",
+        "codeTools": "ابزار کد",
+        "webTools": "ابزار وب",
+        "apiTools": "ابزار API",
+        "devops": "DevOps",
+        "network": "شبکه",
+        "frontend": "فرانت‌اند",
+        "aiDeveloper": "توسعه AI",
+        "utility": "ابزارهای کمکی"
+      },
+      "csv": {
+        "tableView": "نمای جدول"
+      },
+      "diff": {
+        "original": "اصلی",
+        "modified": "ویرایش‌شده",
+        "result": "تفاوت"
+      },
+      "lorem": {
+        "paragraphs": "پاراگراف",
+        "words": "کلمه در هر پاراگراف"
+      },
+      "textStats": {
+        "words": "کلمات",
+        "characters": "کاراکترها",
+        "lines": "خطوط",
+        "bytes": "بایت"
+      },
+      "regexGen": {
+        "pattern": "الگوی تولیدشده",
+        "email": "ایمیل",
+        "url": "URL",
+        "ipv4": "IPv4",
+        "phone": "تلفن",
+        "hexColor": "رنگ Hex",
+        "uuid": "UUID",
+        "dateIso": "تاریخ ISO",
+        "slug": "Slug"
+      },
+      "queryParams": {
+        "pairs": "جفت key=value",
+        "result": "Query string"
+      },
+      "httpStatus": {
+        "code": "کد وضعیت",
+        "notFound": "کد وضعیت یافت نشد"
+      },
+      "mime": {
+        "extension": "پسوند فایل",
+        "unknown": "پسوند ناشناخته"
+      },
+      "openapi": {
+        "summary": "خلاصه"
+      },
+      "chmod": {
+        "octal": "Octal",
+        "symbolic": "Symbolic",
+        "symbolicResult": "نتیجه Symbolic",
+        "octalResult": "نتیجه Octal"
+      },
+      "semver": {
+        "version": "نسخه"
+      },
+      "conventional": {
+        "scope": "Scope",
+        "message": "پیام",
+        "breaking": "تغییر شکننده"
+      },
+      "dockerTags": {
+        "name": "نام image"
+      },
+      "env": {
+        "parse": "Parse",
+        "sort": "مرتب‌سازی",
+        "parsed": "Parse شده",
+        "sorted": "مرتب‌شده",
+        "invalidLine": "خط نامعتبر (key=value انتظار می‌رود)"
+      },
+      "cidr": {
+        "network": "شبکه",
+        "broadcast": "Broadcast",
+        "firstHost": "اولین IP",
+        "lastHost": "آخرین IP",
+        "hostCount": "تعداد host",
+        "subnetMask": "Subnet mask"
+      },
+      "ip": {
+        "number": "عدد صحیح"
+      },
+      "subnet": {
+        "prefix": "Prefix (/)"
+      },
+      "dns": {
+        "name": "نام",
+        "value": "مقدار",
+        "priority": "اولویت"
+      },
+      "css": {
+        "angle": "زاویه (deg)",
+        "color1": "رنگ ۱",
+        "color2": "رنگ ۲",
+        "base": "اندازه پایه فونت (px)",
+        "columns": "ستون‌ها",
+        "rows": "ردیف‌ها"
+      },
+      "tokens": {
+        "estimated": "تخمین token"
+      },
+      "mdTable": {
+        "headers": "سرستون‌ها (CSV)",
+        "rows": "ردیف‌ها (CSV)"
+      },
+      "schema": {
+        "valid": "معتبر — داده با schema مطابقت دارد"
+      },
+      "nanoid": {
+        "size": "طول"
+      },
+      "subTools": {
+        "jsonFormatter": {
+          "title": "JSON Formatter",
+          "description": "فرمت، minify، اعتبارسنجی و نمایش JSON"
+        },
+        "yamlJson": {
+          "title": "YAML ↔ JSON",
+          "description": "تبدیل بین YAML و JSON"
+        },
+        "xml": {
+          "title": "XML Formatter & Converter",
+          "description": "فرمت، اعتبارسنجی و تبدیل XML ↔ JSON"
+        },
+        "csv": {
+          "title": "CSV Viewer & Converter",
+          "description": "نمایش CSV به صورت جدول و تبدیل به JSON"
+        },
+        "toml": {
+          "title": "TOML Converter",
+          "description": "تبدیل TOML به JSON و YAML"
+        },
+        "ini": {
+          "title": "INI Parser",
+          "description": "خواندن و تبدیل فایل‌های ini"
+        },
+        "diff": {
+          "title": "Diff Checker",
+          "description": "مقایسه دو متن و نمایش خطوط تغییر یافته"
+        },
+        "case": {
+          "title": "Case Converter",
+          "description": "camelCase، PascalCase، snake_case، kebab-case و بیشتر"
+        },
+        "slug": {
+          "title": "Slug Generator",
+          "description": "تبدیل متن به URL Slug"
+        },
+        "lorem": {
+          "title": "Lorem Ipsum Generator",
+          "description": "تولید متن آزمایشی"
+        },
+        "textStats": {
+          "title": "Text Statistics",
+          "description": "شمارش کلمات، کاراکترها، خطوط و بایت"
+        },
+        "lineSorter": {
+          "title": "Line Sorter",
+          "description": "مرتب‌سازی خطوط"
+        },
+        "removeDuplicates": {
+          "title": "Remove Duplicate Lines",
+          "description": "حذف خطوط تکراری"
+        },
+        "codeFormatter": {
+          "title": "Code Formatter",
+          "description": "فرمت JS، TS، HTML، CSS، SQL، JSON، YAML، Markdown"
+        },
+        "codeMinifier": {
+          "title": "Code Minifier",
+          "description": "حذف فاصله‌ها و خطوط اضافی"
+        },
+        "escape": {
+          "title": "Escape / Unescape",
+          "description": "Escape برای JSON، HTML، XML، JS، SQL، Shell، Regex"
+        },
+        "regexTester": {
+          "title": "Regex Tester",
+          "description": "تست عبارت‌های Regular Expression"
+        },
+        "regexGenerator": {
+          "title": "Regex Generator",
+          "description": "الگوهای رایج regex برای email، URL، UUID و بیشتر"
+        },
+        "urlParser": {
+          "title": "URL Parser",
+          "description": "تجزیه protocol، host، port، path، query و fragment"
+        },
+        "queryParams": {
+          "title": "Query Parameter Editor",
+          "description": "ساخت و ویرایش Query String"
+        },
+        "httpStatus": {
+          "title": "HTTP Status Codes",
+          "description": "جستجوی کدهای HTTP"
+        },
+        "mimeType": {
+          "title": "MIME Type Lookup",
+          "description": "نمایش MIME Type از پسوند فایل"
+        },
+        "userAgent": {
+          "title": "User-Agent Parser",
+          "description": "تحلیل User-Agent مرورگر"
+        },
+        "curlParser": {
+          "title": "cURL Parser",
+          "description": "تبدیل دستور cURL به اطلاعات خوانا"
+        },
+        "curlGenerator": {
+          "title": "cURL Generator",
+          "description": "ساخت دستور cURL از فرم"
+        },
+        "jwt": {
+          "title": "JWT Decoder",
+          "description": "نمایش Header و Payload توکن JWT"
+        },
+        "graphql": {
+          "title": "GraphQL Formatter",
+          "description": "مرتب‌سازی Queryهای GraphQL"
+        },
+        "openApi": {
+          "title": "OpenAPI Viewer",
+          "description": "مشاهده ساختار فایل OpenAPI"
+        },
+        "chmod": {
+          "title": "chmod Calculator",
+          "description": "تبدیل مجوزهای Linux (octal ↔ symbolic)"
+        },
+        "semver": {
+          "title": "Semantic Version Calculator",
+          "description": "افزایش نسخه Major/Minor/Patch"
+        },
+        "gitignore": {
+          "title": "Gitignore Generator",
+          "description": "تولید فایل .gitignore"
+        },
+        "conventionalCommit": {
+          "title": "Conventional Commit Generator",
+          "description": "ساخت پیام Commit استاندارد"
+        },
+        "dockerIgnore": {
+          "title": "Docker Ignore Generator",
+          "description": "تولید فایل .dockerignore"
+        },
+        "dockerTags": {
+          "title": "Docker Image Tag Builder",
+          "description": "ساخت Tagهای Docker"
+        },
+        "k8sConverter": {
+          "title": "Kubernetes Resource Converter",
+          "description": "تبدیل واحدهای CPU و Memory"
+        },
+        "envEditor": {
+          "title": "Environment Variable Editor",
+          "description": "Parse، Validate و Sort فایل .env"
+        },
+        "cidr": {
+          "title": "CIDR Calculator",
+          "description": "محاسبه اطلاعات شبکه"
+        },
+        "ipConverter": {
+          "title": "IP Converter",
+          "description": "تبدیل IP به عدد و برعکس"
+        },
+        "subnet": {
+          "title": "Subnet Calculator",
+          "description": "محاسبه Subnet"
+        },
+        "dnsBuilder": {
+          "title": "DNS Record Builder",
+          "description": "ساخت رکوردهای A، AAAA، CNAME، TXT، MX، SRV"
+        },
+        "colorPicker": {
+          "title": "Color Picker",
+          "description": "انتخاب رنگ و تبدیل HEX، RGB، HSL، HSV"
+        },
+        "cssGradient": {
+          "title": "CSS Gradient Generator",
+          "description": "ساخت Linear و Radial Gradient"
+        },
+        "boxShadow": {
+          "title": "Box Shadow Generator",
+          "description": "تولید CSS برای Box Shadow"
+        },
+        "borderRadius": {
+          "title": "Border Radius Generator",
+          "description": "ساخت Border Radius"
+        },
+        "cssUnit": {
+          "title": "CSS Unit Converter",
+          "description": "تبدیل px، rem، em، vw، vh"
+        },
+        "flexbox": {
+          "title": "Flexbox Playground",
+          "description": "تست Flexbox با پیش‌نمایش زنده"
+        },
+        "cssGrid": {
+          "title": "CSS Grid Generator",
+          "description": "ساخت Grid Layout"
+        },
+        "svgOptimizer": {
+          "title": "SVG Optimizer",
+          "description": "کوچک‌سازی و بهینه‌سازی SVG"
+        },
+        "tokenCounter": {
+          "title": "Token Counter",
+          "description": "تخمین تعداد Token برای LLM"
+        },
+        "markdownPreview": {
+          "title": "Markdown Preview",
+          "description": "پیش‌نمایش Markdown"
+        },
+        "markdownTable": {
+          "title": "Markdown Table Generator",
+          "description": "ساخت جدول Markdown"
+        },
+        "mermaid": {
+          "title": "Mermaid Preview",
+          "description": "نمایش نمودارهای Mermaid"
+        },
+        "jsonSchema": {
+          "title": "JSON Schema Validator",
+          "description": "اعتبارسنجی JSON بر اساس Schema"
+        },
+        "uuid": {
+          "title": "UUID Generator",
+          "description": "تولید UUID v4 و v7"
+        },
+        "nanoid": {
+          "title": "NanoID Generator",
+          "description": "تولید شناسه‌های کوتاه یکتا"
+        },
+        "random": {
+          "title": "Random Generator",
+          "description": "تولید عدد، رشته، Hex و رنگ تصادفی"
+        },
+        "byteConverter": {
+          "title": "Byte Converter",
+          "description": "تبدیل واحدهای حجم B، KB، MB، GB، TB"
+        },
+        "numberBase": {
+          "title": "Number Base Converter",
+          "description": "تبدیل بین مبناهای دودویی، دهدهی، هگز و هشت‌تایی"
         }
       }
     }
