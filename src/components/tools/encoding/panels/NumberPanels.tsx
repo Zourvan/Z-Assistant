@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { useI18n } from "../../i18n/LanguageProvider";
-import { ToolPanel, ToolWorkspace, ToolToolbar, ToolField, ToolOutputList, ToolError } from "./shared";
+import { useI18n } from "../../../../i18n/LanguageProvider";
+import { ToolWorkspace, ToolToolbar, ToolField, ToolOutputList, ToolError } from "../../shared";
 
 type Base = "binary" | "decimal" | "hex" | "octal";
 
@@ -27,7 +27,7 @@ const parseValue = (value: string, base: Base): bigint | null => {
   }
 };
 
-export function BaseConverter() {
+export function NumberBasesPanel() {
   const { t } = useI18n();
   const [input, setInput] = useState("");
   const [fromBase, setFromBase] = useState<Base>("decimal");
@@ -49,7 +49,7 @@ export function BaseConverter() {
   const bases: Base[] = ["binary", "decimal", "hex", "octal"];
 
   return (
-    <ToolPanel>
+    <>
       <ToolToolbar>
         <div className="tools-toggle">
           {bases.map((b) => (
@@ -81,6 +81,6 @@ export function BaseConverter() {
           />
         )}
       </ToolWorkspace>
-    </ToolPanel>
+    </>
   );
 }

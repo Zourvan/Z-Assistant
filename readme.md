@@ -1,140 +1,189 @@
 # NEXX Tab
 
-اکستنشن **Google Chrome** برای جایگزینی صفحه تب جدید — بهبود وب‌گردی و برنامه‌ریزی روزانه.
+A **Google Chrome** New Tab extension for everyday browsing and planning — bookmarks, tasks, calendar, timers, and developer tools on one page.
 
-## هدف
+**Version:** 1.7.0
 
-ساخت یک **New Tab** ساده و کاربرپسند که ابزارهای ضروری روزمره — بوک‌مارک، Todo، یادداشت، تقویم و ساعت — را در یک صفحه در دسترس قرار دهد.
+## Goal
 
-## قابلیت‌های فعلی
+Replace the default New Tab with a simple, friendly dashboard that keeps daily essentials — bookmarks, tasks & notes, calendar, clock, timer/alarm, and utility tools — in one place.
 
-- **مدیریت بوک‌مارک‌ها** — دسترسی سریع، تغییر آیکون و رنگ، و جابه‌جایی
-- **لیست Todo** — ایجاد و مدیریت وظایف روزانه
-- **یادداشت‌ها** — ذخیره یادداشت‌های کوتاه
-- **تقویم** — پشتیبانی از **فارسی** و **انگلیسی**
-- **ساعت** — نمایش زنده تاریخ و ساعت
-- **تایمر و آلارم** — شمارش معکوس، پومودورو، آلارم با تکرار، صدا و اعلان
-- **ابزارها** — تبدیل تاریخ، تایم‌استمپ، Base64، JSON، هش، Regex و ابزارهای DevOps و برنامه‌نویسی
-- **تنظیمات** — تم، زبان، و پس‌زمینه
+## Features
 
-## نقشه راه
+### Bookmarks
 
-### انجام‌شده
+- Sync with Chrome bookmarks
+- Custom icon and color per bookmark
+- Drag-and-drop reordering
+- Folder navigation and group-by controls
+- Search and browse bookmark tiles
 
-- [x] تغییر آیکون بوک‌مارک‌ها
-- [x] تغییر رنگ بوک‌مارک‌ها
-- [x] جابه‌جایی بوک‌مارک‌ها
+### Tasks & Notes
 
-### در دست توسعه
+- Unified list for todos and notes
+- Filters: all / todo / note / scheduled
+- Due dates, colors, and emoji labels
+- Add and edit with a clean, compact UI
+- Persisted in IndexedDB
+- Full English and Persian (fa) localization
 
-- [ ] اضافه کردن تعطیلات و رویدادها به تقویم
-- [x] بهبود کیفیت رابط کاربری
-- [ ] بهبود ساختار تنظیمات
-- [x] اضافه کردن ساعت، آلارم و تایمر
-- [x] تبدیل تاریخ بین شمسی و میلادی
-- [x] ارتباط بین Todoها و تقویم
-- [ ] نمایش قیمت ارزهای دیجیتال و فیات
-- [ ] نمایش وضعیت آب‌وهوا
-- [ ] ساخت صفحه اینستاگرام
-- [ ] خواندن اطلاعات اصلی از سرور با APIها
-- [ ] یکپارچه‌سازی و مرتب‌سازی کامل تنظیمات (رنگ، فرم و ...)
-- [ ] اتصال به Google برای ذخیره تنظیمات
+### Clock & Calendar
 
-## ایده‌های آینده
+- Live clock with date display
+- Gregorian and Persian (Jalali) calendars
+- Configurable first day of week and weekend days
+- Task/note markers on scheduled calendar days
+- Day click opens a modal with that day’s items and quick-add
+- Shared `TasksProvider` keeps calendar and task list in sync
 
-### ۱. بهره‌وری و مدیریت زمان
+### Timer & Alarm
 
-- داشبورد بهره‌وری — تاریخ، ساعت، آب‌وهوا، کارهای روزانه و یادآورها
-- تقویم و برنامه‌ریزی — رویدادهای Google Calendar
-- تایمر پومودورو — [MyPomodoro](https://app.mypomodoro.ir/) · [PomoFocus](https://pomofocus.io/)
-- چک‌لیست روزانه دینامیک
-- گیمیفیکیشن روزانه
-- حالت تمرکز بدون حواس‌پرتی
-- چالش روزانه بهره‌وری
-- یادآوری پروژه‌های ناتمام
-- موتور جستجوی داخلی شخصی
+- Countdown timer with presets
+- Alarms with repeat schedules, sound, and browser notifications
+- Pomodoro mode: focus/break phases, progress ring, round tracker, custom durations
+- Alarms persisted in IndexedDB and included in backup export/import
 
-### ۲. اطلاعات و تحلیل داده‌ها
+### Tools (modal)
 
-- ویجت اخبار
-- ویجت کریپتو و بورس
-- پیش‌بینی قیمت ارز و سهام
-- پیش‌بینی روزانه با هوش مصنوعی
-- مقایسه قیمت محصولات
+Opened from a floating button. Sidebar navigation with categories: **General**, **DevOps**, and **Programming**. Compact split input/output layout.
 
-### ۳. یادگیری و بهبود فردی
+#### Date & Time Toolkit (General)
 
-- بهبود زبان — واژه جدید هر روز
-- الهام‌بخش خلاقیت
-- داشبورد یادگیری روزانه
-- تحلیل احساسی نوشته‌ها
+Search and group filters across 20 sub-tools:
 
-### ۴. الهام‌بخشی و زیبایی بصری
+| Group | Tools |
+| --- | --- |
+| Calendar | Jalali / Gregorian / Hijri conversion, date formatting |
+| Calculator | Add/subtract dates, date difference, business days, weekday, age, leap year |
+| Time | Time calculator, add duration to clock, duration, time units, timezone, countdown, relative time |
+| Developer | Unix timestamp, cron expressions, date range generator, ISO week |
+| Occasions | Holidays and occasions lookup |
 
-- تصاویر الهام‌بخش
-- نقل‌قول‌های روزانه — [Persian Quotes](https://www.kaggle.com/datasets/amirshnll/persian-quotes) · [Persian Poems](https://www.kaggle.com/datasets/elhamaghakhani/persian-poems) · [Hafez](https://www.kaggle.com/datasets/akhorshidi/hafez) · [Ganjoor](https://github.com/ganjoor/desktop/releases/tag/v2.81) · [Hafez Faal DB](https://github.com/mahmoud-eskandari/HafezFaalDatabase)
-- تصاویر ماهواره‌ای زمین
-- گالری هنری دیجیتال
-- شخصی‌سازی فونت و رنگ‌ها
+#### Encoding & Cryptography Toolkit (General)
 
-### ۵. سرگرمی و تعامل کاربر
+Search and group filters. Available today:
 
-- بازی‌های مینیمال (سودوکو، دوز، معما)
-- سوال روز
-- کپسول زمان دیجیتال
+| Group | Tools |
+| --- | --- |
+| Encoding | Base64 (text/file/image), URL, HTML entities, Unicode, ASCII, hex text, number bases, Morse, NATO phonetic |
+| Hash | SHA, CRC, HMAC |
+| Encryption | AES-GCM |
+| Security | Password generator, strength checker, passphrase, JWT, TOTP, UUID, secrets, random bytes |
+| Utilities | QR code, slug, case converter, multi-format escape |
 
-### ۶. مدیریت عادت‌ها و سلامت دیجیتال
+Placeholder cards (coming soon): MD5, BLAKE2, RSA, ChaCha20, ECC, PGP, certificates/PEM/CSR/SSH, barcode, and related items.
 
-- پیگیری عادت‌ها — [NWL Setup](https://github.com/MatheusBalestreiro/nwl-setup) · [Contribution Graph](https://medium.com/@the_ozmic/building-a-github-like-contribution-graph-for-a-habit-tracker-app-7655d82ece6d) · [Habit Watcher](https://github.com/n4ze3m/habit-watcher)
-- مرور عادات خوب
-- نظارت بر عادات مرورگر
+#### Other tools
 
-### ۷. ابزارهای کمکی
+- **JSON formatter** (DevOps)
+- **Color converter** — HEX, RGB, RGBA, HSL, HSLA with visual picker (Programming)
+- **Regex tester** (Programming)
 
-- کوتاه‌کننده لینک
-- یادداشت سریع
-- خلاصه‌نویس مقاله با AI
-- ماشین‌حساب سریع
-- تولید رمز عبور
-- موتور جستجوی چندگانه
-- اتصال به APIهای شخصی (Trello، Gmail، GitHub و ...)
+### Settings
 
-### ۸. کنترل و بهینه‌سازی اینترنت
+Sections: General · Calendar · Appearance · Backgrounds · Data
 
-- مسدودکننده حواس‌پرتی
-- هشدار مصرف اینترنت
-- ویجت صوتی محیطی
+- Language: English and Persian (RTL/LTR)
+- Calendar type (Gregorian / Persian) and related options
+- Theme presets, text/background colors
+- Backgrounds: built-in images/GIFs, solid colors, custom uploads
+- Data: export/import backup for bookmarks, tasks, alarms, and settings
 
-## تکنولوژی‌ها
+### Layout & UX
 
-React · TypeScript · Vite · Tailwind CSS · Material UI · IndexedDB · i18next
+- Responsive dashboard: mobile (1 column), tablet (2), desktop (3)
+- Clock/Calendar and Timer/Alarm in a shared time column
+- Settings and Tools triggers in a frosted control panel
+- Social links credit strip
 
-## اجرای پروژه
+## Roadmap
+
+### Done
+
+- [x] Bookmark icon, color, and reorder
+- [x] UI quality and responsive layout
+- [x] Clock, alarm, timer, and Pomodoro
+- [x] Date conversion (Jalali / Gregorian / Hijri) and full Date & Time toolkit
+- [x] Tasks linked to calendar (markers + day modal)
+- [x] Tools modal with Encoding & Cryptography toolkit
+- [x] English / Persian i18n with RTL support
+- [x] Theme and background customization
+- [x] IndexedDB persistence and backup export/import
+
+### Planned
+
+- [ ] Holidays and events on the main calendar widget
+- [ ] Settings structure refinements
+- [ ] Crypto and fiat price display
+- [ ] Weather status
+- [ ] Instagram page
+- [ ] Load core data from server APIs
+- [ ] Full settings unification (colors, forms, etc.)
+- [ ] Google account sync for settings
+- [ ] Remaining Encoding & Cryptography placeholders (RSA, PGP, certificates, etc.)
+
+## Future ideas
+
+### Productivity & time
+
+- Productivity dashboard (weather, daily tasks, reminders)
+- Google Calendar integration
+- Dynamic daily checklist, gamification, focus mode
+- Personal in-page search
+
+### Data & insights
+
+- News, crypto/stock widgets, AI daily outlook, price comparison
+
+### Learning & personal growth
+
+- Daily vocabulary, learning dashboard, writing mood analysis
+
+### Visual inspiration
+
+- Inspirational images and daily quotes (e.g. Persian poems / Hafez sources)
+- Font and color personalization
+
+### Habits & digital health
+
+- Habit tracking and contribution-style graphs
+- Distraction blockers and usage awareness
+
+### More utilities
+
+- Link shortener, AI article summarizer, multi-engine search
+- Personal API hooks (Trello, Gmail, GitHub, …)
+
+## Tech stack
+
+React · TypeScript · Vite · Tailwind CSS · Material UI · IndexedDB · i18next · Lucide icons
+
+## Getting started
 
 ```bash
 npm install
 npm run build:extension
 ```
 
-### نصب در Chrome
+### Install in Chrome
 
-1. `npm run build:extension` را اجرا کنید.
-2. در Chrome به `chrome://extensions` بروید.
-3. **Developer mode** را فعال کنید.
-4. اگر قبلاً اکستنشن را از ریشه پروژه لود کرده‌اید، آن را **Remove** کنید.
-5. **Load unpacked** را بزنید و پوشه **`dist`** را انتخاب کنید.
+1. Run `npm run build:extension`.
+2. Open `chrome://extensions`.
+3. Enable **Developer mode**.
+4. If you previously loaded the project root, **Remove** that extension.
+5. Click **Load unpacked** and select the **`dist`** folder.
 
-> **مهم:** فقط پوشه `dist` را لود کنید. اگر ریشه پروژه (`Z-Assistant`) را لود کنید، Chrome فایل `/src/main.tsx` را می‌خواند و خطای MIME type می‌دهد:
+> **Important:** Load only the `dist` folder. Loading the project root (`Z-Assistant`) causes Chrome to read `/src/main.tsx` and fail with a MIME type error:
 > `Expected a JavaScript module but got application/octet-stream`
 
-### توسعه
+### Development
 
 ```bash
-npm run dev      # پیش‌نمایش در مرورگر (نه به‌عنوان اکستنشن)
+npm run dev      # browser preview (not as an extension)
 ```
 
-بعد از هر تغییر: `npm run build:extension` و سپس **Reload** در `chrome://extensions`.
+After code changes: run `npm run build:extension`, then click **Reload** on `chrome://extensions`.
 
 ---
 
-پروژه در حال توسعه است. برای جزئیات تغییرات اخیر، [CHANGELOG.md](./CHANGELOG.md) را ببینید.
+This project is under active development. See [CHANGELOG.md](./CHANGELOG.md) for recent changes.

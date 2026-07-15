@@ -218,33 +218,17 @@
     },
     "items": {
       "color": "تبدیل رنگ",
-      "dateConverter": "تبدیل تاریخ",
-      "timestamp": "تبدیل تایم‌استمپ",
-      "base64": "Base64",
-      "password": "رمز عبور",
+      "dateConverter": "ابزار تاریخ و زمان",
+      "encodingCrypto": "کدگذاری و رمزنگاری",
       "json": "JSON",
-      "url": "URL",
-      "uuid": "UUID",
-      "hash": "هش",
-      "regex": "Regex",
-      "base": "مبناهای عددی",
-      "escape": "Escape",
-      "jwt": "JWT"
+      "regex": "Regex"
     },
     "descriptions": {
       "color": "تبدیل بین HEX، RGB، RGBA، HSL و HSLA با پیش‌نمایش زنده",
-      "dateConverter": "تبدیل تاریخ شمسی و میلادی",
-      "timestamp": "تبدیل Unix timestamp به تاریخ خوانا",
-      "base64": "رمزگذاری و رمزگشایی متن Base64",
-      "password": "تولید رمز عبور امن و تصادفی",
+      "dateConverter": "مجموعه کامل تاریخ و زمان: تقویم، محاسبات، منطقه زمانی، کرون و بیشتر",
+      "encodingCrypto": "کدگذاری، هش، رمزنگاری، ابزارهای امنیتی، گواهی‌ها و بیشتر",
       "json": "فرمت‌دهی و فشرده‌سازی JSON",
-      "url": "رمزگذاری و رمزگشایی آدرس URL",
-      "uuid": "تولید شناسه UUID یکتا",
-      "hash": "محاسبه هش SHA-256، SHA-384 و SHA-512",
-      "regex": "تست عبارت باقاعده روی متن",
-      "base": "تبدیل بین مبناهای دودویی، دهدهی، هگز و هشت‌تایی",
-      "escape": "Escape و Unescape رشته‌های برنامه‌نویسی",
-      "jwt": "دیکود Header و Payload توکن JWT"
+      "regex": "تست عبارت باقاعده روی متن"
     },
     "color": {
       "picker": "انتخاب رنگ",
@@ -269,16 +253,245 @@
         "invalid": "تاریخ نامعتبر است"
       }
     },
-    "timestamp": {
-      "seconds": "ثانیه",
-      "milliseconds": "میلی‌ثانیه",
-      "input": "تایم‌استمپ",
-      "placeholder": "1700000000",
-      "now": "زمان فعلی",
-      "gregorian": "میلادی",
-      "jalali": "شمسی",
+    "dateTimeToolkit": {
+      "back": "همه ابزارها",
+      "search": {
+        "placeholder": "جستجوی ابزار تاریخ و زمان…",
+        "all": "همه",
+        "noResults": "ابزاری با این جستجو پیدا نشد"
+      },
+      "groups": {
+        "calendar": "تقویم",
+        "calculator": "محاسبات تاریخ",
+        "time": "زمان",
+        "developer": "برنامه‌نویسی",
+        "occasions": "مناسبت‌ها"
+      },
+      "calendars": {
+        "jalali": "شمسی",
+        "gregorian": "میلادی",
+        "hijri": "قمری"
+      },
+      "common": {
+        "input": "ورودی",
+        "output": "خروجی",
+        "result": "نتیجه",
+        "now": "اکنون",
+        "from": "از",
+        "to": "تا",
+        "date": "تاریخ",
+        "amount": "مقدار"
+      },
+      "units": {
+        "years": "سال",
+        "months": "ماه",
+        "weeks": "هفته",
+        "days": "روز",
+        "hours": "ساعت",
+        "minutes": "دقیقه",
+        "seconds": "ثانیه",
+        "ms": "میلی‌ثانیه"
+      },
+      "placeholders": {
+        "jalali": "1405/04/25 یا 1405/04/25 14:30",
+        "gregorian": "2026-07-16 یا 2026-07-16 14:30",
+        "hijri": "1448-02-01"
+      },
       "errors": {
-        "invalid": "تایم‌استمپ نامعتبر است"
+        "invalidDate": "تاریخ نامعتبر است",
+        "invalidTime": "زمان نامعتبر (HH:mm یا HH:mm:ss)",
+        "invalidTimestamp": "تایم‌استمپ نامعتبر است",
+        "invalidNumber": "عدد نامعتبر است"
+      },
+      "subTools": {
+        "calendarConverter": {
+          "title": "تبدیل تقویم",
+          "description": "تبدیل همزمان شمسی، میلادی و قمری با پشتیبانی از ساعت"
+        },
+        "dateFormat": {
+          "title": "فرمت تاریخ",
+          "description": "نمایش تاریخ در فرمت‌های ISO، فشرده، بلند و دیگر"
+        },
+        "dateAddSubtract": {
+          "title": "جمع و تفریق تاریخ",
+          "description": "افزودن یا کم کردن سال، ماه، هفته، روز، ساعت، دقیقه یا ثانیه"
+        },
+        "dateDifference": {
+          "title": "اختلاف دو تاریخ",
+          "description": "محاسبه فاصله دو تاریخ در واحدهای مختلف"
+        },
+        "businessDays": {
+          "title": "روزهای کاری",
+          "description": "شمارش روزهای کاری بین دو تاریخ"
+        },
+        "weekday": {
+          "title": "روز هفته",
+          "description": "نام روز هفته، شماره روز سال و شماره هفته"
+        },
+        "age": {
+          "title": "محاسبه سن",
+          "description": "محاسبه سن از روی تاریخ تولد"
+        },
+        "leapYear": {
+          "title": "سال کبیسه",
+          "description": "بررسی کبیسه بودن سال در تقویم شمسی، میلادی یا قمری"
+        },
+        "timeCalculator": {
+          "title": "محاسبه ساعت",
+          "description": "جمع، تفریق یا اختلاف دو ساعت"
+        },
+        "addTimeToClock": {
+          "title": "افزودن مدت به ساعت",
+          "description": "اضافه کردن ساعت و دقیقه به یک زمان"
+        },
+        "duration": {
+          "title": "مدت زمان",
+          "description": "تبدیل روز، ساعت و دقیقه به مدت کل"
+        },
+        "timeUnit": {
+          "title": "تبدیل واحد زمان",
+          "description": "تبدیل بین ms، ثانیه، دقیقه، ساعت، روز، هفته، ماه و سال"
+        },
+        "timezone": {
+          "title": "منطقه زمانی",
+          "description": "نمایش یک لحظه در مناطق زمانی مختلف"
+        },
+        "countdown": {
+          "title": "شمارش معکوس",
+          "description": "شمارش معکوس زنده تا تاریخ هدف"
+        },
+        "relativeTime": {
+          "title": "زمان نسبی",
+          "description": "نمایش فاصله یک تاریخ از اکنون یا تاریخ مرجع"
+        },
+        "unixTimestamp": {
+          "title": "Unix Timestamp",
+          "description": "تبدیل بین تایم‌استمپ یونیکس و تاریخ"
+        },
+        "cron": {
+          "title": "کرون",
+          "description": "ساخت و تفسیر عبارت cron"
+        },
+        "dateRange": {
+          "title": "بازه تاریخ",
+          "description": "تولید لیست تاریخ‌ها بین دو تاریخ"
+        },
+        "isoWeek": {
+          "title": "هفته ISO",
+          "description": "شماره هفته و روز ISO برای سیستم‌های ERP"
+        },
+        "occasions": {
+          "title": "تقویم مناسبتی",
+          "description": "تعطیلات رسمی و مناسبت‌های فرهنگی"
+        }
+      },
+      "calendarConverter": {
+        "hint": "ساعت اختیاری: HH:mm یا HH:mm:ss"
+      },
+      "dateCalc": {
+        "add": "افزودن",
+        "subtract": "کم کردن",
+        "weeksBreakdown": "هفته + روز"
+      },
+      "businessDays": {
+        "excludeThuFri": "بدون پنجشنبه–جمعه",
+        "excludeSatSun": "بدون شنبه–یکشنبه",
+        "weekdays": "دوشنبه–جمعه",
+        "result": "روز کاری"
+      },
+      "weekday": {
+        "name": "روز هفته",
+        "alt": "زبان دیگر",
+        "dayOfYear": "روز سال",
+        "weekNumber": "شماره هفته"
+      },
+      "age": {
+        "birthDate": "تاریخ تولد",
+        "summary": "سن"
+      },
+      "leapYear": {
+        "year": "سال",
+        "result": "سال کبیسه",
+        "yes": "بله ✓",
+        "no": "خیر"
+      },
+      "timeCalc": {
+        "add": "جمع",
+        "subtract": "تفریق",
+        "diff": "اختلاف",
+        "timeA": "ساعت A",
+        "timeB": "ساعت B",
+        "baseTime": "ساعت پایه"
+      },
+      "duration": {
+        "hoursMinutes": "ساعت و دقیقه"
+      },
+      "timeUnit": {
+        "human": "خوانا"
+      },
+      "timezone": {
+        "time": "ساعت",
+        "source": "منطقه مبدأ",
+        "dateHint": "اختیاری — پیش‌فرض امروز"
+      },
+      "countdown": {
+        "target": "تاریخ هدف",
+        "remaining": "باقی‌مانده",
+        "ago": "گذشته"
+      },
+      "relativeTime": {
+        "title": "نسبی",
+        "customRef": "مرجع دلخواه",
+        "reference": "تاریخ مرجع"
+      },
+      "unix": {
+        "toDate": "تایم‌استمپ → تاریخ",
+        "fromDate": "تاریخ → تایم‌استمپ",
+        "seconds": "ثانیه",
+        "milliseconds": "میلی‌ثانیه"
+      },
+      "cron": {
+        "interpret": "تفسیر",
+        "build": "ساخت",
+        "expression": "عبارت cron",
+        "minute": "دقیقه",
+        "hour": "ساعت",
+        "dom": "روز ماه",
+        "month": "ماه",
+        "dow": "روز هفته"
+      },
+      "dateRange": {
+        "result": "لیست تاریخ‌ها"
+      },
+      "isoWeek": {
+        "week": "هفته ISO",
+        "weekYear": "سال هفته",
+        "day": "روز ISO"
+      },
+      "occasions": {
+        "hint": "تاریخی وارد کنید تا مناسبت‌ها نمایش داده شوند",
+        "none": "مناسبتی در این تاریخ نیست",
+        "official": "تعطیل رسمی",
+        "cultural": "مناسبت فرهنگی",
+        "items": {
+          "nowruz": "نوروز",
+          "nowruzHoliday": "تعطیلات نوروز",
+          "revolutionDay": "پیروزی انقلاب اسلامی",
+          "natureDay": "سیزده‌بدر",
+          "deathKhomeini": "رحلت امام خمینی",
+          "uprisingKhordad": "قیام ۱۵ خرداد",
+          "victoryRevolution": "پیروزی انقلاب",
+          "nationalOilDay": "ملی شدن صنعت نفت",
+          "ashura": "عاشورا",
+          "mabath": "مبعث",
+          "ramadanStart": "آغاز ماه رمضان",
+          "eidFitr": "عید فطر",
+          "eidAdha": "عید قربان",
+          "newYear": "سال نو میلادی",
+          "christmas": "کریسمس",
+          "valentines": "ولنتاین",
+          "halloween": "هالووین"
+        }
       }
     },
     "base64": {
@@ -359,6 +572,261 @@
       "payload": "Payload",
       "errors": {
         "invalid": "توکن JWT نامعتبر است"
+      }
+    },
+    "encodingToolkit": {
+      "back": "همه ابزارها",
+      "comingSoon": "به‌زودی",
+      "comingSoonMessage": "این ابزار در نسخه‌های بعدی اضافه خواهد شد.",
+      "search": {
+        "placeholder": "جستجوی ابزار کدگذاری و رمزنگاری…",
+        "all": "همه",
+        "noResults": "ابزاری با این جستجو پیدا نشد"
+      },
+      "groups": {
+        "encoding": "کدگذاری",
+        "hash": "هش",
+        "encryption": "رمزنگاری",
+        "security": "امنیت",
+        "certificates": "گواهی‌ها",
+        "utilities": "ابزارهای کمکی"
+      },
+      "base64": {
+        "fileUpload": "فایل → Base64",
+        "imagePreview": "پیش‌نمایش تصویر"
+      },
+      "html": {
+        "encode": "رمزگذاری",
+        "decode": "رمزگشایی"
+      },
+      "unicode": {
+        "encode": "رمزگذاری",
+        "decode": "رمزگشایی"
+      },
+      "ascii": {
+        "textToCodes": "متن → کد",
+        "codesToText": "کد → متن"
+      },
+      "hex": {
+        "textToHex": "متن → Hex",
+        "hexToText": "Hex → متن"
+      },
+      "nato": {
+        "textToNato": "متن → NATO",
+        "natoToText": "NATO → متن"
+      },
+      "hmac": {
+        "secret": "کلید مخفی"
+      },
+      "strength": {
+        "none": "—",
+        "weak": "ضعیف",
+        "medium": "متوسط",
+        "strong": "قوی",
+        "crackTime": "زمان تقریبی شکستن"
+      },
+      "passphrase": {
+        "words": "تعداد کلمه"
+      },
+      "jwt": {
+        "decode": "دیکود",
+        "create": "ساخت",
+        "signature": "امضا"
+      },
+      "totp": {
+        "secret": "سکرت Base32",
+        "code": "کد فعلی",
+        "remaining": "تازه‌سازی تا"
+      },
+      "random": {
+        "number": "عدد",
+        "bytes": "بایت",
+        "hex": "Hex",
+        "string": "رشته",
+        "size": "اندازه"
+      },
+      "secret": {
+        "api": "API Key",
+        "jwt": "JWT Secret",
+        "cookie": "Cookie Secret",
+        "webhook": "Webhook Secret"
+      },
+      "qr": {
+        "text": "متن",
+        "url": "URL",
+        "wifi": "WiFi",
+        "email": "ایمیل",
+        "payload": "محتوا",
+        "error": "تولید QR ممکن نشد",
+        "previewNote": ""
+      },
+      "aes": {
+        "encrypt": "رمزنگاری",
+        "decrypt": "رمزگشایی",
+        "passphrase": "عبارت عبور",
+        "error": "رمزنگاری / رمزگشایی ناموفق بود"
+      },
+      "case": {
+        "camel": "camelCase",
+        "pascal": "PascalCase",
+        "snake": "snake_case",
+        "kebab": "kebab-case",
+        "constant": "CONSTANT_CASE",
+        "title": "Title Case"
+      },
+      "subTools": {
+        "base64": {
+          "title": "Base64",
+          "description": "رمزگذاری/رمزگشایی متن، فایل به Base64 و پیش‌نمایش تصویر"
+        },
+        "url": {
+          "title": "URL Encode",
+          "description": "رمزگذاری و رمزگشایی رشته‌های URL"
+        },
+        "html": {
+          "title": "HTML Encode",
+          "description": "تبدیل کاراکترهای خاص به entityهای HTML"
+        },
+        "unicode": {
+          "title": "یونیکد",
+          "description": "تبدیل متن به دنباله \\uXXXX"
+        },
+        "ascii": {
+          "title": "تبدیل ASCII",
+          "description": "تبدیل بین متن و کدهای دهدهی"
+        },
+        "hexText": {
+          "title": "متن Hex",
+          "description": "تبدیل بین متن و بایت‌های هگزادسیمال"
+        },
+        "numberBases": {
+          "title": "مبناهای عددی",
+          "description": "تبدیل بین دودویی، دهدهی، هگز و هشت‌تایی"
+        },
+        "morse": {
+          "title": "کد مورس",
+          "description": "رمزگذاری و رمزگشایی کد مورس"
+        },
+        "nato": {
+          "title": "الفبای NATO",
+          "description": "هجی کردن متن با الفبای آوایی NATO"
+        },
+        "hash": {
+          "title": "خانواده SHA",
+          "description": "هش SHA-1، SHA-256، SHA-384 و SHA-512"
+        },
+        "crc": {
+          "title": "CRC / Checksum",
+          "description": "مجموع کنترلی CRC32 و Adler-32"
+        },
+        "hmac": {
+          "title": "HMAC",
+          "description": "HMAC-SHA256 و HMAC-SHA512 با کلید مخفی"
+        },
+        "md5": {
+          "title": "MD5",
+          "description": "هش MD5 (به‌زودی)"
+        },
+        "blake2": {
+          "title": "BLAKE2",
+          "description": "خانواده هش BLAKE2 (به‌زودی)"
+        },
+        "aes": {
+          "title": "AES",
+          "description": "رمزنگاری و رمزگشایی AES-128/192/256-GCM"
+        },
+        "rsa": {
+          "title": "RSA",
+          "description": "رمزنگاری، رمزگشایی و تولید کلید RSA (به‌زودی)"
+        },
+        "chacha20": {
+          "title": "ChaCha20",
+          "description": "رمزنگاری ChaCha20 (به‌زودی)"
+        },
+        "ecc": {
+          "title": "ECC",
+          "description": "کلیدهای منحنی بیضوی (به‌زودی)"
+        },
+        "pgp": {
+          "title": "PGP",
+          "description": "رمزنگاری و رمزگشایی PGP (به‌زودی)"
+        },
+        "password": {
+          "title": "تولید رمز عبور",
+          "description": "تولید رمز امن با تنظیم مجموعه کاراکترها"
+        },
+        "passwordStrength": {
+          "title": "قدرت رمز عبور",
+          "description": "تخمین قدرت و زمان شکستن رمز"
+        },
+        "passphrase": {
+          "title": "عبارت عبور",
+          "description": "تولید passphrase مبتنی بر کلمات"
+        },
+        "jwt": {
+          "title": "ابزار JWT",
+          "description": "دیکود Header/Payload/Signature یا ساخت JWT"
+        },
+        "totp": {
+          "title": "TOTP / OTP",
+          "description": "تولید رمز یک‌بارمصرف مبتنی بر زمان"
+        },
+        "uuid": {
+          "title": "UUID",
+          "description": "تولید UUID v4 یا NIL UUID"
+        },
+        "secret": {
+          "title": "تولید سکرت",
+          "description": "API Key، JWT Secret، Cookie و Webhook"
+        },
+        "random": {
+          "title": "تولید تصادفی",
+          "description": "عدد، بایت، هگز و رشته تصادفی"
+        },
+        "pemDer": {
+          "title": "PEM / DER",
+          "description": "تبدیل بین PEM، DER، CRT و CER (به‌زودی)"
+        },
+        "csr": {
+          "title": "تولید CSR",
+          "description": "ساخت درخواست امضای گواهی (به‌زودی)"
+        },
+        "certViewer": {
+          "title": "نمایش گواهی",
+          "description": "موضوع، صادرکننده، SAN و انقضا (به‌زودی)"
+        },
+        "sshKeys": {
+          "title": "کلید SSH",
+          "description": "تولید و تبدیل OpenSSH / PEM (به‌زودی)"
+        },
+        "fingerprint": {
+          "title": "Fingerprint",
+          "description": "اثرانگشت کلید SSH و گواهی (به‌زودی)"
+        },
+        "openssl": {
+          "title": "OpenSSL Helper",
+          "description": "عملیات رایج OpenSSL در رابط گرافیکی (به‌زودی)"
+        },
+        "qr": {
+          "title": "کد QR",
+          "description": "ساخت QR از متن، URL، WiFi یا ایمیل"
+        },
+        "barcode": {
+          "title": "بارکد",
+          "description": "Code128، EAN13، PDF417 و بیشتر (به‌زودی)"
+        },
+        "slug": {
+          "title": "تولید Slug",
+          "description": "تبدیل متن به slug مناسب URL"
+        },
+        "case": {
+          "title": "تبدیل Case",
+          "description": "camelCase، PascalCase، snake_case، kebab-case و بیشتر"
+        },
+        "escape": {
+          "title": "Escape Characters",
+          "description": "Escape برای JSON، Regex، XML، SQL، CSV و Shell"
+        }
       }
     }
   }

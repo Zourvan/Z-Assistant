@@ -218,33 +218,17 @@
     },
     "items": {
       "color": "Color Converter",
-      "dateConverter": "Date Converter",
-      "timestamp": "Timestamp",
-      "base64": "Base64",
-      "password": "Password",
+      "dateConverter": "Date & Time Toolkit",
+      "encodingCrypto": "Encoding & Cryptography",
       "json": "JSON",
-      "url": "URL",
-      "uuid": "UUID",
-      "hash": "Hash",
-      "regex": "Regex",
-      "base": "Number Bases",
-      "escape": "Escape",
-      "jwt": "JWT"
+      "regex": "Regex"
     },
     "descriptions": {
       "color": "Convert between HEX, RGB, RGBA, HSL, and HSLA with live preview",
-      "dateConverter": "Convert dates between Jalali and Gregorian calendars",
-      "timestamp": "Convert Unix timestamps to readable dates",
-      "base64": "Encode and decode Base64 text",
-      "password": "Generate secure random passwords",
+      "dateConverter": "Full date & time toolkit: calendars, calculators, timezone, cron, and more",
+      "encodingCrypto": "Encoding, hashing, encryption, security utilities, certificates, and more",
       "json": "Format and minify JSON",
-      "url": "Encode and decode URL strings",
-      "uuid": "Generate unique UUID identifiers",
-      "hash": "Compute SHA-256, SHA-384, and SHA-512 hashes",
-      "regex": "Test regular expressions against text",
-      "base": "Convert between binary, decimal, hex, and octal",
-      "escape": "Escape and unescape programming strings",
-      "jwt": "Decode JWT header and payload"
+      "regex": "Test regular expressions against text"
     },
     "color": {
       "picker": "Pick color",
@@ -269,16 +253,245 @@
         "invalid": "Invalid date"
       }
     },
-    "timestamp": {
-      "seconds": "Seconds",
-      "milliseconds": "Milliseconds",
-      "input": "Timestamp",
-      "placeholder": "1700000000",
-      "now": "Now",
-      "gregorian": "Gregorian",
-      "jalali": "Jalali",
+    "dateTimeToolkit": {
+      "back": "All tools",
+      "search": {
+        "placeholder": "Search date & time tools…",
+        "all": "All",
+        "noResults": "No tools match your search"
+      },
+      "groups": {
+        "calendar": "Calendar",
+        "calculator": "Date Calculator",
+        "time": "Time",
+        "developer": "Developer",
+        "occasions": "Occasions"
+      },
+      "calendars": {
+        "jalali": "Jalali",
+        "gregorian": "Gregorian",
+        "hijri": "Hijri"
+      },
+      "common": {
+        "input": "Input",
+        "output": "Output",
+        "result": "Result",
+        "now": "Now",
+        "from": "From",
+        "to": "To",
+        "date": "Date",
+        "amount": "Amount"
+      },
+      "units": {
+        "years": "Years",
+        "months": "Months",
+        "weeks": "Weeks",
+        "days": "Days",
+        "hours": "Hours",
+        "minutes": "Minutes",
+        "seconds": "Seconds",
+        "ms": "Milliseconds"
+      },
+      "placeholders": {
+        "jalali": "1405/04/25 or 1405/04/25 14:30",
+        "gregorian": "2026-07-16 or 2026-07-16 14:30",
+        "hijri": "1448-02-01"
+      },
       "errors": {
-        "invalid": "Invalid timestamp"
+        "invalidDate": "Invalid date",
+        "invalidTime": "Invalid time (HH:mm or HH:mm:ss)",
+        "invalidTimestamp": "Invalid timestamp",
+        "invalidNumber": "Invalid number"
+      },
+      "subTools": {
+        "calendarConverter": {
+          "title": "Calendar Converter",
+          "description": "Convert Jalali, Gregorian, and Hijri dates with optional time"
+        },
+        "dateFormat": {
+          "title": "Date Format",
+          "description": "Show a date in ISO, compact, long, and other formats"
+        },
+        "dateAddSubtract": {
+          "title": "Add / Subtract Date",
+          "description": "Add or subtract years, months, weeks, days, hours, minutes, or seconds"
+        },
+        "dateDifference": {
+          "title": "Date Difference",
+          "description": "Calculate the difference between two dates in multiple units"
+        },
+        "businessDays": {
+          "title": "Business Days",
+          "description": "Count working days between two dates"
+        },
+        "weekday": {
+          "title": "Weekday",
+          "description": "Get weekday name, day of year, and week number"
+        },
+        "age": {
+          "title": "Age Calculator",
+          "description": "Calculate age from birth date"
+        },
+        "leapYear": {
+          "title": "Leap Year",
+          "description": "Check if a year is leap in Jalali, Gregorian, or Hijri calendar"
+        },
+        "timeCalculator": {
+          "title": "Time Calculator",
+          "description": "Add, subtract, or find the difference between two times"
+        },
+        "addTimeToClock": {
+          "title": "Add Duration to Time",
+          "description": "Add hours and minutes to a clock time"
+        },
+        "duration": {
+          "title": "Duration",
+          "description": "Convert days, hours, and minutes into total duration"
+        },
+        "timeUnit": {
+          "title": "Time Unit Converter",
+          "description": "Convert between ms, seconds, minutes, hours, days, weeks, months, and years"
+        },
+        "timezone": {
+          "title": "Time Zone",
+          "description": "See the same moment across common time zones"
+        },
+        "countdown": {
+          "title": "Countdown",
+          "description": "Live countdown to a target date"
+        },
+        "relativeTime": {
+          "title": "Relative Time",
+          "description": "Show how far a date is from now or a reference date"
+        },
+        "unixTimestamp": {
+          "title": "Unix Timestamp",
+          "description": "Convert between Unix timestamps and calendar dates"
+        },
+        "cron": {
+          "title": "Cron Helper",
+          "description": "Build and interpret cron expressions"
+        },
+        "dateRange": {
+          "title": "Date Range",
+          "description": "Generate a list of dates between two dates"
+        },
+        "isoWeek": {
+          "title": "ISO Week",
+          "description": "Get ISO week number and day for ERP systems"
+        },
+        "occasions": {
+          "title": "Occasions",
+          "description": "Official holidays and cultural occasions by calendar"
+        }
+      },
+      "calendarConverter": {
+        "hint": "Optional time: HH:mm or HH:mm:ss"
+      },
+      "dateCalc": {
+        "add": "Add",
+        "subtract": "Subtract",
+        "weeksBreakdown": "Weeks + days"
+      },
+      "businessDays": {
+        "excludeThuFri": "Exclude Thu–Fri",
+        "excludeSatSun": "Exclude Sat–Sun",
+        "weekdays": "Mon–Fri",
+        "result": "Business days"
+      },
+      "weekday": {
+        "name": "Weekday",
+        "alt": "Alternate locale",
+        "dayOfYear": "Day of year",
+        "weekNumber": "Week number"
+      },
+      "age": {
+        "birthDate": "Birth date",
+        "summary": "Age"
+      },
+      "leapYear": {
+        "year": "Year",
+        "result": "Leap year",
+        "yes": "Yes ✓",
+        "no": "No"
+      },
+      "timeCalc": {
+        "add": "Add",
+        "subtract": "Subtract",
+        "diff": "Difference",
+        "timeA": "Time A",
+        "timeB": "Time B",
+        "baseTime": "Base time"
+      },
+      "duration": {
+        "hoursMinutes": "Hours & minutes"
+      },
+      "timeUnit": {
+        "human": "Human readable"
+      },
+      "timezone": {
+        "time": "Time",
+        "source": "Source timezone",
+        "dateHint": "Optional — defaults to today"
+      },
+      "countdown": {
+        "target": "Target date",
+        "remaining": "Remaining",
+        "ago": "Elapsed"
+      },
+      "relativeTime": {
+        "title": "Relative",
+        "customRef": "Custom reference",
+        "reference": "Reference date"
+      },
+      "unix": {
+        "toDate": "Timestamp → Date",
+        "fromDate": "Date → Timestamp",
+        "seconds": "Seconds",
+        "milliseconds": "Milliseconds"
+      },
+      "cron": {
+        "interpret": "Interpret",
+        "build": "Build",
+        "expression": "Cron expression",
+        "minute": "Minute",
+        "hour": "Hour",
+        "dom": "Day",
+        "month": "Month",
+        "dow": "Weekday"
+      },
+      "dateRange": {
+        "result": "Date list"
+      },
+      "isoWeek": {
+        "week": "ISO week",
+        "weekYear": "Week year",
+        "day": "ISO day"
+      },
+      "occasions": {
+        "hint": "Enter a date to see matching occasions",
+        "none": "No occasion on this date",
+        "official": "Official holiday",
+        "cultural": "Cultural occasion",
+        "items": {
+          "nowruz": "Nowruz (Persian New Year)",
+          "nowruzHoliday": "Nowruz holiday",
+          "revolutionDay": "Islamic Revolution Day",
+          "natureDay": "Sizdah Bedar",
+          "deathKhomeini": "Demise of Imam Khomeini",
+          "uprisingKhordad": "15 Khordad Uprising",
+          "victoryRevolution": "Victory of the Revolution",
+          "nationalOilDay": "Nationalization of Oil Industry",
+          "ashura": "Ashura",
+          "mabath": "Mab'ath",
+          "ramadanStart": "Start of Ramadan",
+          "eidFitr": "Eid al-Fitr",
+          "eidAdha": "Eid al-Adha",
+          "newYear": "New Year's Day",
+          "christmas": "Christmas",
+          "valentines": "Valentine's Day",
+          "halloween": "Halloween"
+        }
       }
     },
     "base64": {
@@ -359,6 +572,261 @@
       "payload": "Payload",
       "errors": {
         "invalid": "Invalid JWT token"
+      }
+    },
+    "encodingToolkit": {
+      "back": "All tools",
+      "comingSoon": "Soon",
+      "comingSoonMessage": "This tool is planned and will be available in a future update.",
+      "search": {
+        "placeholder": "Search encoding & crypto tools…",
+        "all": "All",
+        "noResults": "No tools match your search"
+      },
+      "groups": {
+        "encoding": "Encoding",
+        "hash": "Hash",
+        "encryption": "Encryption",
+        "security": "Security",
+        "certificates": "Certificates",
+        "utilities": "Utilities"
+      },
+      "base64": {
+        "fileUpload": "File → Base64",
+        "imagePreview": "Image preview"
+      },
+      "html": {
+        "encode": "Encode",
+        "decode": "Decode"
+      },
+      "unicode": {
+        "encode": "Encode",
+        "decode": "Decode"
+      },
+      "ascii": {
+        "textToCodes": "Text → Codes",
+        "codesToText": "Codes → Text"
+      },
+      "hex": {
+        "textToHex": "Text → Hex",
+        "hexToText": "Hex → Text"
+      },
+      "nato": {
+        "textToNato": "Text → NATO",
+        "natoToText": "NATO → Text"
+      },
+      "hmac": {
+        "secret": "Secret key"
+      },
+      "strength": {
+        "none": "—",
+        "weak": "Weak",
+        "medium": "Medium",
+        "strong": "Strong",
+        "crackTime": "Est. crack time"
+      },
+      "passphrase": {
+        "words": "Word count"
+      },
+      "jwt": {
+        "decode": "Decode",
+        "create": "Create",
+        "signature": "Signature"
+      },
+      "totp": {
+        "secret": "Base32 secret",
+        "code": "Current code",
+        "remaining": "Refresh in"
+      },
+      "random": {
+        "number": "Number",
+        "bytes": "Bytes",
+        "hex": "Hex",
+        "string": "String",
+        "size": "Size"
+      },
+      "secret": {
+        "api": "API Key",
+        "jwt": "JWT Secret",
+        "cookie": "Cookie Secret",
+        "webhook": "Webhook Secret"
+      },
+      "qr": {
+        "text": "Text",
+        "url": "URL",
+        "wifi": "WiFi",
+        "email": "Email",
+        "payload": "Payload",
+        "error": "Could not generate QR code",
+        "previewNote": ""
+      },
+      "aes": {
+        "encrypt": "Encrypt",
+        "decrypt": "Decrypt",
+        "passphrase": "Passphrase",
+        "error": "Encryption / decryption failed"
+      },
+      "case": {
+        "camel": "camelCase",
+        "pascal": "PascalCase",
+        "snake": "snake_case",
+        "kebab": "kebab-case",
+        "constant": "CONSTANT_CASE",
+        "title": "Title Case"
+      },
+      "subTools": {
+        "base64": {
+          "title": "Base64",
+          "description": "Encode/decode text, file to Base64, and image preview"
+        },
+        "url": {
+          "title": "URL Encode",
+          "description": "Percent-encode and decode URL strings"
+        },
+        "html": {
+          "title": "HTML Encode",
+          "description": "Convert special characters to HTML entities"
+        },
+        "unicode": {
+          "title": "Unicode",
+          "description": "Convert text to \\uXXXX escape sequences"
+        },
+        "ascii": {
+          "title": "ASCII Converter",
+          "description": "Convert between text and decimal code points"
+        },
+        "hexText": {
+          "title": "Hex Text",
+          "description": "Convert between text and hexadecimal bytes"
+        },
+        "numberBases": {
+          "title": "Number Bases",
+          "description": "Convert between binary, decimal, hex, and octal"
+        },
+        "morse": {
+          "title": "Morse Code",
+          "description": "Encode and decode Morse code"
+        },
+        "nato": {
+          "title": "NATO Alphabet",
+          "description": "Spell text with the NATO phonetic alphabet"
+        },
+        "hash": {
+          "title": "SHA Family",
+          "description": "SHA-1, SHA-256, SHA-384, and SHA-512 digests"
+        },
+        "crc": {
+          "title": "CRC / Checksum",
+          "description": "CRC32 and Adler-32 checksums"
+        },
+        "hmac": {
+          "title": "HMAC",
+          "description": "HMAC-SHA256 and HMAC-SHA512 with a secret key"
+        },
+        "md5": {
+          "title": "MD5",
+          "description": "MD5 message digest (coming soon)"
+        },
+        "blake2": {
+          "title": "BLAKE2",
+          "description": "BLAKE2 hash family (coming soon)"
+        },
+        "aes": {
+          "title": "AES",
+          "description": "AES-128/192/256-GCM encrypt and decrypt"
+        },
+        "rsa": {
+          "title": "RSA",
+          "description": "RSA encrypt, decrypt, and key generation (coming soon)"
+        },
+        "chacha20": {
+          "title": "ChaCha20",
+          "description": "ChaCha20 encryption (coming soon)"
+        },
+        "ecc": {
+          "title": "ECC",
+          "description": "Elliptic-curve keys (coming soon)"
+        },
+        "pgp": {
+          "title": "PGP",
+          "description": "PGP encrypt and decrypt (coming soon)"
+        },
+        "password": {
+          "title": "Password Generator",
+          "description": "Generate secure passwords with charset options"
+        },
+        "passwordStrength": {
+          "title": "Password Strength",
+          "description": "Estimate password strength and crack time"
+        },
+        "passphrase": {
+          "title": "Passphrase",
+          "description": "Generate memorable word-based passphrases"
+        },
+        "jwt": {
+          "title": "JWT Tools",
+          "description": "Decode header/payload/signature or create unsigned JWTs"
+        },
+        "totp": {
+          "title": "TOTP / OTP",
+          "description": "Generate time-based one-time passwords"
+        },
+        "uuid": {
+          "title": "UUID",
+          "description": "Generate UUID v4 or NIL UUID"
+        },
+        "secret": {
+          "title": "Secret Generator",
+          "description": "API keys, JWT secrets, cookie and webhook secrets"
+        },
+        "random": {
+          "title": "Random Generator",
+          "description": "Random numbers, bytes, hex, and strings"
+        },
+        "pemDer": {
+          "title": "PEM / DER",
+          "description": "Convert between PEM, DER, CRT, and CER (coming soon)"
+        },
+        "csr": {
+          "title": "CSR Generator",
+          "description": "Generate certificate signing requests (coming soon)"
+        },
+        "certViewer": {
+          "title": "Certificate Viewer",
+          "description": "Inspect subject, issuer, SAN, and expiry (coming soon)"
+        },
+        "sshKeys": {
+          "title": "SSH Keys",
+          "description": "Generate and convert OpenSSH / PEM keys (coming soon)"
+        },
+        "fingerprint": {
+          "title": "Fingerprint",
+          "description": "Fingerprint SSH keys and certificates (coming soon)"
+        },
+        "openssl": {
+          "title": "OpenSSL Helper",
+          "description": "Common OpenSSL operations in a GUI (coming soon)"
+        },
+        "qr": {
+          "title": "QR Code",
+          "description": "Generate QR from text, URL, WiFi, or email"
+        },
+        "barcode": {
+          "title": "Barcode",
+          "description": "Code128, EAN13, PDF417 and more (coming soon)"
+        },
+        "slug": {
+          "title": "Slug Generator",
+          "description": "Turn text into URL-friendly slugs"
+        },
+        "case": {
+          "title": "Case Converter",
+          "description": "camelCase, PascalCase, snake_case, kebab-case, and more"
+        },
+        "escape": {
+          "title": "Escape Characters",
+          "description": "JSON, Regex, XML, SQL, CSV, and Shell escape"
+        }
       }
     }
   }

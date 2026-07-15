@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-07-15 08:57:22
+- Consolidated encoding and cryptography utilities into a single Encoding & Cryptography toolkit with search and group filters (Encoding, Hash, Encryption, Security, Certificates, Utilities)
+- Available tools include Base64 (file/image), URL/HTML/Unicode/ASCII/Hex/Morse/NATO, number bases, SHA/HMAC/CRC, AES-GCM, password/passphrase/strength, JWT, TOTP, UUID, secrets/random, QR, slug, case converter, and multi-format escape
+- Placeholder cards for RSA, PGP, certificates, SSH, barcode, MD5, and related items until implemented
+- Components affected: src/components/tools/encoding/*, src/components/tools/ToolkitShell.tsx, src/components/tools/registry.ts, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-15 08:45:00
+- Expanded Date Converter into a full Date & Time Toolkit with 20 sub-tools: calendar conversion (Jalali/Gregorian/Hijri), date calculator, time calculator, Unix timestamp, timezone, cron, ISO week, occasions, and more
+- Added search and category filters inside the toolkit for quick tool discovery; merged standalone Timestamp tool into the hub
+- Components affected: src/components/tools/datetime/*, src/components/tools/DateConverter.tsx, src/components/tools/registry.ts, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-14 23:16:00
 - Added Pomodoro timer tab with focus/break phases, progress ring, round tracker, and customizable durations
 - Components affected: src/components/TimerAlarm.tsx, src/components/TimerAlarm.css, src/components/timerAlarm/PomodoroPanel.tsx, src/components/timerAlarm/pomodoroUtils.ts, src/components/timerAlarm/types.ts, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
