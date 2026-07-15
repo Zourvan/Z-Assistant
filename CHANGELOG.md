@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-15 16:10:00
+- Added GitHub Actions release workflow: builds extension zip and publishes GitHub Release on version tag push
+- Components affected: .github/workflows/release.yml
+
 ## 2026-07-15 15:40:00
 - Added cross-device settings sync via chrome.storage.sync: theme, calendar, language, tasks, alarms, bookmarks, backgrounds, pomodoro, tool favorites, and weather location sync when signed into Chrome
 - SyncProvider bootstraps on startup and applies remote changes from other devices automatically
