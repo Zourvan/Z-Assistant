@@ -31,15 +31,15 @@ export function ToolkitShell({
   matchSearch,
 }: ToolkitShellProps) {
   const { t, dir } = useI18n();
-  const { recordToolUse, toggleFavorite, isFavorite, consumePendingSubTool } = useToolsNavigation();
+  const { recordToolUse, toggleFavorite, isFavorite, navigationRequest } = useToolsNavigation();
   const [search, setSearch] = useState("");
   const [activeGroup, setActiveGroup] = useState<string | "all">("all");
   const [activeToolId, setActiveToolId] = useState<string | null>(null);
 
   useEffect(() => {
-    const pending = consumePendingSubTool(parentToolId);
-    if (pending) setActiveToolId(pending);
-  }, [parentToolId, consumePendingSubTool]);
+    if (navigationRequest?.parentId !== parentToolId) return;
+    setActiveToolId(navigationRequest.subToolId ?? null);
+  }, [navigationRequest, parentToolId]);
 
   const filteredTools = useMemo(() => {
     return subTools.filter((tool) => {

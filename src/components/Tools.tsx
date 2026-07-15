@@ -7,7 +7,7 @@ import { buildThemeVars } from "./settings/themeUtils";
 import { TOOL_CATEGORIES, TOOLS, getToolsByCategory } from "./tools/registry";
 import type { ToolCategory } from "./tools/types";
 import { ToolsNavigationProvider, useToolsNavigation } from "./tools/ToolsNavigationContext";
-import { ToolsQuickList } from "./tools/ToolsQuickList";
+import { ToolsSidebarLinks } from "./tools/ToolsSidebarLinks";
 import { makeToolRefKey } from "./tools/toolRefKey";
 import "./Tools.css";
 
@@ -34,10 +34,6 @@ function ToolsModalContent({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  const selectTopLevelTool = (toolId: string) => {
-    openToolRef(toolId);
-  };
-
   return (
     <div className="tools-overlay" onClick={onClose}>
       <div
@@ -60,12 +56,12 @@ function ToolsModalContent({
           <nav className="tools-sidebar" aria-label={t("tools.title")}>
             <div className="tools-sidebar__group">
               <span className="tools-sidebar__label">{t("tools.recent.title")}</span>
-              <ToolsQuickList keys={recentKeys} emptyMessage={t("tools.recent.empty")} />
+              <ToolsSidebarLinks keys={recentKeys} emptyMessage={t("tools.recent.empty")} />
             </div>
 
             <div className="tools-sidebar__group">
               <span className="tools-sidebar__label">{t("tools.favorites.title")}</span>
-              <ToolsQuickList keys={favoriteKeys} emptyMessage={t("tools.favorites.empty")} />
+              <ToolsSidebarLinks keys={favoriteKeys} emptyMessage={t("tools.favorites.empty")} />
             </div>
 
             {TOOL_CATEGORIES.map((category: ToolCategory) => (
@@ -82,7 +78,7 @@ function ToolsModalContent({
                         <button
                           type="button"
                           className={`tools-sidebar__item ${isActive ? "tools-sidebar__item--active" : ""}`}
-                          onClick={() => selectTopLevelTool(tool.id)}
+                          onClick={() => openToolRef(refKey)}
                           title={t(`tools.descriptions.${tool.id}`)}
                         >
                           <Icon size={14} strokeWidth={isActive ? 2.25 : 2} />
@@ -116,7 +112,7 @@ function ToolsModalContent({
           </nav>
 
           <main className="tools-main">
-            <div className="tools-main__content">{ActiveComponent && <ActiveComponent key={activeRefKey ?? activeToolId} />}</div>
+            <div className="tools-main__content">{ActiveComponent && <ActiveComponent key={activeToolId} />}</div>
           </main>
         </div>
       </div>

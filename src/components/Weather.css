@@ -196,6 +196,26 @@
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
+.weather-widget__forecast {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-widget__forecast--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.weather-widget__forecast-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .weather-widget__forecast-title {
   margin: 0 0 0.5rem;
   font-size: 0.8125rem;
@@ -250,6 +270,13 @@
 @keyframes weather-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-widget__forecast,
+  .weather-widget__forecast--open {
+    transition: none;
   }
 }
 

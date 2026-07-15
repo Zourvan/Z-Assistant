@@ -1,14 +1,15 @@
 import { Star } from "lucide-react";
 import { useI18n } from "../../i18n/LanguageProvider";
 import { getToolCatalogEntry } from "./toolCatalog";
+import { TOOLS } from "./registry";
 import { useToolsNavigation } from "./ToolsNavigationContext";
 
-interface ToolsQuickListProps {
+interface ToolsSidebarLinksProps {
   keys: string[];
   emptyMessage: string;
 }
 
-export function ToolsQuickList({ keys, emptyMessage }: ToolsQuickListProps) {
+export function ToolsSidebarLinks({ keys, emptyMessage }: ToolsSidebarLinksProps) {
   const { t } = useI18n();
   const { openToolRef, toggleFavorite, isFavorite, activeRefKey } = useToolsNavigation();
 
@@ -21,20 +22,23 @@ export function ToolsQuickList({ keys, emptyMessage }: ToolsQuickListProps) {
       {keys.map((key) => {
         const entry = getToolCatalogEntry(key);
         if (!entry) return null;
+
+        const parentTool = TOOLS.find((tool) => tool.id === entry.parentId);
+        const Icon = parentTool?.icon;
         const favorited = isFavorite(key);
+        const isActive = activeRefKey === key;
+        const label = t(entry.titleKey);
 
         return (
           <li key={key}>
             <button
               type="button"
-              className={`tools-sidebar__item tools-sidebar__item--quick ${activeRefKey === key ? "tools-sidebar__item--active" : ""}`}
+              className={`tools-sidebar__item ${isActive ? "tools-sidebar__item--active" : ""}`}
               onClick={() => openToolRef(key)}
-              title={entry.subToolId ? t(entry.parentTitleKey) : t(entry.titleKey)}
+              title={entry.subToolId ? `${label} · ${t(entry.parentTitleKey)}` : t(`tools.descriptions.${entry.parentId}`)}
             >
-              <span className="tools-sidebar__item-text">
-                <span className="tools-sidebar__item-title">{t(entry.titleKey)}</span>
-                {entry.subToolId && <span className="tools-sidebar__item-hint">{t(entry.parentTitleKey)}</span>}
-              </span>
+              {Icon && <Icon size={14} strokeWidth={isActive ? 2.25 : 2} />}
+              <span>{label}</span>
               <span
                 role="button"
                 tabIndex={0}

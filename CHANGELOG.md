@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2026-07-15 15:35:00
+- Fixed Recent/Favorites: one click now opens the tool and updates recent list at the same time
+- Favorites and Recent sidebar items now use the same layout as category tools (icon + label + star)
+- Components affected: src/components/tools/ToolsNavigationContext.tsx, src/components/tools/ToolsSidebarLinks.tsx, src/components/tools/ToolkitShell.tsx, src/components/Tools.tsx
+
+## 2026-07-15 15:30:00
+- Weather 7-day forecast toggle now smoothly hides Tasks & Notes while expanded and fades them back in when closed
+- Components affected: src/App.tsx, src/App.css, src/components/Weather.tsx, src/components/Weather.css
+
 ## 2026-07-15 15:25:00
 - Weather widget: show daily conditions by default; 7-day forecast expands on click; full column width layout
 - Components affected: src/components/Weather.tsx, src/components/Weather.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json

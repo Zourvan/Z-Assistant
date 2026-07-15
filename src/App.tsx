@@ -36,6 +36,7 @@ const getImageFromIndexedDB = async (id: string): Promise<string> => {
 function App() {
   const [background, setBackground] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isWeatherForecastOpen, setIsWeatherForecastOpen] = useState(false);
 
   const handleBackgroundChange = async (newBackground: string) => {
     try {
@@ -131,10 +132,15 @@ function App() {
 
               <div className="dashboard-col dashboard-col--tasks">
                 <div className="dashboard-widget">
-                  <Weather />
+                  <Weather onForecastOpenChange={setIsWeatherForecastOpen} />
                 </div>
-                <div className="dashboard-widget">
-                  <TasksAndNotes />
+                <div
+                  className={`dashboard-widget dashboard-widget--tasks-panel${isWeatherForecastOpen ? " is-hidden" : ""}`}
+                  aria-hidden={isWeatherForecastOpen}
+                >
+                  <div className="dashboard-widget__inner">
+                    <TasksAndNotes />
+                  </div>
                 </div>
               </div>
 

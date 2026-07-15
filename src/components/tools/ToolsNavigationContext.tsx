@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { getToolCatalogEntry } from "./toolCatalog";
 import {
   addRecentToolKey,
@@ -7,20 +7,22 @@ import {
   toggleFavoriteToolKey,
 } from "./toolPreferences";
 
-interface PendingSubTool {
+export interface ToolNavigationRequest {
+  refKey: string;
   parentId: string;
-  subToolId: string;
+  subToolId?: string;
+  seq: number;
 }
 
 interface ToolsNavigationContextValue {
   recentKeys: string[];
   favoriteKeys: string[];
   activeRefKey: string | null;
+  navigationRequest: ToolNavigationRequest | null;
   recordToolUse: (key: string) => void;
   toggleFavorite: (key: string) => void;
   isFavorite: (key: string) => boolean;
   openToolRef: (key: string) => void;
-  consumePendingSubTool: (parentId: string) => string | null;
 }
 
 const ToolsNavigationContext = createContext<ToolsNavigationContextValue | null>(null);
@@ -34,8 +36,9 @@ export function ToolsNavigationProvider({
 }) {
   const [recentKeys, setRecentKeys] = useState(loadRecentToolKeys);
   const [favoriteKeys, setFavoriteKeys] = useState(loadFavoriteToolKeys);
-  const [pendingSubTool, setPendingSubTool] = useState<PendingSubTool | null>(null);
   const [activeRefKey, setActiveRefKey] = useState<string | null>(null);
+  const [navigationRequest, setNavigationRequest] = useState<ToolNavigationRequest | null>(null);
+  const navSeq = useRef(0);
 
   const recordToolUse = useCallback((key: string) => {
     if (!getToolCatalogEntry(key)) return;
@@ -54,26 +57,19 @@ export function ToolsNavigationProvider({
     (key: string) => {
       const entry = getToolCatalogEntry(key);
       if (!entry) return;
+
+      navSeq.current += 1;
       setActiveRefKey(key);
       setRecentKeys(addRecentToolKey(key));
-      if (entry.subToolId) {
-        setPendingSubTool({ parentId: entry.parentId, subToolId: entry.subToolId });
-      } else {
-        setPendingSubTool(null);
-      }
+      setNavigationRequest({
+        refKey: key,
+        parentId: entry.parentId,
+        subToolId: entry.subToolId,
+        seq: navSeq.current,
+      });
       onNavigate(entry.parentId);
     },
     [onNavigate],
-  );
-
-  const consumePendingSubTool = useCallback(
-    (parentId: string) => {
-      if (pendingSubTool?.parentId !== parentId) return null;
-      const subToolId = pendingSubTool.subToolId;
-      setPendingSubTool(null);
-      return subToolId;
-    },
-    [pendingSubTool],
   );
 
   const value = useMemo(
@@ -81,13 +77,13 @@ export function ToolsNavigationProvider({
       recentKeys,
       favoriteKeys,
       activeRefKey,
+      navigationRequest,
       recordToolUse,
       toggleFavorite,
       isFavorite,
       openToolRef,
-      consumePendingSubTool,
     }),
-    [recentKeys, favoriteKeys, activeRefKey, recordToolUse, toggleFavorite, isFavorite, openToolRef, consumePendingSubTool],
+    [recentKeys, favoriteKeys, activeRefKey, navigationRequest, recordToolUse, toggleFavorite, isFavorite, openToolRef],
   );
 
   return <ToolsNavigationContext.Provider value={value}>{children}</ToolsNavigationContext.Provider>;

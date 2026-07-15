@@ -16,7 +16,11 @@ import {
 import type { WeatherData, WeatherErrorCode, WeatherLocation } from "./weather/types";
 import "./Weather.css";
 
-export function Weather() {
+interface WeatherProps {
+  onForecastOpenChange?: (open: boolean) => void;
+}
+
+export function Weather({ onForecastOpenChange }: WeatherProps) {
   const { textColor, backgroundColor, calendarType } = useCalendar();
   const { t, dir, language } = useI18n();
 
@@ -30,6 +34,14 @@ export function Weather() {
   const [lastFetch, setLastFetch] = useState<string | null>(null);
   const [showWeekly, setShowWeekly] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  const handleToggleWeekly = () => {
+    setShowWeekly((open) => {
+      const next = !open;
+      onForecastOpenChange?.(next);
+      return next;
+    });
+  };
 
   const locale = language === "fa" ? "fa-IR" : "en-US";
   const borderColor = `color-mix(in srgb, ${textColor} 18%, transparent)`;
@@ -217,7 +229,7 @@ export function Weather() {
               type="button"
               className="weather-widget__toggle"
               style={{ borderColor }}
-              onClick={() => setShowWeekly((open) => !open)}
+              onClick={handleToggleWeekly}
               aria-expanded={showWeekly}
               aria-controls="weather-weekly-forecast"
             >
@@ -235,8 +247,12 @@ export function Weather() {
             </button>
           </section>
 
-          {showWeekly && (
-            <section className="weather-widget__forecast" id="weather-weekly-forecast">
+          <section
+            className={`weather-widget__forecast${showWeekly ? " weather-widget__forecast--open" : ""}`}
+            id="weather-weekly-forecast"
+            aria-hidden={!showWeekly}
+          >
+            <div className="weather-widget__forecast-inner">
               <h3 className="weather-widget__forecast-title">{t("weather.forecastTitle")}</h3>
               <div className="weather-widget__table-wrap">
                 <table className="weather-widget__table">
@@ -271,8 +287,8 @@ export function Weather() {
                   </tbody>
                 </table>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
         </>
       )}
     </div>
