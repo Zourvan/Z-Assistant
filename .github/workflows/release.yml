@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify version consistency
+        run: |
+          MANIFEST_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8')).version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          if [ "$MANIFEST_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "Version mismatch: manifest=$MANIFEST_VERSION package=$PACKAGE_VERSION"
+            exit 1
+          fi
+
+          echo "VERSION=$MANIFEST_VERSION" >> "$GITHUB_ENV"
+
+      - name: Verify tag matches version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "Tag $TAG does not match extension version v$VERSION"
+            exit 1
+          fi
+
+      - name: Build extension package
+        run: npm run build:extension-package
+
+      - name: Resolve release artifact
+        id: artifact
+        run: |
+          ZIP=$(ls release/*.zip | head -1)
+          if [ -z "$ZIP" ]; then
+            echo "No zip found in release/"
+            exit 1
+          fi
+          echo "path=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$ZIP")" >> "$GITHUB_OUTPUT"
+
+      - name: Extract latest changelog entry
+        id: changelog
+        run: |
+          NOTES=$(awk 'BEGIN{found=0} /^## /{if(found++)exit} found && NF' CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            NOTES="See [CHANGELOG.md](./CHANGELOG.md) for details."
+          fi
+          {
+            echo "body<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: NEXX Tab v${{ env.VERSION }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: ${{ steps.artifact.outputs.path }}
+          draft: false
+          prerelease: false
