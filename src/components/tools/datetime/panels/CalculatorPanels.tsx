@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { intervalToDuration } from "date-fns";
 import { useI18n } from "../../../../i18n/LanguageProvider";
 import { ToolWorkspace, ToolToolbar, ToolColumn, ToolField, ToolError, ToolOutputList } from "../../shared";
+import { ToolDatePicker } from "../ToolDatePicker";
 import {
   parseDateTime,
   addToDate,
@@ -60,7 +61,13 @@ export function DateAddSubtractPanel() {
       </ToolToolbar>
       <ToolWorkspace layout="split">
         <ToolColumn>
-          <ToolField label={t("tools.dateTimeToolkit.common.date")} value={input} onChange={setInput} placeholder={system === "jalali" ? "1405/04/25" : "2026-07-15"} dir="ltr" />
+          <ToolDatePicker
+            label={t("tools.dateTimeToolkit.common.date")}
+            value={input}
+            onChange={setInput}
+            calendarSystem={system}
+            placeholder={system === "jalali" ? "1405/04/25" : "2026-07-15"}
+          />
           <div className="tools-toolbar tools-toolbar--fields">
             <ToolField label={t("tools.dateTimeToolkit.common.amount")} value={amount} onChange={setAmount} dir="ltr" compact />
           </div>
@@ -119,8 +126,8 @@ export function DateDifferencePanel() {
       </ToolToolbar>
       <ToolWorkspace layout="stack">
         <ToolWorkspace layout="split">
-          <ToolField label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} dir="ltr" placeholder={system === "jalali" ? "1405/01/01" : "2026-01-01"} />
-          <ToolField label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} dir="ltr" placeholder={system === "jalali" ? "1405/04/25" : "2026-04-25"} />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} calendarSystem={system} placeholder={system === "jalali" ? "1405/01/01" : "2026-01-01"} />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} calendarSystem={system} placeholder={system === "jalali" ? "1405/04/25" : "2026-04-25"} />
         </ToolWorkspace>
         {from && to && !diff ? (
           <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
@@ -160,6 +167,13 @@ export function BusinessDaysPanel() {
     <>
       <ToolToolbar>
         <div className="tools-toggle">
+          {(["jalali", "gregorian"] as CalendarSystem[]).map((s) => (
+            <button key={s} type="button" className={`tools-toggle__btn ${system === s ? "tools-toggle__btn--active" : ""}`} onClick={() => setSystem(s)}>
+              {t(`tools.dateTimeToolkit.calendars.${s}`)}
+            </button>
+          ))}
+        </div>
+        <div className="tools-toggle">
           {(["excludeThuFri", "excludeSatSun", "weekdays"] as const).map((m) => (
             <button key={m} type="button" className={`tools-toggle__btn ${mode === m ? "tools-toggle__btn--active" : ""}`} onClick={() => setMode(m)}>
               {t(`tools.dateTimeToolkit.businessDays.${m}`)}
@@ -169,8 +183,8 @@ export function BusinessDaysPanel() {
       </ToolToolbar>
       <ToolWorkspace layout="stack">
         <ToolWorkspace layout="split">
-          <ToolField label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} dir="ltr" />
-          <ToolField label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} dir="ltr" />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} calendarSystem={system} />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} calendarSystem={system} />
         </ToolWorkspace>
         {from && to && count === null ? (
           <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
@@ -217,7 +231,7 @@ export function WeekdayPanel() {
         </div>
       </ToolToolbar>
       <ToolWorkspace layout="stack">
-        <ToolField label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} dir="ltr" />
+        <ToolDatePicker label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} calendarSystem={system} />
         {input && !info ? (
           <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
         ) : info ? (
@@ -269,7 +283,7 @@ export function AgeCalculatorPanel() {
         </div>
       </ToolToolbar>
       <ToolWorkspace layout="stack">
-        <ToolField label={t("tools.dateTimeToolkit.age.birthDate")} value={birth} onChange={setBirth} placeholder="1378/02/12" dir="ltr" />
+        <ToolDatePicker label={t("tools.dateTimeToolkit.age.birthDate")} value={birth} onChange={setBirth} calendarSystem={system} placeholder="1378/02/12" />
         {birth && !age ? (
           <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
         ) : age ? (
@@ -339,7 +353,7 @@ export function IsoWeekPanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} placeholder="2026-07-15" dir="ltr" />
+      <ToolDatePicker label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} calendarSystem="gregorian" placeholder="2026-07-15" />
       {input && !info ? (
         <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
       ) : info ? (
@@ -389,8 +403,8 @@ export function DateRangePanel() {
       </ToolToolbar>
       <ToolWorkspace layout="stack">
         <ToolWorkspace layout="split">
-          <ToolField label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} dir="ltr" />
-          <ToolField label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} dir="ltr" />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.from")} value={from} onChange={setFrom} calendarSystem={system} />
+          <ToolDatePicker label={t("tools.dateTimeToolkit.common.to")} value={to} onChange={setTo} calendarSystem={system} />
         </ToolWorkspace>
         {from && to && !range ? (
           <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />

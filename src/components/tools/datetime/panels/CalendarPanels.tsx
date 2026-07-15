@@ -11,6 +11,7 @@ import {
   ToolOutputList,
   ToolActionButton,
 } from "../../shared";
+import { ToolDatePicker } from "../ToolDatePicker";
 import {
   parseDateTime,
   formatAllCalendars,
@@ -53,12 +54,13 @@ export function CalendarConverterPanel() {
         </div>
       </ToolToolbar>
       <ToolWorkspace layout="stack">
-        <ToolField
+        <ToolDatePicker
           label={t("tools.dateTimeToolkit.common.input")}
           value={input}
           onChange={setInput}
+          calendarSystem={system}
+          showTime
           placeholder={t(`tools.dateTimeToolkit.placeholders.${system}`)}
-          dir="ltr"
           hint={t("tools.dateTimeToolkit.calendarConverter.hint")}
         />
         {!input.trim() ? null : !parsed ? (
@@ -97,12 +99,12 @@ export function DateFormatPanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField
+      <ToolDatePicker
         label={t("tools.dateTimeToolkit.common.input")}
         value={input}
         onChange={setInput}
+        calendarSystem="gregorian"
         placeholder="2026-07-15"
-        dir="ltr"
       />
       {!input.trim() ? null : !parsed ? (
         <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
@@ -182,7 +184,18 @@ export function UnixTimestampPanel() {
         )}
       </ToolToolbar>
       <ToolWorkspace layout="stack">
-        <ToolField label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} placeholder={mode === "toDate" ? "1752595200" : "2026-07-15"} dir="ltr" />
+        {mode === "fromDate" ? (
+          <ToolDatePicker
+            label={t("tools.dateTimeToolkit.common.input")}
+            value={input}
+            onChange={setInput}
+            calendarSystem="gregorian"
+            showTime
+            placeholder="2026-07-15"
+          />
+        ) : (
+          <ToolField label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} placeholder="1752595200" dir="ltr" />
+        )}
         {result.error ? <ToolError message={result.error} /> : result.items.length > 0 ? <ToolOutputList items={result.items} columns={2} /> : null}
       </ToolWorkspace>
     </>

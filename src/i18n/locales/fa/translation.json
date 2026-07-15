@@ -90,7 +90,11 @@
     "icon": "آیکون",
     "menu": "منو",
     "folders": "پوشه‌ها",
-    "bookmarksGroup": "بوک‌مارک‌ها"
+    "bookmarksGroup": "بوک‌مارک‌ها",
+    "root": "همه بوک‌مارک‌ها",
+    "path": "مسیر پوشه",
+    "searchRecursive": "جستجو در زیرپوشه‌ها",
+    "searchRecursive": "جستجو در زیرپوشه‌ها"
   },
   "days": {
     "Saturday": "شنبه",
@@ -302,6 +306,11 @@
         "invalidTime": "زمان نامعتبر (HH:mm یا HH:mm:ss)",
         "invalidTimestamp": "تایم‌استمپ نامعتبر است",
         "invalidNumber": "عدد نامعتبر است"
+      },
+      "picker": {
+        "pickDate": "انتخاب تاریخ",
+        "pickTime": "انتخاب ساعت",
+        "today": "امروز"
       },
       "subTools": {
         "calendarConverter": {

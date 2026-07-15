@@ -90,7 +90,11 @@
     "icon": "Icon",
     "menu": "Menu",
     "folders": "Folders",
-    "bookmarksGroup": "Bookmarks"
+    "bookmarksGroup": "Bookmarks",
+    "root": "All bookmarks",
+    "path": "Folder path",
+    "searchRecursive": "Search in subfolders",
+    "searchRecursive": "Search in subfolders"
   },
   "days": {
     "Saturday": "Saturday",
@@ -302,6 +306,11 @@
         "invalidTime": "Invalid time (HH:mm or HH:mm:ss)",
         "invalidTimestamp": "Invalid timestamp",
         "invalidNumber": "Invalid number"
+      },
+      "picker": {
+        "pickDate": "Pick date",
+        "pickTime": "Pick time",
+        "today": "Today"
       },
       "subTools": {
         "calendarConverter": {

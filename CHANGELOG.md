@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2026-07-15 14:30:00
+- Fixed Date & Time Toolkit date picker popover: theme colors now apply to the calendar overlay and day cells are clearly visible
+- Components affected: src/components/tools/datetime/ToolDatePicker.tsx, src/components/Tools.css
+
+## 2026-07-15 14:25:00
+- Enlarged the Choose bookmark selector modal to show more bookmarks at once
+- Components affected: src/components/Bookmarks.tsx
+
+## 2026-07-15 13:05:00
+- Date & Time Toolkit: added calendar and time pickers for date/time inputs (Jalali, Gregorian, Hijri mini-calendar + native browser pickers)
+- Components affected: src/components/tools/datetime/ToolDatePicker.tsx, src/components/tools/datetime/panels/*, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-15 12:49:00
+- Added recursive search checkbox in bookmark search; when enabled, search includes all subfolders
+- Preference is remembered between sessions
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-15 12:44:00
+- Added clickable folder breadcrumb path when browsing bookmarks in the selector and folder viewer
+- Each folder segment in the path navigates to that level; root returns to all bookmarks
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-15 08:57:22
 - Consolidated encoding and cryptography utilities into a single Encoding & Cryptography toolkit with search and group filters (Encoding, Hash, Encryption, Security, Certificates, Utilities)
 - Available tools include Base64 (file/image), URL/HTML/Unicode/ASCII/Hex/Morse/NATO, number bases, SHA/HMAC/CRC, AES-GCM, password/passphrase/strength, JWT, TOTP, UUID, secrets/random, QR, slug, case converter, and multi-format escape

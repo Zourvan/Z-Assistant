@@ -121,6 +121,47 @@ export function formatAllCalendars(date: Date, withTime = false) {
   };
 }
 
+export function formatDateBySystem(date: Date, system: CalendarSystem, withTime = false): string {
+  if (system === "jalali") return formatJalaliDate(date, withTime);
+  if (system === "hijri") {
+    const base = formatHijriDate(date);
+    if (!withTime) return base;
+    return `${base} ${formatGregorian(date, "HH:mm:ss")}`;
+  }
+  return formatGregorianDate(date, withTime);
+}
+
+export function extractTimePart(value: string): string {
+  const parts = value.trim().split(/\s+/);
+  if (parts.length >= 2 && /^\d{1,2}:\d{2}/.test(parts[1])) {
+    return parts[1].length === 5 ? `${parts[1]}:00` : parts[1];
+  }
+  return "00:00:00";
+}
+
+export function applyTimeToDate(date: Date, timeStr: string): Date {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  const result = new Date(date);
+  if (!match) return result;
+  result.setHours(Number(match[1]), Number(match[2]), Number(match[3] ?? 0), 0);
+  return result;
+}
+
+export function toGregorianInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+export function fromGregorianInputValue(value: string): Date | null {
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const date = new Date(y, m - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) return null;
+  return date;
+}
+
 export function isJalaliLeapYear(jalaliYear: number): boolean {
   const breaks = [1, 5, 9, 13, 17, 22, 26, 30];
   const cycle = jalaliYear % 33;

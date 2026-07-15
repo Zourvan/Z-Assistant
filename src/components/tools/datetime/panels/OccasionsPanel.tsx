@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useI18n } from "../../../../i18n/LanguageProvider";
 import { ToolWorkspace, ToolField, ToolError, ToolOutputList } from "../../shared";
+import { ToolDatePicker } from "../ToolDatePicker";
 import { parseDateTime, formatAllCalendars } from "../utils/calendars";
 import { findOccasionsForDate, OCCASIONS } from "../utils/occasions";
 
@@ -33,12 +34,11 @@ export function OccasionsPanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField
+      <ToolDatePicker
         label={t("tools.dateTimeToolkit.common.input")}
         value={input}
         onChange={setInput}
         placeholder="1405/04/25"
-        dir="ltr"
         hint={t("tools.dateTimeToolkit.occasions.hint")}
       />
       {input && !matches ? (

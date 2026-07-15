@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo, type CSSProperties } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo, Fragment, type CSSProperties } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
 import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid, Smile } from "lucide-react";
@@ -109,6 +109,26 @@ function getHostname(url?: string): string {
   } catch {
     return "";
   }
+}
+
+function nodeMatchesSearch(node: BookmarkNode, term: string): boolean {
+  const lowerTerm = term.toLowerCase();
+  return node.title.toLowerCase().includes(lowerTerm) || Boolean(node.url && node.url.toLowerCase().includes(lowerTerm));
+}
+
+function searchNodesRecursive(nodes: BookmarkNode[], term: string): BookmarkNode[] {
+  const results: BookmarkNode[] = [];
+
+  for (const node of nodes) {
+    if (nodeMatchesSearch(node, term)) {
+      results.push(node);
+    }
+    if (node.children?.length) {
+      results.push(...searchNodesRecursive(node.children, term));
+    }
+  }
+
+  return results;
 }
 
 // --- Color Picker Component ---
@@ -312,6 +332,7 @@ export function Bookmarks() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [folderSearchTerm, setFolderSearchTerm] = useState<string>(""); // New state for folder panel search
   const [groupingType, setGroupingTypeState] = useState<GroupingType>("none"); // New state for grouping
+  const [searchRecursive, setSearchRecursiveState] = useState(false);
 
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -333,6 +354,11 @@ export function Bookmarks() {
   const setGroupingType = (type: GroupingType) => {
     setGroupingTypeState(type);
     localStorage.setItem("typeofBookmarkForm", type);
+  };
+
+  const setSearchRecursive = (recursive: boolean) => {
+    setSearchRecursiveState(recursive);
+    localStorage.setItem("bookmarkSearchRecursive", recursive ? "1" : "0");
   };
 
   // Close bookmark popups when settings opens so they don't block the modal
@@ -388,6 +414,11 @@ export function Bookmarks() {
           if (savedGroupingType) {
             // Use the state setter directly to avoid double-saving to localStorage
             setGroupingTypeState(savedGroupingType as GroupingType);
+          }
+
+          const savedSearchRecursive = localStorage.getItem("bookmarkSearchRecursive");
+          if (savedSearchRecursive !== null) {
+            setSearchRecursiveState(savedSearchRecursive === "1");
           }
         } catch (error) {
           console.error("Error loading grouping preference from localStorage:", error);
@@ -663,6 +694,71 @@ export function Bookmarks() {
     }
   };
 
+  const navigateToBreadcrumb = (index: number) => {
+    if (index === 0) {
+      setFolderHistory([]);
+      if (isSelecting) {
+        setCurrentFolder(null);
+        setSearchTerm("");
+      } else {
+        setActiveFolderContent(null);
+        setFolderSearchTerm("");
+      }
+      return;
+    }
+
+    const historyIndex = index - 1;
+    if (historyIndex >= folderHistory.length) return;
+
+    const targetFolder = folderHistory[historyIndex];
+    const newHistory = folderHistory.slice(0, historyIndex);
+
+    if (isSelecting) {
+      setFolderHistory(newHistory);
+      setCurrentFolder(targetFolder);
+      setSearchTerm("");
+    } else {
+      setFolderHistory(newHistory);
+      setActiveFolderContent(targetFolder);
+      setFolderSearchTerm("");
+    }
+  };
+
+  const renderFolderBreadcrumb = (current: BookmarkNode | null) => {
+    const rootLabel = t("bookmarks.root");
+    const items: { id: string; title: string; isCurrent: boolean }[] = current
+      ? [
+          { id: "root", title: rootLabel, isCurrent: false },
+          ...folderHistory.map((folder) => ({ id: folder.id, title: folder.title, isCurrent: false })),
+          { id: current.id, title: current.title, isCurrent: true },
+        ]
+      : [{ id: "root", title: rootLabel, isCurrent: true }];
+
+    return (
+      <nav className="bookmarks-breadcrumb" aria-label={t("bookmarks.path")}>
+        {items.map((item, index) => (
+          <Fragment key={`${item.id}-${index}`}>
+            {index > 0 && <span className="bookmarks-breadcrumb__sep" aria-hidden>/</span>}
+            {item.isCurrent ? (
+              <span className="bookmarks-breadcrumb__current" title={item.title}>
+                {item.title}
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="bookmarks-breadcrumb__link"
+                title={item.title}
+                onClick={() => navigateToBreadcrumb(index)}
+              >
+                {item.title}
+              </button>
+            )}
+          </Fragment>
+        ))}
+      </nav>
+    );
+  };
+
   const closeSelector = () => {
     setIsSelecting(false);
     setSelectedTileIndex(null);
@@ -674,11 +770,11 @@ export function Bookmarks() {
   };
 
   // Add a helper function to filter nodes based on search term
-  const filterNodesBySearch = (nodes: BookmarkNode[], term: string): BookmarkNode[] => {
+  const filterNodesBySearch = (nodes: BookmarkNode[], term: string, recursive = false): BookmarkNode[] => {
     if (!term) return nodes;
+    if (recursive) return searchNodesRecursive(nodes, term);
 
-    const lowerTerm = term.toLowerCase();
-    return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
+    return nodes.filter((node) => nodeMatchesSearch(node, term));
   };
 
   // Modify the getGroupedNodes function to check for empty inputs
@@ -753,13 +849,21 @@ export function Bookmarks() {
   };
 
   // Add a function to filter folder content by search term
-  const filterFolderContentBySearch = (nodes: BookmarkNode[] | undefined, term: string): BookmarkNode[] => {
+  const filterFolderContentBySearch = (nodes: BookmarkNode[] | undefined, term: string, recursive = false): BookmarkNode[] => {
     if (!nodes) return [];
-    if (!term) return nodes;
-
-    const lowerTerm = term.toLowerCase();
-    return nodes.filter((node) => node.title.toLowerCase().includes(lowerTerm) || (node.url && node.url.toLowerCase().includes(lowerTerm)));
+    return filterNodesBySearch(nodes, term, recursive);
   };
+
+  const renderRecursiveSearchOption = () => (
+    <label className="bookmarks-recursive-search">
+      <input
+        type="checkbox"
+        checked={searchRecursive}
+        onChange={(e) => setSearchRecursive(e.target.checked)}
+      />
+      <span>{t("bookmarks.searchRecursive")}</span>
+    </label>
+  );
 
   // Add a scroll padding utility function to handle scrolling behavior
   useEffect(() => {
@@ -794,7 +898,7 @@ export function Bookmarks() {
   // --- Rendering Functions ---
   const renderSelector = () => {
     const nodes = currentFolder?.children || bookmarks;
-    const filteredNodes = filterNodesBySearch(nodes || [], searchTerm);
+    const filteredNodes = filterNodesBySearch(nodes || [], searchTerm, searchRecursive);
     const groupedData = getGroupedNodes(filteredNodes, groupingType);
 
     // Use type guard to safely check if data is grouped
@@ -802,7 +906,7 @@ export function Bookmarks() {
 
     return (
       <div className="bookmarks-overlay">
-        <div ref={selectorRef} className="bookmarks-modal" style={themeCssVars}>
+        <div ref={selectorRef} className="bookmarks-modal bookmarks-modal--large" style={themeCssVars}>
           <div className="bookmarks-toolbar">
             <button type="button" onClick={currentFolder ? navigateBack : closeSelector} className="bookmarks-btn">
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -833,6 +937,8 @@ export function Bookmarks() {
             )}
           </div>
 
+          {renderFolderBreadcrumb(currentFolder)}
+
           <div className="bookmarks-search-panel search-controls">
             <div className="relative">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -855,6 +961,8 @@ export function Bookmarks() {
                 </button>
               )}
             </div>
+
+            {renderRecursiveSearchOption()}
 
             <div className="bookmarks-group-controls">
               <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>
@@ -1006,7 +1114,7 @@ export function Bookmarks() {
   const renderFolderContent = () => {
     if (!activeFolderContent) return null;
 
-    const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children || [], folderSearchTerm);
+    const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children || [], folderSearchTerm, searchRecursive);
     const groupedData = getGroupedNodes(filteredFolderContent, groupingType);
 
     // Use the type guard for safer type checking
@@ -1023,6 +1131,8 @@ export function Bookmarks() {
             <h3 className="text-base font-medium flex-grow text-center">{activeFolderContent.title}</h3>
             <span className="w-16" aria-hidden />
           </div>
+
+          {renderFolderBreadcrumb(activeFolderContent)}
 
           <div className="bookmarks-search-panel search-controls">
             <div className="relative">
@@ -1046,6 +1156,8 @@ export function Bookmarks() {
                 </button>
               )}
             </div>
+
+            {renderRecursiveSearchOption()}
 
             <div className="bookmarks-group-controls">
               <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>

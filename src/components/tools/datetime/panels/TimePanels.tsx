@@ -3,6 +3,7 @@ import { formatDistance } from "date-fns";
 import { faIR, enUS } from "date-fns/locale";
 import { useI18n } from "../../../../i18n/LanguageProvider";
 import { ToolWorkspace, ToolToolbar, ToolColumn, ToolField, ToolError, ToolOutputList } from "../../shared";
+import { ToolDatePicker, ToolTimePicker } from "../ToolDatePicker";
 import {
   parseTime,
   formatTime,
@@ -46,8 +47,8 @@ export function TimeCalculatorPanel() {
       </ToolToolbar>
       <ToolWorkspace layout="split">
         <ToolColumn>
-          <ToolField label={t("tools.dateTimeToolkit.timeCalc.timeA")} value={time1} onChange={setTime1} placeholder="08:45" dir="ltr" />
-          <ToolField label={t("tools.dateTimeToolkit.timeCalc.timeB")} value={time2} onChange={setTime2} placeholder="03:20" dir="ltr" />
+          <ToolTimePicker label={t("tools.dateTimeToolkit.timeCalc.timeA")} value={time1} onChange={setTime1} placeholder="08:45" />
+          <ToolTimePicker label={t("tools.dateTimeToolkit.timeCalc.timeB")} value={time2} onChange={setTime2} placeholder="03:20" />
         </ToolColumn>
         <ToolColumn>
           {!time1.trim() && !time2.trim() ? null : !result ? (
@@ -175,8 +176,8 @@ export function TimezonePanel() {
   return (
     <ToolWorkspace layout="stack">
       <ToolWorkspace layout="split">
-        <ToolField label={t("tools.dateTimeToolkit.timezone.time")} value={time} onChange={setTime} placeholder="08:30" dir="ltr" />
-        <ToolField label={t("tools.dateTimeToolkit.common.date")} value={date} onChange={setDate} placeholder="2026-07-15" dir="ltr" hint={t("tools.dateTimeToolkit.timezone.dateHint")} />
+        <ToolTimePicker label={t("tools.dateTimeToolkit.timezone.time")} value={time} onChange={setTime} placeholder="08:30" />
+        <ToolDatePicker label={t("tools.dateTimeToolkit.common.date")} value={date} onChange={setDate} calendarSystem="gregorian" placeholder="2026-07-15" hint={t("tools.dateTimeToolkit.timezone.dateHint")} />
       </ToolWorkspace>
       <ToolToolbar>
         <span className="tools-section__title" style={{ margin: 0 }}>{t("tools.dateTimeToolkit.timezone.source")}</span>
@@ -220,7 +221,7 @@ export function CountdownPanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField label={t("tools.dateTimeToolkit.countdown.target")} value={target} onChange={setTarget} placeholder="1405/01/01" dir="ltr" />
+      <ToolDatePicker label={t("tools.dateTimeToolkit.countdown.target")} value={target} onChange={setTarget} calendarSystem="jalali" showTime placeholder="1405/01/01" />
       {target && !remaining ? (
         <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
       ) : remaining ? (
@@ -252,7 +253,7 @@ export function RelativeTimePanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} placeholder="2026-07-12" dir="ltr" />
+      <ToolDatePicker label={t("tools.dateTimeToolkit.common.input")} value={input} onChange={setInput} calendarSystem="gregorian" placeholder="2026-07-12" />
       <ToolToolbar>
         <div className="tools-toggle">
           <button type="button" className={`tools-toggle__btn ${reference === "now" ? "tools-toggle__btn--active" : ""}`} onClick={() => setReference("now")}>
@@ -263,7 +264,7 @@ export function RelativeTimePanel() {
           </button>
         </div>
       </ToolToolbar>
-      {reference === "custom" && <ToolField label={t("tools.dateTimeToolkit.relativeTime.reference")} value={refDate} onChange={setRefDate} dir="ltr" />}
+      {reference === "custom" && <ToolDatePicker label={t("tools.dateTimeToolkit.relativeTime.reference")} value={refDate} onChange={setRefDate} calendarSystem="gregorian" />}
       {input && !text ? (
         <ToolError message={t("tools.dateTimeToolkit.errors.invalidDate")} />
       ) : text ? (
@@ -335,7 +336,7 @@ export function AddTimeToClockPanel() {
 
   return (
     <ToolWorkspace layout="stack">
-      <ToolField label={t("tools.dateTimeToolkit.timeCalc.baseTime")} value={time} onChange={setTime} dir="ltr" />
+      <ToolTimePicker label={t("tools.dateTimeToolkit.timeCalc.baseTime")} value={time} onChange={setTime} />
       <ToolWorkspace layout="split">
         <ToolField label={t("tools.dateTimeToolkit.units.hours")} value={hours} onChange={setHours} dir="ltr" compact />
         <ToolField label={t("tools.dateTimeToolkit.units.minutes")} value={minutes} onChange={setMinutes} dir="ltr" compact />
