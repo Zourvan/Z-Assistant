@@ -29,7 +29,7 @@ import { useCalendar, DayOfWeek } from "./CalendarContext";
 import { DEFAULT_BACKGROUNDS, COLOR_OPTIONS } from "./defaultBackgrounds";
 import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
 import { scheduleSyncPush } from "./settingsSync";
-import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground } from "./backgroundUtils";
+import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground, resolveBackgroundUrl } from "./backgroundUtils";
 import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
 import { createSettingsSelectStyles } from "./selectTheme";
 import { THEME_PRESETS } from "./themePresets";
@@ -93,7 +93,7 @@ const BackgroundThumbnail: React.FC<{
 }> = ({ bg, selected, onSelect, onRemove }) => {
   const [isLoading, setIsLoading] = useState(bg.type === "image");
   const [error, setError] = useState(false);
-  const displayUrl = bg.thumbnailUrl || bg.url;
+  const displayUrl = resolveBackgroundUrl(bg.thumbnailUrl || bg.url);
 
   return (
     <div className={`settings-bg-thumb ${selected ? "settings-bg-thumb--selected" : ""}`}>
@@ -225,7 +225,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         backgrounds.map(async (bg) => {
           if (bg.thumbnailUrl || bg.type === "color") return bg;
           try {
-            bg.thumbnailUrl = await generateThumbnail(bg.url);
+            bg.thumbnailUrl = await generateThumbnail(resolveBackgroundUrl(bg.url));
             await backgroundsDB.saveItem(bg);
           } catch {
             /* keep without thumbnail */
@@ -241,7 +241,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
   const handleSelectBackground = useCallback(
     (background: StoredBackground) => {
-      const finalUrl = background.type === "image" && !isDataUrl(background.url) ? processImageUrl(background.url) : background.url;
+      const finalUrl =
+        background.type === "image" && !isDataUrl(background.url)
+          ? processImageUrl(resolveBackgroundUrl(background.url))
+          : background.url;
       onSelectBackground(finalUrl);
       localStorage.setItem(storageKey, JSON.stringify({ ...background, url: finalUrl }));
       setSelectedBgId(background.id);

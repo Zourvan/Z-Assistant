@@ -1,6 +1,12 @@
+import { resolveExtensionAssetUrl } from "../../utils/extensionAssetUrl";
+
 export const isDataUrl = (url: string) => url.startsWith("data:");
 
 export const isColor = (str: string) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+
+export { resolveExtensionAssetUrl };
+
+export const resolveBackgroundUrl = (url: string) => resolveExtensionAssetUrl(url);
 
 export const processImageUrl = (url: string, width = 1920, height = 1080) => {
   if (isDataUrl(url) || isColor(url)) return url;

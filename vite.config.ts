@@ -14,6 +14,10 @@ export default defineConfig({
           dest: ''
         },
         {
+          src: './extension/icons/*',
+          dest: 'icons'
+        },
+        {
           src: 'static',
           dest: './'
         }

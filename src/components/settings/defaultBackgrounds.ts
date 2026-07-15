@@ -1,4 +1,5 @@
 import type { StoredBackground } from "./types";
+import { resolveExtensionAssetUrl } from "../../utils/extensionAssetUrl";
 
 const buildImage = (filename: string): StoredBackground => {
   const base = filename.replace(/\.[^.]+$/, "");
@@ -6,8 +7,8 @@ const buildImage = (filename: string): StoredBackground => {
 
   return {
     id: `${isGif ? "gif" : "img"}-${base}`,
-    url: `/static/background/${filename}`,
-    thumbnailUrl: `/static/background/${base}_thumb.${isGif ? "gif" : "jpg"}`,
+    url: `static/background/${filename}`,
+    thumbnailUrl: `static/background/${base}_thumb.${isGif ? "gif" : "jpg"}`,
     type: "image",
     isBlob: false,
     createdAt: Date.now(),

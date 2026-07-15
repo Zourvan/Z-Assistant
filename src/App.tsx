@@ -11,7 +11,7 @@ import { LanguageProvider } from "./i18n/LanguageProvider";
 import { useTheme } from "./components/ThemeProvider";
 import "./i18n/i18n"; // Import i18n initialization
 
-import { parseStoredBackground } from "./components/settings/backgroundUtils";
+import { parseStoredBackground, resolveBackgroundUrl } from "./components/settings/backgroundUtils";
 import "./App.css";
 
 // Helper function to get image from IndexedDB
@@ -69,7 +69,7 @@ function App() {
       }
       // If it's a regular image URL
       else {
-        setBackground(newBackground);
+        setBackground(resolveBackgroundUrl(newBackground));
         document.documentElement.style.backgroundImage = "none";
         document.documentElement.style.backgroundColor = "transparent";
       }

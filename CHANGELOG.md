@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-07-15 16:20:00
+- Fixed ERR_FILE_NOT_FOUND for missing favicon and bundled background images in the Chrome extension by resolving assets via chrome.runtime.getURL
+- Components affected: index.html, src/utils/extensionAssetUrl.ts, src/components/settings/defaultBackgrounds.ts, src/components/settings/backgroundUtils.ts, src/App.tsx, src/components/settings/SettingsPanel.tsx
+
+## 2026-07-15 16:15:00
+- Fixed Chrome extension icon not showing: added PNG icons (16/32/48/128) and `icons` field in manifest
+- Components affected: extension/manifest.json, extension/icons/, vite.config.ts
+
 ## 2026-07-15 16:10:00
 - Added GitHub Actions release workflow: builds extension zip and publishes GitHub Release on version tag push
 - Components affected: .github/workflows/release.yml
