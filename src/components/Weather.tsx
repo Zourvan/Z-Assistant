@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CloudSun, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, CloudSun, Loader2, MapPin, RefreshCw } from "lucide-react";
 import { useCalendar } from "./Settings";
 import { useI18n } from "../i18n/LanguageProvider";
 import { getStoredLocation, getWeatherCache } from "./weather/storage";
@@ -28,6 +28,7 @@ export function Weather() {
   const [error, setError] = useState<WeatherErrorCode | null>(null);
   const [staleCache, setStaleCache] = useState(false);
   const [lastFetch, setLastFetch] = useState<string | null>(null);
+  const [showWeekly, setShowWeekly] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const locale = language === "fa" ? "fa-IR" : "en-US";
@@ -185,67 +186,93 @@ export function Weather() {
             </p>
           )}
 
-          <section className="weather-widget__current" style={{ borderColor }}>
-            <div className="weather-widget__location">
-              <span className="weather-widget__city">{formatShortLocation(location)}</span>
-            </div>
+          <section
+            className={`weather-widget__current${showWeekly ? " weather-widget__current--expanded" : ""}`}
+            style={{ borderColor: showWeekly ? borderColor : "transparent" }}
+          >
+            <div className="weather-widget__daily">
+              <div className="weather-widget__daily-main">
+                <WeatherIcon code={weather.current.weather_code} size={56} className="weather-widget__icon" />
+                <div className="weather-widget__temp-block">
+                  <span className="weather-widget__city">{formatShortLocation(location)}</span>
+                  <span className="weather-widget__temp">{roundTemp(weather.current.temperature)}°C</span>
+                  <span className="weather-widget__condition">{weather.current.condition}</span>
+                </div>
+              </div>
 
-            <div className="weather-widget__current-main">
-              <WeatherIcon code={weather.current.weather_code} size={52} className="weather-widget__icon" />
-              <div className="weather-widget__temp-block">
-                <span className="weather-widget__temp">{roundTemp(weather.current.temperature)}°C</span>
-                <span className="weather-widget__condition">{weather.current.condition}</span>
+              <div className="weather-widget__daily-meta">
+                <div className="weather-widget__stats">
+                  <span>{t("weather.humidity")}: {weather.current.humidity}%</span>
+                  <span>{t("weather.wind")}: {roundWind(weather.current.wind_speed)} {t("weather.windUnit")}</span>
+                </div>
+                {lastFetch && (
+                  <p className="weather-widget__updated" style={{ color: mutedColor }}>
+                    {t("weather.updated")}: {formatRelativeTime(lastFetch, t)}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="weather-widget__stats">
-              <span>{t("weather.humidity")}: {weather.current.humidity}%</span>
-              <span>{t("weather.wind")}: {roundWind(weather.current.wind_speed)} {t("weather.windUnit")}</span>
-            </div>
-
-            {lastFetch && (
-              <p className="weather-widget__updated" style={{ color: mutedColor }}>
-                {t("weather.updated")}: {formatRelativeTime(lastFetch, t)}
-              </p>
-            )}
+            <button
+              type="button"
+              className="weather-widget__toggle"
+              style={{ borderColor }}
+              onClick={() => setShowWeekly((open) => !open)}
+              aria-expanded={showWeekly}
+              aria-controls="weather-weekly-forecast"
+            >
+              {showWeekly ? (
+                <>
+                  <ChevronUp size={16} aria-hidden />
+                  <span>{t("weather.hideForecast")}</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={16} aria-hidden />
+                  <span>{t("weather.showForecast")}</span>
+                </>
+              )}
+            </button>
           </section>
 
-          <section className="weather-widget__forecast">
-            <h3 className="weather-widget__forecast-title">{t("weather.forecastTitle")}</h3>
-            <div className="weather-widget__table-wrap">
-              <table className="weather-widget__table">
-                <thead>
-                  <tr>
-                    <th scope="col">{t("weather.table.date")}</th>
-                    <th scope="col">{t("weather.table.weather")}</th>
-                    <th scope="col">{t("weather.table.min")}</th>
-                    <th scope="col">{t("weather.table.max")}</th>
-                    <th scope="col">{t("weather.table.humidity")}</th>
-                    <th scope="col">{t("weather.table.wind")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {forecastRows.map((day) => (
-                    <tr key={day.date}>
-                      <td>
-                        <span className="weather-widget__day">{formatDayLabel(day.date, locale, t)}</span>
-                      </td>
-                      <td>
-                        <span className="weather-widget__forecast-cell">
-                          <WeatherIcon code={day.weather_code} size={18} />
-                          <span className="weather-widget__forecast-condition">{day.condition}</span>
-                        </span>
-                      </td>
-                      <td>{roundTemp(day.min_temp)}°</td>
-                      <td>{roundTemp(day.max_temp)}°</td>
-                      <td>{Math.round(day.humidity)}%</td>
-                      <td>{roundWind(day.wind_speed)}</td>
+          {showWeekly && (
+            <section className="weather-widget__forecast" id="weather-weekly-forecast">
+              <h3 className="weather-widget__forecast-title">{t("weather.forecastTitle")}</h3>
+              <div className="weather-widget__table-wrap">
+                <table className="weather-widget__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">{t("weather.table.date")}</th>
+                      <th scope="col">{t("weather.table.weather")}</th>
+                      <th scope="col">{t("weather.table.min")}</th>
+                      <th scope="col">{t("weather.table.max")}</th>
+                      <th scope="col">{t("weather.table.humidity")}</th>
+                      <th scope="col">{t("weather.table.wind")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </thead>
+                  <tbody>
+                    {forecastRows.map((day) => (
+                      <tr key={day.date}>
+                        <td>
+                          <span className="weather-widget__day">{formatDayLabel(day.date, locale, t)}</span>
+                        </td>
+                        <td>
+                          <span className="weather-widget__forecast-cell">
+                            <WeatherIcon code={day.weather_code} size={18} />
+                            <span className="weather-widget__forecast-condition">{day.condition}</span>
+                          </span>
+                        </td>
+                        <td>{roundTemp(day.min_temp)}°</td>
+                        <td>{roundTemp(day.max_temp)}°</td>
+                        <td>{Math.round(day.humidity)}%</td>
+                        <td>{roundWind(day.wind_speed)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

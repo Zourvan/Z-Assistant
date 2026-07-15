@@ -228,6 +228,8 @@
     "updatedMinutesAgo": "{{count}} دقیقه پیش",
     "updatedHoursAgo": "{{count}} ساعت پیش",
     "forecastTitle": "پیش‌بینی ۷ روز",
+    "showForecast": "پیش‌بینی ۷ روز",
+    "hideForecast": "بستن پیش‌بینی",
     "today": "امروز",
     "tomorrow": "فردا",
     "table": {

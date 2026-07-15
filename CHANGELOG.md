@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-15 15:25:00
+- Weather widget: show daily conditions by default; 7-day forecast expands on click; full column width layout
+- Components affected: src/components/Weather.tsx, src/components/Weather.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-15 15:20:00
 - Moved Weather widget above Tasks & Notes in the dashboard tasks column
 - Components affected: src/App.tsx

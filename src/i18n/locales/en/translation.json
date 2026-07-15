@@ -228,6 +228,8 @@
     "updatedMinutesAgo": "{{count}} min ago",
     "updatedHoursAgo": "{{count}} h ago",
     "forecastTitle": "7-day forecast",
+    "showForecast": "7-day forecast",
+    "hideForecast": "Hide forecast",
     "today": "Today",
     "tomorrow": "Tomorrow",
     "table": {
