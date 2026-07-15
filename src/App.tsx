@@ -125,14 +125,14 @@ function App() {
                   <ClockCalendar />
                 </div>
                 <div className="dashboard-widget">
-                  <Weather />
-                </div>
-                <div className="dashboard-widget">
                   <TimerAlarm />
                 </div>
               </div>
 
               <div className="dashboard-col dashboard-col--tasks">
+                <div className="dashboard-widget">
+                  <Weather />
+                </div>
                 <div className="dashboard-widget">
                   <TasksAndNotes />
                 </div>

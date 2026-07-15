@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-15 15:20:00
+- Moved Weather widget above Tasks & Notes in the dashboard tasks column
+- Components affected: src/App.tsx
+
 ## 2026-07-15 15:15:00
 - Fixed Tools modal crash (Cannot access before initialization) caused by circular imports in recent/favorites catalog
 - Components affected: src/components/tools/toolCatalog.ts, src/components/tools/toolRefKey.ts, src/components/tools/ToolsNavigationContext.tsx, src/components/tools/ToolkitShell.tsx
