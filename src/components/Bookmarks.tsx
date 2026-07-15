@@ -7,6 +7,7 @@ import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
 import { buildThemeCssVars } from "./settings/themeUtils";
 import { useI18n } from "../i18n/LanguageProvider";
+import { scheduleSyncPush } from "./settings/settingsSync";
 import "./Bookmarks.css";
 // Import emoji-mart
 import data from "@emoji-mart/data";
@@ -354,11 +355,13 @@ export function Bookmarks() {
   const setGroupingType = (type: GroupingType) => {
     setGroupingTypeState(type);
     localStorage.setItem("typeofBookmarkForm", type);
+    scheduleSyncPush();
   };
 
   const setSearchRecursive = (recursive: boolean) => {
     setSearchRecursiveState(recursive);
     localStorage.setItem("bookmarkSearchRecursive", recursive ? "1" : "0");
+    scheduleSyncPush();
   };
 
   // Close bookmark popups when settings opens so they don't block the modal
@@ -430,11 +433,6 @@ export function Bookmarks() {
 
     loadData();
   }, [tileNumber]);
-
-  // Save tiles to Chrome sync storage
-  useEffect(() => {
-    chrome.storage.sync.set({ bookmarkPreferences: { tiles } });
-  }, [tiles]);
 
   // Ensure menuButtonRefs array has the correct length based on tileNumber
   useEffect(() => {
@@ -508,6 +506,7 @@ export function Bookmarks() {
       }
 
       setTiles(updatedTiles);
+      scheduleSyncPush();
     }, 200),
     [tiles, tileGridRef, tileNumber]
   );
@@ -580,6 +579,7 @@ export function Bookmarks() {
     setTileIndexForColor(null);
     setIsEmojiPickerOpen(false);
     setTileIndexForIcon(null);
+    scheduleSyncPush();
   };
 
   const clearTile = async (index: number) => {
@@ -595,6 +595,7 @@ export function Bookmarks() {
       newTiles[index] = null;
       return newTiles;
     });
+    scheduleSyncPush();
   };
 
   const handleColorClick = (index: number) => {

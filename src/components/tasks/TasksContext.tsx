@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { tasksDB } from "../settings/settingsDb";
+import { scheduleSyncPush } from "../settings/settingsSync";
 import type { Task, TaskInput } from "./types";
 import { getDateKeysWithTasks, getTasksForDate } from "./taskUtils";
 
@@ -51,6 +52,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
     await tasksDB.saveItem(newTask);
     setTasks((prev) => [newTask, ...prev]);
+    scheduleSyncPush();
     return newTask;
   }, []);
 
@@ -61,6 +63,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
       const updatedTask = { ...task, ...updates };
       tasksDB.saveItem(updatedTask).catch((error) => console.error("Failed to update task:", error));
+      scheduleSyncPush();
       return prev.map((item) => (item.id === id ? updatedTask : item));
     });
   }, []);
@@ -68,6 +71,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const deleteTask = useCallback(async (id: string) => {
     await tasksDB.deleteItem(id);
     setTasks((prev) => prev.filter((task) => task.id !== id));
+    scheduleSyncPush();
   }, []);
 
   const toggleTodo = useCallback(async (id: string) => {

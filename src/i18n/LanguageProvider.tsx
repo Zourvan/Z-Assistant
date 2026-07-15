@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import i18n from "./i18n";
 import { changeLanguageAndDirection } from "./i18n";
+import { scheduleSyncPush } from "../components/settings/settingsSync";
 
 type Language = "en" | "fa";
 
@@ -52,6 +52,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     // Only update if the language has actually changed
     if (newLanguage !== language) {
       setLanguage(newLanguage);
+      scheduleSyncPush();
     }
   };
 

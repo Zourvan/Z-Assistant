@@ -1,3 +1,5 @@
+import { scheduleSyncPush } from "../settings/settingsSync";
+
 const RECENT_KEY = "toolsRecent";
 const FAVORITES_KEY = "toolsFavorites";
 export const MAX_RECENT_TOOLS = 10;
@@ -31,6 +33,7 @@ export const toggleFavoriteToolKey = (key: string): string[] => {
   const current = readKeys(FAVORITES_KEY);
   const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
   writeKeys(FAVORITES_KEY, next);
+  scheduleSyncPush();
   return next;
 };
 

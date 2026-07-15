@@ -1,4 +1,5 @@
 import type { ActivePomodoro, PomodoroPhase, PomodoroSettings } from "./types";
+import { scheduleSyncPush } from "../settings/settingsSync";
 
 export const ACTIVE_POMODORO_KEY = "nexx-active-pomodoro";
 export const POMODORO_SETTINGS_KEY = "nexx-pomodoro-settings";
@@ -22,6 +23,7 @@ export const loadPomodoroSettings = (): PomodoroSettings => {
 
 export const savePomodoroSettings = (settings: PomodoroSettings) => {
   localStorage.setItem(POMODORO_SETTINGS_KEY, JSON.stringify(settings));
+  scheduleSyncPush();
 };
 
 export const loadActivePomodoro = (): ActivePomodoro | null => {

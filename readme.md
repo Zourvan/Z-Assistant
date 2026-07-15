@@ -1,29 +1,34 @@
 # NEXX Tab
 
-A **Google Chrome** New Tab extension for everyday browsing and planning — bookmarks, tasks, calendar, timers, and developer tools on one page.
+![NEXX Tab dashboard preview](./readme-files/baner.gif)
 
-**Version:** 1.9.0
+A **Google Chrome** New Tab extension for everyday browsing and planning — bookmarks, tasks, calendar, weather, timers, and 100+ utility tools on one page.
+
+**Version:** 1.10.5
 
 ## Goal
 
-Replace the default New Tab with a simple, friendly dashboard that keeps daily essentials — bookmarks, tasks & notes, calendar, clock, timer/alarm, and utility tools — in one place.
+Replace the default New Tab with a simple, friendly dashboard that keeps daily essentials — bookmarks, tasks & notes, calendar, clock, weather, timer/alarm, and utility tools — in one place.
 
 ## Features
 
 ### Bookmarks
 
-- Sync with Chrome bookmarks
-- Custom icon and color per bookmark
+- Sync with Chrome bookmarks API
+- Custom icon (emoji) and tile color per bookmark or folder
 - Drag-and-drop reordering
-- Folder navigation and group-by controls
-- Search and browse bookmark tiles
+- Folder navigation with breadcrumb history
+- Group by: none, A–Z, or type (folders vs bookmarks)
+- Search with optional recursive subfolder search
+- Configurable tile count in settings
+- Ctrl+click opens links in a new tab
 
 ### Tasks & Notes
 
 - Unified list for todos and notes
 - Filters: all / todo / note / scheduled
 - Due dates, colors, and emoji labels
-- Add and edit with a clean, compact UI
+- Add and edit with a compact UI
 - Persisted in IndexedDB
 - Full English and Persian (fa) localization
 
@@ -31,78 +36,192 @@ Replace the default New Tab with a simple, friendly dashboard that keeps daily e
 
 - Live clock with date display
 - Gregorian and Persian (Jalali) calendars
-- Configurable first day of week and weekend days
+- Configurable first day of week and weekend days (up to 3)
+- Weekend day highlighting with custom color
 - Task/note markers on scheduled calendar days
 - Day click opens a modal with that day’s items and quick-add
 - Shared `TasksProvider` keeps calendar and task list in sync
 
 ### Weather
 
-- Location search by city, region, and country (Open-Meteo, no API key in extension)
+- Location search by city, region, and country (Open-Meteo — no API key required)
 - Current conditions with Lucide SVG icons, humidity, and wind
-- 7-day forecast table
+- Expandable 7-day forecast table
 - Location and weather data cached in `chrome.storage.local` (30 min / 6 h refresh)
+- Tasks panel hides while forecast is open for a cleaner layout
 - English and Persian (fa) localization
 
 ### Timer & Alarm
 
 - Countdown timer with presets
-- Alarms with repeat schedules, sound, and browser notifications
+- Alarms with repeat schedules (once, daily, weekdays, weekends), sound, and browser notifications
 - Pomodoro mode: focus/break phases, progress ring, round tracker, custom durations
 - Alarms persisted in IndexedDB and included in backup export/import
+- Active timer state survives page reload via localStorage
 
 ### Tools (modal)
 
-Opened from a floating button. Sidebar navigation with categories: **General**, **DevOps**, and **Programming**. Compact split input/output layout.
+Opened from a floating button in the control panel. Sidebar with **Recent**, **Favorites**, and category groups (**General**, **Programming**). Each toolkit has search, group filters, and a split input/output layout. Star any sub-tool to pin it to Favorites.
 
-#### Date & Time Toolkit (General)
+Three top-level toolkits:
 
-Search and group filters across 20 sub-tools:
-
-| Group | Tools |
-| --- | --- |
-| Calendar | Jalali / Gregorian / Hijri conversion, date formatting |
-| Calculator | Add/subtract dates, date difference, business days, weekday, age, leap year |
-| Time | Time calculator, add duration to clock, duration, time units, timezone, countdown, relative time |
-| Developer | Unix timestamp, cron expressions, date range generator, ISO week |
-| Occasions | Holidays and occasions lookup |
-
-#### Encoding & Cryptography Toolkit (General)
-
-Search and group filters. Available today:
-
-| Group | Tools |
-| --- | --- |
-| Encoding | Base64 (text/file/image), URL, HTML entities, Unicode, ASCII, hex text, number bases, Morse, NATO phonetic |
-| Hash | SHA, CRC, HMAC |
-| Encryption | AES-GCM |
-| Security | Password generator, strength checker, passphrase, JWT, TOTP, UUID, secrets, random bytes |
-| Utilities | QR code, slug, case converter, multi-format escape |
-
-Placeholder cards (coming soon): MD5, BLAKE2, RSA, ChaCha20, ECC, PGP, certificates/PEM/CSR/SSH, barcode, and related items.
-
-#### Other tools
-
-- **JSON formatter** (DevOps)
-- **Color converter** — HEX, RGB, RGBA, HSL, HSLA with visual picker (Programming)
-- **Regex tester** (Programming)
+| Toolkit | Category | Sub-tools |
+| --- | --- | --- |
+| Date & Time Toolkit | General | 20 |
+| Encoding & Cryptography | General | 38 (25 available, 13 coming soon) |
+| Developer Toolkit | Programming | 58 |
 
 ### Settings
 
-Sections: General · Calendar · Appearance · Backgrounds · Data
+Sections: **General** · **Calendar** · **Appearance** · **Backgrounds** · **Data**
 
-- Language: English and Persian (RTL/LTR)
-- Calendar type (Gregorian / Persian) and related options
-- Theme presets, text/background colors
-- Backgrounds: built-in images/GIFs, solid colors, custom uploads
-- Data: export/import backup for bookmarks, tasks, alarms, and settings
+- **General:** Language (English / Persian with RTL/LTR), bookmark tile count
+- **Calendar:** Calendar type (Gregorian / Persian), first day of week, weekend days
+- **Appearance:** Theme presets (Classic, Dark, Ocean, …), text/background colors, font size scale
+- **Backgrounds:** Built-in images/GIFs, solid colors, gradients, custom uploads (IndexedDB), image URL import
+- **Data:** Export/import JSON backup for bookmarks, tasks, alarms, and settings
 
 ### Layout & UX
 
 - Responsive dashboard: mobile (1 column), tablet (2), desktop (3)
 - Clock/Calendar and Timer/Alarm in a shared time column
+- Weather and Tasks share the middle column
 - Settings and Tools triggers in a frosted control panel
 - Social links credit strip
+- Theme colors applied consistently across widgets and modals
+
+## Tools reference
+
+### Date & Time Toolkit (General) — 20 tools
+
+| Group | Tool | Status |
+| --- | --- | --- |
+| Calendar | Calendar Converter (Jalali / Gregorian / Hijri) | ✓ |
+| Calendar | Date Format (ISO, compact, long, …) | ✓ |
+| Date Calculator | Add / Subtract Date | ✓ |
+| Date Calculator | Date Difference | ✓ |
+| Date Calculator | Business Days | ✓ |
+| Date Calculator | Weekday | ✓ |
+| Date Calculator | Age Calculator | ✓ |
+| Date Calculator | Leap Year | ✓ |
+| Time | Time Calculator | ✓ |
+| Time | Add Duration to Time | ✓ |
+| Time | Duration | ✓ |
+| Time | Time Unit Converter | ✓ |
+| Time | Time Zone | ✓ |
+| Time | Countdown | ✓ |
+| Time | Relative Time | ✓ |
+| Developer | Unix Timestamp | ✓ |
+| Developer | Cron Helper | ✓ |
+| Developer | Date Range | ✓ |
+| Developer | ISO Week | ✓ |
+| Occasions | Occasions (holidays & cultural events) | ✓ |
+
+### Encoding & Cryptography Toolkit (General) — 38 tools
+
+| Group | Tool | Status |
+| --- | --- | --- |
+| Encoding | Base64 (text / file / image) | ✓ |
+| Encoding | URL Encode | ✓ |
+| Encoding | HTML Encode | ✓ |
+| Encoding | Unicode | ✓ |
+| Encoding | ASCII Converter | ✓ |
+| Encoding | Hex Text | ✓ |
+| Encoding | Number Bases | ✓ |
+| Encoding | Morse Code | ✓ |
+| Encoding | NATO Alphabet | ✓ |
+| Hash | SHA Family | ✓ |
+| Hash | CRC / Checksum | ✓ |
+| Hash | HMAC | ✓ |
+| Hash | MD5 | Soon |
+| Hash | BLAKE2 | Soon |
+| Encryption | AES (AES-GCM) | ✓ |
+| Encryption | RSA | Soon |
+| Encryption | ChaCha20 | Soon |
+| Encryption | ECC | Soon |
+| Encryption | PGP | Soon |
+| Security | Password Generator | ✓ |
+| Security | Password Strength | ✓ |
+| Security | Passphrase | ✓ |
+| Security | JWT Tools | ✓ |
+| Security | TOTP / OTP | ✓ |
+| Security | UUID | ✓ |
+| Security | Secret Generator | ✓ |
+| Security | Random Generator | ✓ |
+| Certificates | PEM / DER | Soon |
+| Certificates | CSR Generator | Soon |
+| Certificates | Certificate Viewer | Soon |
+| Certificates | SSH Keys | Soon |
+| Certificates | Fingerprint | Soon |
+| Certificates | OpenSSL Helper | Soon |
+| Utilities | QR Code | ✓ |
+| Utilities | Barcode | Soon |
+| Utilities | Slug Generator | ✓ |
+| Utilities | Case Converter | ✓ |
+| Utilities | Escape Characters | ✓ |
+
+### Developer Toolkit (Programming) — 58 tools
+
+| Group | Tool | Status |
+| --- | --- | --- |
+| Data Converter | JSON Formatter | ✓ |
+| Data Converter | YAML ↔ JSON | ✓ |
+| Data Converter | XML Formatter & Converter | ✓ |
+| Data Converter | CSV Viewer & Converter | ✓ |
+| Data Converter | TOML Converter | ✓ |
+| Data Converter | INI Parser | ✓ |
+| Text Tools | Diff Checker | ✓ |
+| Text Tools | Case Converter | ✓ |
+| Text Tools | Slug Generator | ✓ |
+| Text Tools | Lorem Ipsum Generator | ✓ |
+| Text Tools | Text Statistics | ✓ |
+| Text Tools | Line Sorter | ✓ |
+| Text Tools | Remove Duplicate Lines | ✓ |
+| Code Tools | Code Formatter (JS, TS, HTML, CSS, SQL, …) | ✓ |
+| Code Tools | Code Minifier | ✓ |
+| Code Tools | Escape / Unescape | ✓ |
+| Code Tools | Regex Tester | ✓ |
+| Code Tools | Regex Generator | ✓ |
+| Web Tools | URL Parser | ✓ |
+| Web Tools | Query Parameter Editor | ✓ |
+| Web Tools | HTTP Status Codes | ✓ |
+| Web Tools | MIME Type Lookup | ✓ |
+| Web Tools | User-Agent Parser | ✓ |
+| API Tools | cURL Parser | ✓ |
+| API Tools | cURL Generator | ✓ |
+| API Tools | JWT Decoder | ✓ |
+| API Tools | GraphQL Formatter | ✓ |
+| API Tools | OpenAPI Viewer | ✓ |
+| DevOps | chmod Calculator | ✓ |
+| DevOps | Semantic Version Calculator | ✓ |
+| DevOps | Gitignore Generator | ✓ |
+| DevOps | Conventional Commit Generator | ✓ |
+| DevOps | Docker Ignore Generator | ✓ |
+| DevOps | Docker Image Tag Builder | ✓ |
+| DevOps | Kubernetes Resource Converter | ✓ |
+| DevOps | Environment Variable Editor | ✓ |
+| Network | CIDR Calculator | ✓ |
+| Network | IP Converter | ✓ |
+| Network | Subnet Calculator | ✓ |
+| Network | DNS Record Builder | ✓ |
+| Frontend | Color Picker (HEX, RGB, HSL, HSV) | ✓ |
+| Frontend | CSS Gradient Generator | ✓ |
+| Frontend | Box Shadow Generator | ✓ |
+| Frontend | Border Radius Generator | ✓ |
+| Frontend | CSS Unit Converter | ✓ |
+| Frontend | Flexbox Playground | ✓ |
+| Frontend | CSS Grid Generator | ✓ |
+| Frontend | SVG Optimizer | ✓ |
+| AI Developer | Token Counter | ✓ |
+| AI Developer | Markdown Preview | ✓ |
+| AI Developer | Markdown Table Generator | ✓ |
+| AI Developer | Mermaid Preview | ✓ |
+| AI Developer | JSON Schema Validator | ✓ |
+| Utility | UUID Generator | ✓ |
+| Utility | NanoID Generator | ✓ |
+| Utility | Random Generator | ✓ |
+| Utility | Byte Converter | ✓ |
+| Utility | Number Base Converter | ✓ |
 
 ## Roadmap
 
@@ -113,22 +232,24 @@ Sections: General · Calendar · Appearance · Backgrounds · Data
 - [x] Clock, alarm, timer, and Pomodoro
 - [x] Date conversion (Jalali / Gregorian / Hijri) and full Date & Time toolkit
 - [x] Tasks linked to calendar (markers + day modal)
-- [x] Tools modal with Encoding & Cryptography toolkit
+- [x] Encoding & Cryptography toolkit
+- [x] Developer Toolkit (JSON, YAML, regex, diff, JWT, cURL, DevOps, network, CSS, AI tools, …)
+- [x] Tools favorites and recent history
 - [x] English / Persian i18n with RTL support
 - [x] Theme and background customization
 - [x] IndexedDB persistence and backup export/import
+- [x] Weather widget
 
 ### Planned
 
 - [ ] Holidays and events on the main calendar widget
 - [ ] Settings structure refinements
 - [ ] Crypto and fiat price display
-- [x] Weather status
 - [ ] Instagram page
 - [ ] Load core data from server APIs
 - [ ] Full settings unification (colors, forms, etc.)
 - [ ] Google account sync for settings
-- [ ] Remaining Encoding & Cryptography placeholders (RSA, PGP, certificates, etc.)
+- [ ] Remaining Encoding & Cryptography placeholders (MD5, RSA, PGP, certificates, barcode, …)
 
 ## Future ideas
 
@@ -170,10 +291,20 @@ React · TypeScript · Vite · Tailwind CSS · Material UI · IndexedDB · i18ne
 
 ```bash
 npm install
-npm run build:extension
 ```
 
-### Install in Chrome
+### npm scripts
+
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Vite dev server — browser preview (not loaded as an extension) |
+| `npm run build` | Production build to `dist/` |
+| `npm run build:extension` | Build extension and print load-unpacked instructions |
+| `npm run build:extension-package` | Build extension and create a Chrome Web Store zip in `release/` |
+| `npm run lint` | Run ESLint |
+| `npm run preview` | Preview the production build locally |
+
+### Install in Chrome (development)
 
 1. Run `npm run build:extension`.
 2. Open `chrome://extensions`.
@@ -184,13 +315,12 @@ npm run build:extension
 > **Important:** Load only the `dist` folder. Loading the project root (`Z-Assistant`) causes Chrome to read `/src/main.tsx` and fail with a MIME type error:
 > `Expected a JavaScript module but got application/octet-stream`
 
-### Development
-
-```bash
-npm run dev      # browser preview (not as an extension)
-```
-
 After code changes: run `npm run build:extension`, then click **Reload** on `chrome://extensions`.
+
+### Publish to Chrome Web Store
+
+1. Run `npm run build:extension-package`.
+2. Upload the generated zip from `release/` (e.g. `nexx-tab-v1.10.5.zip`) in the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) → your item → **Package** → **Upload new package**.
 
 ---
 

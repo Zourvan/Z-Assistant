@@ -3,6 +3,7 @@ import { Timer, Bell, Play, Pause, RotateCcw, Plus, Trash2, BellRing, CircleDot 
 import { useCalendar } from "./Settings";
 import { useI18n } from "../i18n/LanguageProvider";
 import { alarmsDB } from "./settings/settingsDb";
+import { scheduleSyncPush } from "./settings/settingsSync";
 import { buildThemeVars } from "./settings/themeUtils";
 import type { AlarmItem, AlarmRepeat, ActiveTimer, RingingAlert } from "./timerAlarm/types";
 import { PomodoroPanel, type PomodoroCompletion, type PomodoroPanelHandle } from "./timerAlarm/PomodoroPanel";
@@ -226,6 +227,7 @@ export function TimerAlarm() {
 
     await alarmsDB.saveItem(item);
     setAlarms((prev) => [...prev, item].sort((a, b) => a.hour * 60 + a.minute - (b.hour * 60 + b.minute)));
+    scheduleSyncPush();
     setAlarmLabel("");
     setAlarmTime("07:00");
     setAlarmRepeat("daily");
@@ -236,11 +238,13 @@ export function TimerAlarm() {
     const updated = { ...alarm, enabled: !alarm.enabled };
     await alarmsDB.saveItem(updated);
     setAlarms((prev) => prev.map((a) => (a.id === alarm.id ? updated : a)));
+    scheduleSyncPush();
   };
 
   const deleteAlarm = async (id: string) => {
     await alarmsDB.deleteItem(id);
     setAlarms((prev) => prev.filter((a) => a.id !== id));
+    scheduleSyncPush();
   };
 
   const displayTime = isTimerActive

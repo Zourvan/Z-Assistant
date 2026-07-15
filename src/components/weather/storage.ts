@@ -1,4 +1,5 @@
 import type { WeatherCache, WeatherLocation } from "./types";
+import { scheduleSyncPush } from "../settings/settingsSync";
 
 const LOCATION_KEY = "weather_location";
 const CACHE_KEY = "weather_cache";
@@ -31,7 +32,9 @@ export const getStoredLocation = (): Promise<WeatherLocation | null> =>
   storageGet<WeatherLocation>(LOCATION_KEY);
 
 export const saveLocation = (location: WeatherLocation): Promise<void> =>
-  storageSet({ [LOCATION_KEY]: location });
+  storageSet({ [LOCATION_KEY]: location }).then(() => {
+    scheduleSyncPush();
+  });
 
 export const clearLocation = (): Promise<void> => storageRemove(LOCATION_KEY);
 

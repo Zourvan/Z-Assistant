@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2026-07-15 15:40:00
+- Added cross-device settings sync via chrome.storage.sync: theme, calendar, language, tasks, alarms, bookmarks, backgrounds, pomodoro, tool favorites, and weather location sync when signed into Chrome
+- SyncProvider bootstraps on startup and applies remote changes from other devices automatically
+- Components affected: src/components/settings/settingsSync.ts, src/components/settings/SyncProvider.tsx, src/main.tsx, src/components/ThemeProvider.tsx, src/components/settings/CalendarContext.tsx, src/i18n/LanguageProvider.tsx, src/components/tasks/TasksContext.tsx, src/components/TimerAlarm.tsx, src/components/Bookmarks.tsx, src/components/settings/SettingsPanel.tsx, src/components/tools/toolPreferences.ts, src/components/timerAlarm/pomodoroUtils.ts, src/components/weather/storage.ts
+
 ## 2026-07-15 15:35:00
 - Fixed Recent/Favorites: one click now opens the tool and updates recent list at the same time
 - Favorites and Recent sidebar items now use the same layout as category tools (icon + label + star)

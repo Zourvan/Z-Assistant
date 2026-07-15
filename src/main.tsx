@@ -4,6 +4,7 @@ import App from "./App";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { CalendarProvider } from "./components/Settings";
 import { TasksProvider } from "./components/tasks/TasksContext";
+import { SyncProvider } from "./components/settings/SyncProvider";
 import "./index.css";
 
 // Stagewise toolbar integration - only in development mode
@@ -25,12 +26,14 @@ if (import.meta.env.DEV) {
 // Render the app with providers
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <CalendarProvider>
-        <TasksProvider>
-          <App />
-        </TasksProvider>
-      </CalendarProvider>
-    </ThemeProvider>
+    <SyncProvider>
+      <ThemeProvider>
+        <CalendarProvider>
+          <TasksProvider>
+            <App />
+          </TasksProvider>
+        </CalendarProvider>
+      </ThemeProvider>
+    </SyncProvider>
   </React.StrictMode>
 );

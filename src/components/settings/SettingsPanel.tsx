@@ -28,6 +28,7 @@ import {
 import { useCalendar, DayOfWeek } from "./CalendarContext";
 import { DEFAULT_BACKGROUNDS, COLOR_OPTIONS } from "./defaultBackgrounds";
 import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
+import { scheduleSyncPush } from "./settingsSync";
 import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground } from "./backgroundUtils";
 import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
 import { createSettingsSelectStyles } from "./selectTheme";
@@ -245,6 +246,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       localStorage.setItem(storageKey, JSON.stringify({ ...background, url: finalUrl }));
       setSelectedBgId(background.id);
       setIsOpen(false);
+      scheduleSyncPush();
     },
     [onSelectBackground, storageKey]
   );
@@ -349,6 +351,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         await backgroundsDB.deleteItem(background.id);
         if (selectedBgId === background.id) setSelectedBgId(null);
         await loadSavedBackgrounds();
+        scheduleSyncPush();
       } catch {
         alert(t("settings.errors.deleteFailed"));
       }

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import { scheduleSyncPush } from "./settings/settingsSync";
 
 export const DEFAULT_TEXT_COLOR = "#FFFFFF";
 export const DEFAULT_BACKGROUND_COLOR = "rgba(0, 0, 0, 0.2)";
@@ -62,17 +63,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const setTextColor = (color: string) => {
     setTextColorState(color);
     localStorage.setItem("textColor", color);
+    scheduleSyncPush();
   };
 
   const setBackgroundColor = (color: string) => {
     setBackgroundColorState(color);
     localStorage.setItem("backgroundColor", color);
+    scheduleSyncPush();
   };
 
   const setFontSizeRatio = (ratio: number) => {
     const clamped = clampFontSizeRatio(ratio);
     setFontSizeRatioState(clamped);
     localStorage.setItem("fontSizeRatio", String(clamped));
+    scheduleSyncPush();
   };
 
   const resetTheme = () => {

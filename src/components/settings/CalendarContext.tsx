@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from "react";
 import { useTheme } from "../ThemeProvider";
+import { scheduleSyncPush } from "./settingsSync";
 import type { CalendarSettings, CalendarType, DayOfWeek } from "./types";
 
 interface CalendarProviderProps {
@@ -102,26 +103,31 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   const setCalendarType = useCallback((type: CalendarType) => {
     setCalendarTypeState(type);
     localStorage.setItem("calendarType", type);
+    scheduleSyncPush();
   }, []);
 
   const setWeekendDays = useCallback((days: DayOfWeek[]) => {
     setWeekendDaysState(days);
     localStorage.setItem("weekendDays", JSON.stringify(days));
+    scheduleSyncPush();
   }, []);
 
   const setWeekendColor = useCallback((color: string) => {
     setWeekendColorState(color);
     localStorage.setItem("weekendColor", color);
+    scheduleSyncPush();
   }, []);
 
   const setFirstDayOfWeek = useCallback((day: DayOfWeek) => {
     setFirstDayOfWeekState(day);
     localStorage.setItem("firstDayOfWeek", day);
+    scheduleSyncPush();
   }, []);
 
   const setTileNumber = useCallback((tiles: number) => {
     setTileNumberState(tiles);
     localStorage.setItem("tileNumber", JSON.stringify(tiles));
+    scheduleSyncPush();
   }, []);
 
   useEffect(() => {
