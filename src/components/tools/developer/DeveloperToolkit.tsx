@@ -5,6 +5,7 @@ export function DeveloperToolkit() {
   return (
     <ToolkitShell
       className="tools-toolkit"
+      parentToolId="developerTools"
       i18nPrefix="tools.developerToolkit"
       groups={TOOLKIT_GROUPS}
       subTools={SUB_TOOLS}

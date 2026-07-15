@@ -209,14 +209,74 @@
       }
     }
   },
+  "weather": {
+    "title": "آب‌وهوا",
+    "setupTitle": "موقعیت مکانی خود را تنظیم کنید",
+    "setupHint": "برای مشاهده آب‌وهمای محلی، شهر، استان یا کشور را جستجو کنید.",
+    "searchPlaceholder": "جستجوی شهر یا کشور…",
+    "searchResults": "نتایج جستجوی موقعیت",
+    "region": "استان",
+    "cancelSetup": "انصراف",
+    "changeLocation": "تغییر موقعیت",
+    "refresh": "به‌روزرسانی آب‌وهوا",
+    "loading": "در حال بارگذاری آب‌وهوا…",
+    "humidity": "رطوبت",
+    "wind": "باد",
+    "windUnit": "km/h",
+    "updated": "به‌روزرسانی",
+    "updatedJustNow": "همین الان",
+    "updatedMinutesAgo": "{{count}} دقیقه پیش",
+    "updatedHoursAgo": "{{count}} ساعت پیش",
+    "forecastTitle": "پیش‌بینی ۷ روز",
+    "today": "امروز",
+    "tomorrow": "فردا",
+    "table": {
+      "date": "تاریخ",
+      "weather": "وضعیت",
+      "min": "کمینه",
+      "max": "بیشینه",
+      "humidity": "رطوبت",
+      "wind": "باد"
+    },
+    "conditions": {
+      "clear": "آسمان صاف",
+      "mainlyClear": "عمدتاً صاف",
+      "partlyCloudy": "نیمه‌ابری",
+      "cloudy": "ابری",
+      "fog": "مه",
+      "drizzle": "نم‌نم باران",
+      "rain": "بارانی",
+      "snow": "برفی",
+      "showers": "رگبار",
+      "snowShowers": "بارش برف",
+      "thunderstorm": "رعد و برق",
+      "unknown": "نامشخص"
+    },
+    "errors": {
+      "unavailable": "اطلاعات آب‌وهوا در دسترس نیست",
+      "tryAgain": "بعداً دوباره تلاش کنید",
+      "cityNotFound": "شهر پیدا نشد. لطفاً موقعیت دیگری انتخاب کنید.",
+      "usingCached": "نمایش داده‌های ذخیره‌شده آب‌وهوا",
+      "usingCachedRateLimit": "استفاده از داده ذخیره‌شده (محدودیت درخواست)"
+    }
+  },
   "tools": {
     "title": "ابزارها",
     "subtitle": "ابزارهای روزمره برای کار سریع‌تر",
     "close": "بستن",
     "copy": "کپی",
+    "recent": {
+      "title": "اخیراً استفاده‌شده",
+      "empty": "ابزارهای اخیر اینجا نمایش داده می‌شوند"
+    },
+    "favorites": {
+      "title": "علاقه‌مندی‌ها",
+      "empty": "با ستاره‌دار کردن، ابزار را اینجا اضافه کنید",
+      "add": "افزودن به علاقه‌مندی‌ها",
+      "remove": "حذف از علاقه‌مندی‌ها"
+    },
     "categories": {
       "general": "عمومی",
-      "devops": "DevOps",
       "programming": "برنامه‌نویسی"
     },
     "items": {

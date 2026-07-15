@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ClockCalendar } from "./components/ClockCalendar";
+import { Weather } from "./components/Weather";
 import { TimerAlarm } from "./components/TimerAlarm";
 import { Bookmarks } from "./components/Bookmarks";
 import { Settings } from "./components/Settings";
@@ -122,6 +123,9 @@ function App() {
               <div className="dashboard-col dashboard-col--time">
                 <div className="dashboard-widget">
                   <ClockCalendar />
+                </div>
+                <div className="dashboard-widget">
+                  <Weather />
                 </div>
                 <div className="dashboard-widget">
                   <TimerAlarm />

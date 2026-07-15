@@ -209,14 +209,74 @@
       }
     }
   },
+  "weather": {
+    "title": "Weather",
+    "setupTitle": "Set your location",
+    "setupHint": "Search by city, region, or country to see local weather.",
+    "searchPlaceholder": "Search city or country…",
+    "searchResults": "Location search results",
+    "region": "Region",
+    "cancelSetup": "Cancel",
+    "changeLocation": "Change location",
+    "refresh": "Refresh weather",
+    "loading": "Loading weather…",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "windUnit": "km/h",
+    "updated": "Updated",
+    "updatedJustNow": "just now",
+    "updatedMinutesAgo": "{{count}} min ago",
+    "updatedHoursAgo": "{{count}} h ago",
+    "forecastTitle": "7-day forecast",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "table": {
+      "date": "Date",
+      "weather": "Weather",
+      "min": "Min",
+      "max": "Max",
+      "humidity": "Humidity",
+      "wind": "Wind"
+    },
+    "conditions": {
+      "clear": "Clear sky",
+      "mainlyClear": "Mainly clear",
+      "partlyCloudy": "Partly cloudy",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "drizzle": "Drizzle",
+      "rain": "Rain",
+      "snow": "Snow",
+      "showers": "Rain showers",
+      "snowShowers": "Snow showers",
+      "thunderstorm": "Thunderstorm",
+      "unknown": "Unknown"
+    },
+    "errors": {
+      "unavailable": "Weather information unavailable",
+      "tryAgain": "Try again later",
+      "cityNotFound": "City not found. Please select another location.",
+      "usingCached": "Showing cached weather data",
+      "usingCachedRateLimit": "Using cached weather data (rate limit reached)"
+    }
+  },
   "tools": {
     "title": "Tools",
     "subtitle": "Everyday utilities for faster workflows",
     "close": "Close",
     "copy": "Copy",
+    "recent": {
+      "title": "Recent",
+      "empty": "Recently used tools appear here"
+    },
+    "favorites": {
+      "title": "Favorites",
+      "empty": "Star a tool to add it here",
+      "add": "Add to favorites",
+      "remove": "Remove from favorites"
+    },
     "categories": {
       "general": "General",
-      "devops": "DevOps",
       "programming": "Programming"
     },
     "items": {

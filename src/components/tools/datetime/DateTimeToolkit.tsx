@@ -5,6 +5,7 @@ export function DateTimeToolkit() {
   return (
     <ToolkitShell
       className="tools-toolkit"
+      parentToolId="dateConverter"
       i18nPrefix="tools.dateTimeToolkit"
       groups={TOOLKIT_GROUPS}
       subTools={SUB_TOOLS}

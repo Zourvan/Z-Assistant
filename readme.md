@@ -2,7 +2,7 @@
 
 A **Google Chrome** New Tab extension for everyday browsing and planning — bookmarks, tasks, calendar, timers, and developer tools on one page.
 
-**Version:** 1.7.0
+**Version:** 1.9.0
 
 ## Goal
 
@@ -35,6 +35,14 @@ Replace the default New Tab with a simple, friendly dashboard that keeps daily e
 - Task/note markers on scheduled calendar days
 - Day click opens a modal with that day’s items and quick-add
 - Shared `TasksProvider` keeps calendar and task list in sync
+
+### Weather
+
+- Location search by city, region, and country (Open-Meteo, no API key in extension)
+- Current conditions with Lucide SVG icons, humidity, and wind
+- 7-day forecast table
+- Location and weather data cached in `chrome.storage.local` (30 min / 6 h refresh)
+- English and Persian (fa) localization
 
 ### Timer & Alarm
 
@@ -115,7 +123,7 @@ Sections: General · Calendar · Appearance · Backgrounds · Data
 - [ ] Holidays and events on the main calendar widget
 - [ ] Settings structure refinements
 - [ ] Crypto and fiat price display
-- [ ] Weather status
+- [x] Weather status
 - [ ] Instagram page
 - [ ] Load core data from server APIs
 - [ ] Full settings unification (colors, forms, etc.)

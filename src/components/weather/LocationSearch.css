@@ -1,0 +1,126 @@
+.weather-location-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.weather-location-search__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weather-location-search__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.weather-location-search__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.weather-location-search__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
+.weather-location-search__input-icon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.weather-location-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.weather-location-search__input::placeholder {
+  opacity: 0.55;
+}
+
+.weather-location-search__spinner {
+  flex-shrink: 0;
+  animation: weather-spin 0.8s linear infinite;
+}
+
+.weather-location-search__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+
+.weather-location-search__results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 10rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.weather-location-search__result {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.weather-location-search__result-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.weather-location-search__result-meta {
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+.weather-location-search__cancel {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.weather-location-search__cancel:hover {
+  opacity: 1;
+}
+
+@keyframes weather-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

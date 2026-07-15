@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-07-15 15:15:00
+- Fixed Tools modal crash (Cannot access before initialization) caused by circular imports in recent/favorites catalog
+- Components affected: src/components/tools/toolCatalog.ts, src/components/tools/toolRefKey.ts, src/components/tools/ToolsNavigationContext.tsx, src/components/tools/ToolkitShell.tsx
+
+## 2026-07-15 15:10:00
+- Added Recent Tools (last 10 used) and Favorite Tools sections to Tools sidebar with localStorage persistence
+- Star buttons on sidebar items and toolkit cards to favorite tools; quick navigation from recent/favorites opens sub-tools directly
+- Components affected: src/components/Tools.tsx, src/components/tools/ToolsNavigationContext.tsx, src/components/tools/ToolsQuickList.tsx, src/components/tools/toolCatalog.ts, src/components/tools/toolPreferences.ts, src/components/tools/ToolkitShell.tsx, src/components/Tools.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-15 15:00:00
+- Added Weather widget to the New Tab dashboard: location search, current conditions, 7-day forecast, chrome.storage cache (30 min current / 6 h forecast), and Lucide SVG weather icons via Open-Meteo (no API key in extension)
+- Components affected: src/components/Weather.tsx, src/components/weather/**, src/App.tsx, extension/manifest.json, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-15 14:50:00
+- Renamed sidebar Tools category DevOps to Programming and removed empty Programming section
+- Components affected: src/components/tools/registry.ts, src/components/tools/types.ts, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-15 14:45:00
 - Added Developer Toolkit with 58 sub-tools for programmers: JSON/YAML/XML/CSV/TOML converters, text tools, code formatters, regex, web/API utilities, DevOps, network, CSS generators, AI dev tools, and more
 - Replaced standalone JSON, Regex, and Color sidebar entries with unified searchable Developer Toolkit
