@@ -1,0 +1,488 @@
+/**
+ * Charles the CSS Corgi — styles from CodePen aNmoYR by Mok Jee Jin (JayJay89).
+ * SCSS compiled to plain CSS and scoped under .charles-corgi.
+ * Sized for new-tab overlay (not full-viewport vmin).
+ */
+
+@keyframes charles-eye-blink {
+  0% { transform: scaleY(1); }
+  10% { transform: scaleY(0.1); }
+  20% { transform: scaleY(1); }
+  100% { transform: scaleY(1); }
+}
+
+@keyframes charles-tail-wag {
+  0% { transform: rotate(-25deg); }
+  10% { transform: rotate(0deg); }
+  20% { transform: rotate(-25deg); }
+  30% { transform: rotate(0deg); }
+  40% { transform: rotate(-25deg); }
+  50% { transform: rotate(0deg); }
+  60% { transform: rotate(-25deg); }
+  70% { transform: rotate(0deg); }
+  100% { transform: rotate(-25deg); }
+}
+
+@keyframes charles-tongue-stick {
+  0% { transform: scaleY(0.1) translateY(-20px); }
+  20% { transform: scaleY(0.1) translateY(-20px); }
+  30% { transform: scaleY(0.5) translateY(0); }
+  40% { transform: scaleY(1) translateY(0) rotate(0deg); }
+  50% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
+  60% { transform: scaleY(1) translateY(0) rotate(0deg); }
+  70% { transform: scaleY(0.8) translateY(0) rotate(-15deg); }
+  80% { transform: scaleY(1) translateY(0) rotate(0deg); }
+  90% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
+  100% { transform: scaleY(0.1) translateY(-20px) rotate(0deg); }
+}
+
+@keyframes charles-ear-shake-right {
+  0% { transform: rotate(70deg); }
+  10% { transform: rotate(80deg); }
+  30% { transform: rotate(70deg); }
+  40% { transform: rotate(80deg); }
+  100% { transform: rotate(70deg); }
+}
+
+@keyframes charles-ear-shake-left {
+  0% { transform: rotate(-70deg); }
+  10% { transform: rotate(-80deg); }
+  30% { transform: rotate(-70deg); }
+  40% { transform: rotate(-80deg); }
+  100% { transform: rotate(-70deg); }
+}
+
+@keyframes charles-body-shake {
+  0% { transform: translateY(0); }
+  16.666% { transform: translateY(2%); }
+  33.333% { transform: translateY(0); }
+  50% { transform: translateY(2%); }
+  66.666% { transform: translateY(0); }
+  83.333% { transform: translateY(2%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes charles-paw-press {
+  0% { transform: scaleY(1) scaleX(1); }
+  16.666% { transform: scaleY(0.9) scaleX(1.05) translateY(10%); }
+  33.333% { transform: scaleY(1) scaleX(1); }
+  50% { transform: scaleY(0.9) scaleX(1.05) translateY(10%); }
+  66.666% { transform: scaleY(1) scaleX(1); }
+  83.333% { transform: scaleY(0.9) scaleX(1.05) translateY(10%); }
+  100% { transform: scaleY(1) scaleX(1); }
+}
+
+@keyframes charles-neck-shake {
+  0% { top: 9%; }
+  16.666% { top: 11%; }
+  33.333% { top: 9%; }
+  50% { top: 11%; }
+  66.666% { top: 9%; }
+  83.333% { top: 11%; }
+  100% { top: 9%; }
+}
+
+@keyframes charles-head-shake {
+  0% { top: 6%; }
+  16.666% { top: 8%; }
+  33.333% { top: 6%; }
+  50% { top: 8%; }
+  66.666% { top: 6%; }
+  83.333% { top: 8%; }
+  100% { top: 6%; }
+}
+
+@keyframes charles-mouth-shake {
+  0% { bottom: 0%; }
+  16.666% { bottom: 2%; }
+  33.333% { bottom: 0%; }
+  50% { bottom: 2%; }
+  66.666% { bottom: 0%; }
+  83.333% { bottom: 2%; }
+  100% { bottom: 0%; }
+}
+
+.charles-corgi {
+  --charles-main: #f09f2e;
+  --charles-main-dark: #d27537;
+  --charles-white: #ffffff;
+  --charles-white-dark: #b6d8ef;
+  --charles-ink: #3e3954;
+  --charles-tongue: #f15f55;
+  --charles-duration: 2s;
+
+  height: 120px;
+  width: 168px;
+  position: relative;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+  pointer-events: none;
+}
+
+.charles-corgi * {
+  box-sizing: border-box;
+}
+
+.charles-corgi div {
+  position: absolute;
+}
+
+.charles-corgi.is-paused,
+.charles-corgi.is-paused * {
+  animation-play-state: paused !important;
+}
+
+.charles-corgi .ear {
+  background-color: var(--charles-main);
+  height: 30%;
+  width: 55%;
+  top: 5%;
+  z-index: 3;
+}
+
+.charles-corgi .ear--r {
+  right: 75%;
+  border-bottom-left-radius: 100% 90%;
+  border-top-left-radius: 10%;
+  transform-origin: 80% center;
+  animation: charles-ear-shake-right var(--charles-duration) none infinite;
+}
+
+.charles-corgi .ear--l {
+  left: 63%;
+  background-color: var(--charles-main-dark);
+  border-bottom-right-radius: 100% 90%;
+  border-top-right-radius: 10%;
+  transform-origin: 20% center;
+  animation: charles-ear-shake-left var(--charles-duration) none infinite;
+}
+
+.charles-corgi .head {
+  top: 6%;
+  right: 10%;
+  height: 40%;
+  width: 30%;
+  z-index: 3;
+  animation: charles-head-shake var(--charles-duration) none infinite;
+}
+
+.charles-corgi .face {
+  background-color: var(--charles-main);
+  border-radius: 50%;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  z-index: 4;
+}
+
+.charles-corgi .eye {
+  background-color: var(--charles-ink);
+  height: 6%;
+  width: 6%;
+  position: absolute;
+  z-index: 6;
+  border-radius: 50%;
+  animation: charles-eye-blink var(--charles-duration) none infinite;
+}
+
+.charles-corgi .eye--left {
+  left: 40%;
+  top: 43%;
+}
+
+.charles-corgi .eye--right {
+  right: 13%;
+  top: 41%;
+}
+
+.charles-corgi .face__white {
+  background-color: var(--charles-white);
+  width: 45%;
+  height: 77%;
+  top: -15%;
+  left: 29%;
+  transform: rotate(-25deg);
+}
+
+.charles-corgi .face__orange {
+  background-color: var(--charles-main);
+  position: absolute;
+  width: 110%;
+  height: 110%;
+  display: block;
+  border-radius: 100%;
+}
+
+.charles-corgi .face__orange--l {
+  right: 65%;
+}
+
+.charles-corgi .face__orange--r {
+  left: 65%;
+}
+
+.charles-corgi .mouth {
+  bottom: 0%;
+  width: 100%;
+  height: 50%;
+  left: 28%;
+  z-index: 5;
+  animation: charles-mouth-shake var(--charles-duration) none infinite;
+}
+
+.charles-corgi .nose {
+  height: 36%;
+  width: 27%;
+  top: 0%;
+  background-color: var(--charles-ink);
+  z-index: 1;
+  right: 0%;
+  border-bottom-right-radius: 50% 100%;
+  border-bottom-left-radius: 50% 100%;
+}
+
+.charles-corgi .nose:after {
+  content: "";
+  width: 100%;
+  height: 30%;
+  display: block;
+  border-top-right-radius: 50% 100%;
+  border-top-left-radius: 50% 100%;
+  background-color: var(--charles-ink);
+  position: absolute;
+  top: -25%;
+}
+
+.charles-corgi .mouth__left {
+  background-color: var(--charles-white);
+  width: 50%;
+  height: 55%;
+}
+
+.charles-corgi .mouth__left--round {
+  background-color: var(--charles-main);
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  left: -50%;
+  top: -50%;
+}
+
+.charles-corgi .mouth__left--sharp {
+  background-color: var(--charles-main);
+  width: 35%;
+  height: 50%;
+  bottom: 0;
+  left: -20%;
+  transform: skewX(50deg);
+}
+
+.charles-corgi .lowerjaw {
+  background-color: var(--charles-white);
+  width: 100%;
+  height: 80%;
+  border-radius: 50% / 100%;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  bottom: -9%;
+}
+
+.charles-corgi .lips {
+  z-index: 2;
+  height: 25%;
+  width: 35%;
+  top: 19%;
+  right: 2%;
+}
+
+.charles-corgi .lips:before,
+.charles-corgi .lips:after {
+  content: "";
+  display: block;
+  background: var(--charles-white);
+  width: 39%;
+  height: 100%;
+  border-color: var(--charles-ink);
+  border-width: 2px;
+  border-style: solid;
+  border-bottom-right-radius: 50%;
+  border-bottom-left-radius: 50%;
+  border-top-left-radius: 40%;
+  border-top-right-radius: 20%;
+  border-top-color: transparent;
+  position: absolute;
+}
+
+.charles-corgi .lips:before {
+  z-index: 1;
+}
+
+.charles-corgi .lips:after {
+  transform: rotateY(180deg);
+  left: initial;
+  right: 9%;
+}
+
+.charles-corgi .tongue {
+  width: 15%;
+  height: 60%;
+  background-color: var(--charles-tongue);
+  right: 14%;
+  top: 35%;
+  border-bottom-right-radius: 50% 50%;
+  border-bottom-left-radius: 50% 50%;
+  transform-origin: 50% 0%;
+  animation: charles-tongue-stick var(--charles-duration) none infinite;
+}
+
+.charles-corgi .snout {
+  background-color: var(--charles-white);
+  right: 0%;
+  top: 0%;
+  width: 50%;
+  height: 36%;
+  border-top-right-radius: 35% 75%;
+}
+
+.charles-corgi .neck__back {
+  height: 50%;
+  width: 20%;
+  transform: skewX(-20deg);
+  background-color: var(--charles-main);
+  z-index: 2;
+  right: 24%;
+  top: 9%;
+  animation: charles-neck-shake var(--charles-duration) none infinite;
+}
+
+.charles-corgi .neck__front {
+  height: 50%;
+  width: 20%;
+  right: 11%;
+  top: 20%;
+  background-color: var(--charles-main);
+  z-index: 2;
+  transform: skewX(2deg);
+}
+
+.charles-corgi .body {
+  height: 44%;
+  width: 77%;
+  background-color: var(--charles-main);
+  right: 10.5%;
+  bottom: 12%;
+  border-top-left-radius: 20% 50%;
+  border-bottom-left-radius: 20% 50%;
+  border-top-right-radius: 20% 60%;
+  border-bottom-right-radius: 20% 40%;
+  z-index: 2;
+  overflow: hidden;
+  animation: charles-body-shake var(--charles-duration) none infinite;
+}
+
+.charles-corgi .body__chest {
+  background-color: var(--charles-white);
+  height: 87%;
+  width: 29%;
+  right: 5%;
+  bottom: -3%;
+  border-top-left-radius: 50% 40%;
+  border-top-right-radius: 50% 40%;
+}
+
+.charles-corgi .foot {
+  height: 35%;
+  width: 9.5%;
+  bottom: 0;
+}
+
+.charles-corgi .foot__left {
+  z-index: 3;
+  background-color: var(--charles-main);
+}
+
+.charles-corgi .foot__left:after {
+  background-color: var(--charles-white);
+}
+
+.charles-corgi .foot__left:before {
+  background-color: var(--charles-main);
+}
+
+.charles-corgi .foot__right {
+  z-index: 1;
+  background-color: var(--charles-main-dark);
+}
+
+.charles-corgi .foot__right:after {
+  background-color: var(--charles-white-dark);
+}
+
+.charles-corgi .foot__right:before {
+  background-color: var(--charles-main-dark);
+}
+
+.charles-corgi .foot__back:before {
+  transform: skewX(-10deg);
+  right: -25%;
+}
+
+.charles-corgi .foot__front:before {
+  transform: skewX(10deg);
+  right: 25%;
+}
+
+.charles-corgi .foot__1 {
+  right: 37%;
+}
+
+.charles-corgi .foot__2 {
+  right: 15%;
+}
+
+.charles-corgi .foot__2:before {
+  transform: skewX(-10deg);
+  right: -25%;
+}
+
+.charles-corgi .foot__3 {
+  left: 12.65%;
+}
+
+.charles-corgi .foot__4 {
+  left: 31%;
+}
+
+.charles-corgi .foot:before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: block;
+}
+
+.charles-corgi .foot:after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 125%;
+  height: 18%;
+  border-top-left-radius: 50% 100%;
+  border-top-right-radius: 50% 100%;
+  animation: charles-paw-press var(--charles-duration) none infinite;
+}
+
+.charles-corgi .tail {
+  width: 26%;
+  height: 13%;
+  background-color: var(--charles-main-dark);
+  border-top-left-radius: 50% 100%;
+  border-bottom-left-radius: 50% 100%;
+  border-top-right-radius: 50% 100%;
+  border-bottom-right-radius: 50% 100%;
+  bottom: 40%;
+  left: 1%;
+  transform-origin: 80% center;
+  animation: charles-tail-wag var(--charles-duration) none infinite;
+}

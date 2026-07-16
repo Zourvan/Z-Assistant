@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  font-size: calc(16px * var(--font-size-ratio, 1));
+  font-size: calc(13.6px * var(--font-size-ratio, 1));
   overflow-x: hidden;
 }
 
@@ -31,9 +31,9 @@ body,
     input,
     textarea {
         text-shadow:
-            -1px -1px 0 #000,
-            1px -1px 0 #000,
-            -1px 1px 0 #000,
-            1px 1px 0 #000;
+            -1px -1px 0 var(--theme-text-outline, #000),
+            1px -1px 0 var(--theme-text-outline, #000),
+            -1px 1px 0 var(--theme-text-outline, #000),
+            1px 1px 0 var(--theme-text-outline, #000);
     }
 }

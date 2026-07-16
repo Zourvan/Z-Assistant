@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, useImperativeHandle, forwardRef } from "react";
-import { Play, Pause, RotateCcw, SkipForward, Coffee, Brain, Armchair } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipForward, Coffee, Brain, Armchair, X } from "lucide-react";
 import type { ActivePomodoro, PomodoroPhase } from "./types";
 import {
   createPomodoroSession,
@@ -203,7 +203,7 @@ export const PomodoroPanel = forwardRef<PomodoroPanelHandle, PomodoroPanelProps>
               className={`pomodoro__phase pomodoro__phase--${phase} ${isSelected ? "pomodoro__phase--active" : ""}`}
               onClick={() => setSelectedPhase(phase)}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="w-3 h-3" />
               <span>{t(`timerAlarm.pomodoro.phases.${phase}`)}</span>
             </button>
           );
@@ -247,33 +247,44 @@ export const PomodoroPanel = forwardRef<PomodoroPanelHandle, PomodoroPanelProps>
       <div className="timer-alarm__actions pomodoro__actions">
         {!isRunning ? (
           <button type="button" className="timer-alarm__btn timer-alarm__btn--primary" onClick={startOrResume}>
-            <Play className="w-4 h-4" />
+            <Play className="w-3.5 h-3.5" />
             {t("timerAlarm.start")}
           </button>
         ) : (
           <button type="button" className="timer-alarm__btn timer-alarm__btn--primary" onClick={pauseSession}>
-            <Pause className="w-4 h-4" />
+            <Pause className="w-3.5 h-3.5" />
             {t("timerAlarm.pause")}
           </button>
         )}
         <button type="button" className="timer-alarm__btn" onClick={resetSession} disabled={!isActive}>
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-3.5 h-3.5" />
           {t("timerAlarm.reset")}
         </button>
         {isActive && (
           <button type="button" className="timer-alarm__btn" onClick={skipSession}>
-            <SkipForward className="w-4 h-4" />
+            <SkipForward className="w-3.5 h-3.5" />
             {t("timerAlarm.pomodoro.skip")}
           </button>
         )}
       </div>
 
-      <button type="button" className="pomodoro__settings-toggle" onClick={() => setShowSettings((v) => !v)}>
+      <button type="button" className="pomodoro__settings-toggle" onClick={() => setShowSettings(true)}>
         {t("timerAlarm.pomodoro.settings")}
       </button>
 
       {showSettings && (
-        <div className="pomodoro__settings">
+        <div className="pomodoro__settings" role="dialog" aria-label={t("timerAlarm.pomodoro.settings")}>
+          <div className="pomodoro__settings-header">
+            <span className="pomodoro__settings-title">{t("timerAlarm.pomodoro.settings")}</span>
+            <button
+              type="button"
+              className="pomodoro__settings-close"
+              onClick={() => setShowSettings(false)}
+              aria-label={t("timerAlarm.cancel")}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <div className="pomodoro__setting-row">
             <label>{t("timerAlarm.pomodoro.phases.work")}</label>
             <input
@@ -338,7 +349,6 @@ export const PomodoroPanel = forwardRef<PomodoroPanelHandle, PomodoroPanelProps>
           </button>
         </div>
       )}
-
     </div>
   );
 });

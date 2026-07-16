@@ -1,4 +1,19 @@
 {
+  "aiPromptBar": {
+    "label": "AI prompt bar",
+    "placeholder": "Ask anything...",
+    "send": "Send",
+    "selectProvider": "Select AI provider",
+    "providers": {
+      "chatgpt": "ChatGPT",
+      "claude": "Claude",
+      "gemini": "Gemini",
+      "grok": "Grok",
+      "perplexity": "Perplexity",
+      "deepseek": "DeepSeek",
+      "copilot": "Copilot"
+    }
+  },
   "settings": {
     "title": "Settings",
     "backgrounds": "Backgrounds",
@@ -11,6 +26,7 @@
     "weekendColor": "Weekend Color",
     "firstDayOfWeek": "First Day of the Week",
     "textColor": "Text Color",
+    "textOutlineColor": "Text Outline Color",
     "backgroundColor": "Background Color",
     "fontSizeRatio": "Font Size",
     "fontSizeRatioDesc": "Scale all text across the new tab page.",
@@ -18,6 +34,18 @@
     "calendarConfig": "Calendar Configuration",
     "appearance": "Appearance",
     "themePresets": "Quick Themes",
+    "customThemes": "My Themes",
+    "customThemeNamePlaceholder": "Theme name…",
+    "saveCustomTheme": "Save",
+    "deleteCustomTheme": "Delete theme",
+    "animations": {
+      "title": "Animations",
+      "description": "Optional decorative motion on the new tab page.",
+      "corgiMode": "Corgi Mode",
+      "corgiModeDesc": "Let playful corgis stroll across the bottom of the page.",
+      "on": "On",
+      "off": "Off"
+    },
     "calendarType": {
       "title": "Calendar Type",
       "description": "Choose between Gregorian or Persian calendar.",
@@ -66,7 +94,8 @@
       "deleteFailed": "Failed to delete background.",
       "exportFailed": "Failed to export data.",
       "importFailed": "Invalid import file.",
-      "maxWeekendDays": "You can select up to 3 weekend days."
+      "maxWeekendDays": "You can select up to 3 weekend days.",
+      "customThemeLimit": "You can save up to {{max}} custom themes."
     }
   },
   "bookmarks": {
@@ -78,11 +107,24 @@
     "back": "Back",
     "confirm": "Add folder",
     "search": "Search bookmarks…",
+    "searchTitle": "Search bookmarks",
+    "searchTiles": "Search by name or address…",
+    "searchByName": "Search by name…",
+    "searchByAddress": "Search by address…",
     "searchFolder": "Search in this folder…",
+    "searchIn": "Search in",
+    "searchFieldAll": "All",
+    "searchFieldName": "Name",
+    "searchFieldAddress": "Address",
     "groupBy": "Group by",
-    "groupNone": "All",
+    "groupNone": "None",
     "groupAz": "A–Z",
     "groupType": "Type",
+    "sortBy": "Sort by",
+    "sortDefault": "Default",
+    "sortNameAsc": "Name A–Z",
+    "sortNameDesc": "Name Z–A",
+    "sortType": "Type",
     "emptySearch": "No bookmarks match your search",
     "edit": "Edit",
     "clear": "Remove",

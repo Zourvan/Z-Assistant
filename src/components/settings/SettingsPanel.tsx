@@ -17,6 +17,8 @@ import {
   Paintbrush,
   Database,
   Check,
+  Trash2,
+  Save,
 } from "lucide-react";
 import { useI18n } from "../../i18n/LanguageProvider";
 import {
@@ -24,6 +26,7 @@ import {
   MIN_FONT_SIZE_RATIO,
   MAX_FONT_SIZE_RATIO,
   FONT_SIZE_RATIO_STEP,
+  MAX_CUSTOM_THEMES,
 } from "../ThemeProvider";
 import { useCalendar, DayOfWeek } from "./CalendarContext";
 import { DEFAULT_BACKGROUNDS, COLOR_OPTIONS } from "./defaultBackgrounds";
@@ -32,8 +35,9 @@ import { scheduleSyncPush } from "./settingsSync";
 import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground, resolveBackgroundUrl } from "./backgroundUtils";
 import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
 import { createSettingsSelectStyles } from "./selectTheme";
-import { THEME_PRESETS } from "./themePresets";
+import { THEME_PRESETS, colorsMatch } from "./themePresets";
 import type { SettingsSection, StoredBackground } from "./types";
+import { isCorgiModeEnabled, setCorgiModeEnabled } from "../../features/corgi";
 import "../Settings.css";
 
 interface SettingsProps {
@@ -57,9 +61,7 @@ const ColorPickerField: React.FC<{
 
   return (
     <div className="settings-row">
-      <label className="settings-label">
-        {label}
-      </label>
+      <label className="settings-label">{label}</label>
       <div className="settings-color-control">
         <button
           type="button"
@@ -71,13 +73,30 @@ const ColorPickerField: React.FC<{
         {open && (
           <div className="settings-color-popover">
             <button type="button" className="settings-color-backdrop" onClick={() => setOpen(false)} />
-            <ChromePicker
-              color={color}
-              onChange={(result: ColorResult) => {
-                const rgba = `rgba(${result.rgb.r},${result.rgb.g},${result.rgb.b},${result.rgb.a ?? 1})`;
-                onChange(rgba);
-              }}
-            />
+            <div className="settings-chrome-picker">
+              <ChromePicker
+                color={color}
+                styles={{
+                  default: {
+                    picker: {
+                      background: "var(--theme-menu-bg)",
+                      borderRadius: "0.75rem",
+                      border: "1px solid var(--theme-border)",
+                      boxShadow: "0 12px 32px rgba(0, 0, 0, 0.35)",
+                      fontFamily: "inherit",
+                      width: "225px",
+                    },
+                    body: {
+                      padding: "12px 12px 10px",
+                    },
+                  },
+                }}
+                onChange={(result: ColorResult) => {
+                  const rgba = `rgba(${result.rgb.r},${result.rgb.g},${result.rgb.b},${result.rgb.a ?? 1})`;
+                  onChange(rgba);
+                }}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -153,12 +172,23 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const [selectedBgId, setSelectedBgId] = useState<string | null>(null);
   const [selectPortal, setSelectPortal] = useState<HTMLElement | null>(null);
+  const [corgiMode, setCorgiMode] = useState(() => isCorgiModeEnabled());
+  const [customThemeName, setCustomThemeName] = useState("");
 
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const dataFileInputRef = useRef<HTMLInputElement>(null);
 
   const { t, language, setLanguage, dir } = useI18n();
-  const { resetTheme } = useTheme();
+  const {
+    resetTheme,
+    textOutlineColor,
+    setTextOutlineColor,
+    applyThemeColors,
+    customThemes,
+    saveCustomTheme,
+    deleteCustomTheme,
+    setCustomThemes,
+  } = useTheme();
   const {
     calendarType,
     setCalendarType,
@@ -388,9 +418,12 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           weekendColor,
           textColor,
           backgroundColor,
+          textOutlineColor,
           fontSizeRatio,
+          customThemes,
           language,
           selectedBackground: localStorage.getItem(storageKey),
+          corgiMode,
         },
         backgrounds: await backgroundsDB.getAllItems(),
         bookmarks: await bookmarksDB.getAllItems(),
@@ -408,7 +441,22 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     } finally {
       setIsBusy(false);
     }
-  }, [calendarType, tileNumber, firstDayOfWeek, weekendDays, weekendColor, textColor, backgroundColor, fontSizeRatio, language, storageKey, t]);
+  }, [
+    calendarType,
+    tileNumber,
+    firstDayOfWeek,
+    weekendDays,
+    weekendColor,
+    textColor,
+    backgroundColor,
+    textOutlineColor,
+    fontSizeRatio,
+    customThemes,
+    language,
+    storageKey,
+    corgiMode,
+    t,
+  ]);
 
   const handleImportData = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -436,9 +484,15 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         if (s.weekendColor) setWeekendColor(s.weekendColor);
         if (s.textColor) setTextColor(s.textColor);
         if (s.backgroundColor) setBackgroundColor(s.backgroundColor);
+        if (s.textOutlineColor) setTextOutlineColor(s.textOutlineColor);
         if (typeof s.fontSizeRatio === "number") setFontSizeRatio(s.fontSizeRatio);
+        if (Array.isArray(s.customThemes)) setCustomThemes(s.customThemes);
         if (s.language) setLanguage(s.language);
         if (s.selectedBackground) localStorage.setItem(storageKey, s.selectedBackground);
+        if (typeof s.corgiMode === "boolean") {
+          setCorgiMode(s.corgiMode);
+          setCorgiModeEnabled(s.corgiMode);
+        }
 
         const clearAndImport = async <T extends { id: string }>(db: typeof backgroundsDB, items: T[]) => {
           const existing = await db.getAllItems<T>();
@@ -508,6 +562,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
       setWeekendColor,
       setTextColor,
       setBackgroundColor,
+      setTextOutlineColor,
+      setCustomThemes,
       setFontSizeRatio,
       setLanguage,
       storageKey,
@@ -679,25 +735,118 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
         <p className="settings-card-desc">{t("settings.themePresets")}</p>
         <div className="settings-presets">
-          {THEME_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              className="settings-preset-btn"
-              onClick={() => {
-                setTextColor(preset.text);
-                setBackgroundColor(preset.bg);
-              }}
-            >
-              <span className="settings-preset-sample" style={{ backgroundColor: preset.bg, color: preset.text }}>
-                Aa
-              </span>
-              <span>{t(`settings.presets.${preset.id}`)}</span>
-            </button>
-          ))}
+          {THEME_PRESETS.map((preset) => {
+            const isActive =
+              colorsMatch(textColor, preset.text) &&
+              colorsMatch(backgroundColor, preset.bg) &&
+              colorsMatch(textOutlineColor, preset.outline);
+
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                className={`settings-preset-btn ${isActive ? "settings-preset-btn--active" : ""}`}
+                onClick={() => applyThemeColors(preset.text, preset.bg, preset.outline)}
+              >
+                <span
+                  className="settings-preset-sample"
+                  style={{
+                    backgroundColor: preset.bg,
+                    color: preset.text,
+                    textShadow: `-1px -1px 0 ${preset.outline}, 1px -1px 0 ${preset.outline}, -1px 1px 0 ${preset.outline}, 1px 1px 0 ${preset.outline}`,
+                  }}
+                >
+                  Aa
+                </span>
+                <span>{t(`settings.presets.${preset.id}`)}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="settings-card-desc">{t("settings.customThemes")}</p>
+        {customThemes.length > 0 && (
+          <div className="settings-presets settings-presets--custom">
+            {customThemes.map((theme) => {
+              const isActive =
+                colorsMatch(textColor, theme.text) &&
+                colorsMatch(backgroundColor, theme.bg) &&
+                colorsMatch(textOutlineColor, theme.outline);
+
+              return (
+                <div
+                  key={theme.id}
+                  className={`settings-custom-theme ${isActive ? "settings-custom-theme--active" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="settings-custom-theme-apply"
+                    onClick={() => applyThemeColors(theme.text, theme.bg, theme.outline)}
+                  >
+                    <span
+                      className="settings-preset-sample"
+                      style={{
+                        backgroundColor: theme.bg,
+                        color: theme.text,
+                        textShadow: `-1px -1px 0 ${theme.outline}, 1px -1px 0 ${theme.outline}, -1px 1px 0 ${theme.outline}, 1px 1px 0 ${theme.outline}`,
+                      }}
+                    >
+                      Aa
+                    </span>
+                    <span className="settings-custom-theme-name">{theme.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="settings-custom-theme-delete"
+                    onClick={() => deleteCustomTheme(theme.id)}
+                    aria-label={t("settings.deleteCustomTheme")}
+                    title={t("settings.deleteCustomTheme")}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="settings-save-theme">
+          <input
+            type="text"
+            className="settings-save-theme-input"
+            value={customThemeName}
+            maxLength={40}
+            placeholder={t("settings.customThemeNamePlaceholder")}
+            onChange={(e) => setCustomThemeName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              if (!customThemeName.trim()) return;
+              if (saveCustomTheme(customThemeName)) setCustomThemeName("");
+              else alert(t("settings.errors.customThemeLimit", { max: MAX_CUSTOM_THEMES }));
+            }}
+          />
+          <button
+            type="button"
+            className="settings-save-theme-btn"
+            disabled={!customThemeName.trim() || customThemes.length >= MAX_CUSTOM_THEMES}
+            onClick={() => {
+              if (!customThemeName.trim()) return;
+              if (saveCustomTheme(customThemeName)) setCustomThemeName("");
+              else alert(t("settings.errors.customThemeLimit", { max: MAX_CUSTOM_THEMES }));
+            }}
+          >
+            <Save className="w-3.5 h-3.5" />
+            {t("settings.saveCustomTheme")}
+          </button>
         </div>
 
         <ColorPickerField label={t("settings.textColor")} color={textColor} onChange={setTextColor} />
+        <ColorPickerField
+          label={t("settings.textOutlineColor")}
+          color={textOutlineColor}
+          onChange={setTextOutlineColor}
+        />
         <ColorPickerField label={t("settings.backgroundColor")} color={backgroundColor} onChange={setBackgroundColor} />
 
         <div className="settings-range-block">
@@ -714,6 +863,39 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
               className="settings-range"
             />
             <span className="settings-range-value">{Math.round(fontSizeRatio * 100)}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-card">
+        <h3 className="settings-card-title">{t("settings.animations.title")}</h3>
+        <p className="settings-card-desc">{t("settings.animations.description")}</p>
+        <div className="settings-row settings-row--toggle">
+          <div className="settings-toggle-copy">
+            <span className="settings-label">{t("settings.animations.corgiMode")}</span>
+            <span className="settings-card-desc">{t("settings.animations.corgiModeDesc")}</span>
+          </div>
+          <div className="settings-toggle-group settings-toggle-group--compact">
+            <button
+              type="button"
+              className={`settings-toggle-btn ${!corgiMode ? "settings-toggle-btn--active" : ""}`}
+              onClick={() => {
+                setCorgiMode(false);
+                setCorgiModeEnabled(false);
+              }}
+            >
+              {t("settings.animations.off")}
+            </button>
+            <button
+              type="button"
+              className={`settings-toggle-btn ${corgiMode ? "settings-toggle-btn--active" : ""}`}
+              onClick={() => {
+                setCorgiMode(true);
+                setCorgiModeEnabled(true);
+              }}
+            >
+              {t("settings.animations.on")}
+            </button>
           </div>
         </div>
       </div>

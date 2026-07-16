@@ -1,5 +1,104 @@
 # CHANGELOG
 
+## 2026-07-17 02:10:02
+- Replaced Corgi Mode art with Charles the CSS Corgi (CodePen aNmoYR by JayJay89): pure CSS structure with blink, ear wiggle, tail wag, and tongue animations while walking across the page
+- Components affected: src/features/corgi/Corgi.ts, src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css, src/features/corgi/CorgiLayer.css
+
+## 2026-07-17 01:57:38
+- Made Pomodoro Customize durations overlay background fully opaque so underlying text no longer shows through
+- Components affected: src/components/TimerAlarm.css
+
+## 2026-07-17 01:55:00
+- Rescaled base font size so the old 85% is the new 100% standard (16px → 13.6px baseline)
+- Added one-time migration to reset previously stored font size ratio to 100%
+- Components affected: src/index.css, src/components/ThemeProvider.tsx
+
+## 2026-07-17 01:53:24
+- Redrew Corgi Mode sprites in a polished sticker style (soft outlines, cream head, fluffy rump, proper stubby legs) instead of the rough placeholder art
+- Components affected: src/features/corgi/assets/, scripts/generate-corgi-sprites.mjs, src/features/corgi/sprites.ts, src/features/corgi/CorgiLayer.css, src/features/corgi/Corgi.ts
+
+## 2026-07-17 01:50:59
+- Made Pomodoro panel more compact (smaller ring, tighter spacing)
+- Customize durations now opens as an overlay on the panel instead of expanding below
+- Components affected: src/components/timerAlarm/PomodoroPanel.tsx, src/components/TimerAlarm.css
+
+## 2026-07-17 01:43:02
+- Appearance: color picker now follows the active theme and keeps hex/rgb codes readable
+- Added separate Text Outline Color control (replaces fixed black text shadow)
+- Users can save, apply, and delete named custom themes (synced + included in backup)
+- Components affected: src/components/ThemeProvider.tsx, src/components/settings/SettingsPanel.tsx, src/components/settings/themePresets.ts, src/components/settings/settingsSync.ts, src/components/Settings.css, src/index.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 01:42:30
+- Fixed Corgi Mode not showing pets: no longer blocked by prefers-reduced-motion, layer stays mounted, and the first corgi spawns immediately when enabled
+- Components affected: src/features/corgi/CorgiLayer.tsx, src/features/corgi/CorgiLayer.css, src/features/corgi/CorgiManager.ts, src/features/corgi/Corgi.ts, src/features/corgi/SpriteAnimator.ts
+
+## 2026-07-17 01:41:17
+- Fixed Timer / Pomodoro / Alarm panel height so switching tabs no longer resizes the card
+- Components affected: src/components/TimerAlarm.css
+
+## 2026-07-17 01:35:19
+- Search results now include matching folders again (not only bookmarks with URLs)
+- Components affected: src/components/Bookmarks.tsx
+
+## 2026-07-17 01:32:13
+- Unified select-box styles with First Day of the Week: near-opaque menu background (`--theme-menu-bg`) plus blur so text behind is less visible
+- Shared styles in `src/components/shared/themedSelect.css` for all bookmark selects (Group / Sort / Search in)
+- Components affected: src/components/settings/themeUtils.ts, src/components/shared/themedSelect.css, src/components/Bookmarks.css, src/components/Bookmarks.tsx, src/components/Settings.css
+
+## 2026-07-17 01:30:25
+- Added Sort by → Type (folders first, then bookmarks, A–Z within each)
+- Components affected: src/components/Bookmarks.tsx, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 01:29:16
+- Added Corgi Mode Easter egg (Google Colab–inspired): animated corgis stroll across the new tab when enabled under Appearance → Animations
+- Lightweight sprite-sheet system with walk/idle/sit/bark/sleep states, max 3 pets, pauses when the tab is hidden, and respects prefers-reduced-motion
+- Components affected: src/features/corgi/, src/App.tsx, src/components/settings/SettingsPanel.tsx, src/components/settings/settingsSync.ts, src/components/Settings.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 01:27:32
+- Moved the themed "Search in" select to sit immediately before the search text box
+- Components affected: src/components/Bookmarks.tsx
+
+## 2026-07-17 01:26:38
+- Added brand icons beside each AI provider name in the prompt bar selector and dropdown
+- Components affected: src/components/aiPromptBar/icons.tsx, src/components/AiPromptBar.tsx, src/components/AiPromptBar.css
+
+## 2026-07-17 01:26:09
+- Made the Bookmarks magnifier icon more visible: larger size, stronger stroke, and a surface button with border
+- Components affected: src/components/Bookmarks.css, src/components/Bookmarks.tsx
+
+## 2026-07-17 01:24:24
+- Fixed bookmark Group/Sort/Search-in selects so labels and options use theme text/background colors (custom dropdowns instead of native selects)
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css
+
+## 2026-07-17 01:21:21
+- Moved "Search in" (All / Name / Address) into a select next to the search box; typing a query lists every matching bookmark across the full tree
+- Components affected: src/components/Bookmarks.tsx
+
+## 2026-07-17 01:19:39
+- Replaced bookmark "Group by" toggle buttons with compact select boxes on the left of the search field, and added a "Sort by" select (Default / Name A–Z / Name Z–A)
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 01:14:43
+- AI prompt bar now opens the selected provider in the same tab and uses auto-start URL patterns (`?q=`) so ChatGPT/Claude/Perplexity begin answering after Enter/Send
+- Components affected: src/components/AiPromptBar.tsx, src/components/aiPromptBar/providers.ts
+
+## 2026-07-17 01:09:16
+- Added bottom AI prompt bar to quickly continue a conversation in ChatGPT, Claude, Gemini, Grok, Perplexity, DeepSeek, or Copilot with the prompt pre-filled via URL
+- Remembers the last selected AI provider; Enter sends, Shift+Enter inserts a new line
+- Components affected: src/components/AiPromptBar.tsx, src/components/AiPromptBar.css, src/components/aiPromptBar/providers.ts, src/App.tsx, src/App.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 01:04:52
+- Added All / Name / Address toggle in the bookmark search modal to choose what field to search
+- Components affected: src/components/Bookmarks.tsx, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 00:54:43
+- Search magnifier now opens a Choose-bookmark style modal; results match name/address and clicking a bookmark navigates to it
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
+## 2026-07-17 00:45:29
+- Added magnifier search next to the Bookmarks title to filter tiles by name or address (URL/hostname)
+- Components affected: src/components/Bookmarks.tsx, src/components/Bookmarks.css, src/i18n/locales/en/translation.json, src/i18n/locales/fa/translation.json
+
 ## 2026-07-15 16:20:00
 - Fixed ERR_FILE_NOT_FOUND for missing favicon and bundled background images in the Chrome extension by resolving assets via chrome.runtime.getURL
 - Components affected: index.html, src/utils/extensionAssetUrl.ts, src/components/settings/defaultBackgrounds.ts, src/components/settings/backgroundUtils.ts, src/App.tsx, src/components/settings/SettingsPanel.tsx

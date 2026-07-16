@@ -1,6 +1,7 @@
 .timer-alarm {
   --ta-radius: 0.75rem;
   --ta-pad: 0.75rem;
+  --ta-body-height: 15.5rem;
   width: 100%;
   min-width: 0;
   max-width: 20rem;
@@ -10,6 +11,8 @@
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .timer-alarm__tabs {
@@ -62,6 +65,23 @@
 
 .timer-alarm__body {
   padding: var(--ta-pad);
+  height: var(--ta-body-height);
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-border) transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.timer-alarm__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timer-alarm__body::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
 }
 
 .timer-alarm__display {
@@ -413,6 +433,7 @@
 @media (min-width: 640px) {
   .timer-alarm {
     --ta-pad: 0.875rem;
+    --ta-body-height: 16.25rem;
   }
 
   .timer-alarm__list {
@@ -438,29 +459,40 @@
 /* Pomodoro */
 .pomodoro {
   position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .pomodoro__phases {
   display: flex;
-  gap: 0.375rem;
-  margin-bottom: 0.75rem;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .pomodoro__phase {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 0.2rem;
-  padding: 0.4rem 0.25rem;
+  padding: 0.3rem 0.2rem;
   border: 1px solid var(--theme-border);
-  border-radius: 0.5rem;
+  border-radius: 0.4rem;
   background: var(--theme-surface);
   color: var(--theme-muted);
-  font-size: 0.625rem;
+  font-size: 0.6rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
   min-width: 0;
+}
+
+.pomodoro__phase span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pomodoro__phase:hover:not(:disabled) {
@@ -493,9 +525,9 @@
 
 .pomodoro__ring-wrap {
   position: relative;
-  width: 9rem;
-  height: 9rem;
-  margin: 0 auto 0.625rem;
+  width: 6.75rem;
+  height: 6.75rem;
+  margin: 0 auto 0.4rem;
 }
 
 .pomodoro__ring {
@@ -536,7 +568,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  font-size: clamp(1.1rem, 3.5vw, 1.4rem);
   font-weight: 300;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
@@ -546,14 +578,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  margin-bottom: 0.625rem;
+  gap: 0.3rem;
+  margin-bottom: 0.45rem;
   flex-wrap: wrap;
 }
 
 .pomodoro__round-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--theme-border);
   transition: background 0.2s, transform 0.2s;
@@ -569,24 +601,34 @@
 }
 
 .pomodoro__round-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   opacity: 0.65;
-  margin-inline-start: 0.25rem;
+  margin-inline-start: 0.2rem;
 }
 
 .pomodoro__actions {
   flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pomodoro__actions .timer-alarm__btn {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.pomodoro__actions .timer-alarm__btn--primary {
+  min-width: 5rem;
 }
 
 .pomodoro__settings-toggle {
   display: block;
   width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.35rem;
+  margin-top: 0.35rem;
+  padding: 0.25rem;
   border: none;
   background: transparent;
   color: var(--theme-muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   cursor: pointer;
   text-align: center;
   transition: color 0.2s;
@@ -597,21 +639,74 @@
 }
 
 .pomodoro__settings {
-  margin-top: 0.5rem;
-  padding: 0.625rem;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
   border: 1px solid var(--theme-border);
   border-radius: 0.5rem;
   background: var(--theme-surface);
+  backdrop-filter: blur(12px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-border) transparent;
+  animation: pomodoro-settings-in 0.18s ease-out;
+}
+
+@keyframes pomodoro-settings-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pomodoro__settings-header {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  margin-bottom: 0.1rem;
+}
+
+.pomodoro__settings-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.pomodoro__settings-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--theme-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pomodoro__settings-close:hover {
+  background: var(--theme-surface-hover);
+  color: var(--theme-text);
 }
 
 .pomodoro__setting-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: 0.4rem;
+  font-size: 0.7rem;
 }
 
 .pomodoro__setting-row label {
@@ -621,35 +716,41 @@
 }
 
 .pomodoro__setting-row input {
-  width: 3rem;
-  padding: 0.25rem 0.375rem;
+  width: 2.75rem;
+  padding: 0.2rem 0.3rem;
   border: 1px solid var(--theme-border);
-  border-radius: 0.375rem;
+  border-radius: 0.35rem;
   background: var(--theme-bg);
   color: inherit;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-align: center;
 }
 
 .pomodoro__setting-row span {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   opacity: 0.6;
-  min-width: 1.5rem;
+  min-width: 1.35rem;
 }
 
 .pomodoro__settings-reset {
-  padding: 0.35rem 0.5rem;
+  margin-top: auto;
+  padding: 0.3rem 0.45rem;
   border: 1px solid var(--theme-border);
-  border-radius: 0.375rem;
+  border-radius: 0.35rem;
   background: transparent;
   color: var(--theme-muted);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   cursor: pointer;
 }
 
 .pomodoro__settings-reset:hover:not(:disabled) {
   color: var(--theme-text);
   background: var(--theme-surface-hover);
+}
+
+.pomodoro__settings-reset:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .pomodoro__overlay {

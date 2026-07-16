@@ -7,11 +7,13 @@ import { Settings } from "./components/Settings";
 import { TasksAndNotes } from "./components/TasksAndNotes";
 import SocialLinks from "./components/SocialLinks";
 import { Tools } from "./components/Tools";
+import { AiPromptBar } from "./components/AiPromptBar";
 import { LanguageProvider } from "./i18n/LanguageProvider";
 import { useTheme } from "./components/ThemeProvider";
 import "./i18n/i18n"; // Import i18n initialization
 
 import { parseStoredBackground, resolveBackgroundUrl } from "./components/settings/backgroundUtils";
+import { CorgiLayer } from "./features/corgi";
 import "./App.css";
 
 // Helper function to get image from IndexedDB
@@ -162,9 +164,13 @@ function App() {
             </div>
           </div>
 
+          <AiPromptBar />
           <SocialLinks />
         </div>
       </div>
+
+      {/* Decorative pets: above widgets, below settings/tools/modals (z-index 100) */}
+      <CorgiLayer />
     </LanguageProvider>
   );
 }

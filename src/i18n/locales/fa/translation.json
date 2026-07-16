@@ -1,4 +1,19 @@
 {
+  "aiPromptBar": {
+    "label": "نوار درخواست هوش مصنوعی",
+    "placeholder": "هر چیزی بپرسید...",
+    "send": "ارسال",
+    "selectProvider": "انتخاب سرویس هوش مصنوعی",
+    "providers": {
+      "chatgpt": "ChatGPT",
+      "claude": "Claude",
+      "gemini": "Gemini",
+      "grok": "Grok",
+      "perplexity": "Perplexity",
+      "deepseek": "DeepSeek",
+      "copilot": "Copilot"
+    }
+  },
   "settings": {
     "title": "تنظیمات",
     "backgrounds": "پس‌زمینه‌ها",
@@ -11,6 +26,7 @@
     "weekendColor": "رنگ آخر هفته",
     "firstDayOfWeek": "اولین روز هفته",
     "textColor": "رنگ متن",
+    "textOutlineColor": "رنگ دور فونت",
     "backgroundColor": "رنگ پس‌زمینه",
     "fontSizeRatio": "اندازه قلم",
     "fontSizeRatioDesc": "اندازه همه متن‌های صفحه تب جدید را تغییر می‌دهد.",
@@ -18,6 +34,18 @@
     "calendarConfig": "پیکربندی تقویم",
     "appearance": "ظاهر",
     "themePresets": "تم‌های آماده",
+    "customThemes": "تم‌های من",
+    "customThemeNamePlaceholder": "نام تم…",
+    "saveCustomTheme": "ذخیره",
+    "deleteCustomTheme": "حذف تم",
+    "animations": {
+      "title": "انیمیشن‌ها",
+      "description": "جلوه‌های تزئینی اختیاری روی صفحه تب جدید.",
+      "corgiMode": "حالت کورگی",
+      "corgiModeDesc": "کورگی‌های بازیگوش از پایین صفحه رد می‌شوند.",
+      "on": "روشن",
+      "off": "خاموش"
+    },
     "calendarType": {
       "title": "نوع تقویم",
       "description": "تقویم میلادی یا شمسی را انتخاب کنید.",
@@ -66,7 +94,8 @@
       "deleteFailed": "حذف پس‌زمینه انجام نشد.",
       "exportFailed": "خطا در خروجی گرفتن داده‌ها.",
       "importFailed": "فایل ورودی نامعتبر است.",
-      "maxWeekendDays": "حداکثر ۳ روز آخر هفته قابل انتخاب است."
+      "maxWeekendDays": "حداکثر ۳ روز آخر هفته قابل انتخاب است.",
+      "customThemeLimit": "حداکثر {{max}} تم سفارشی قابل ذخیره است."
     }
   },
   "bookmarks": {
@@ -78,11 +107,24 @@
     "back": "بازگشت",
     "confirm": "افزودن پوشه",
     "search": "جستجوی بوک‌مارک…",
+    "searchTitle": "جستجوی بوک‌مارک‌ها",
+    "searchTiles": "جستجو بر اساس نام یا آدرس…",
+    "searchByName": "جستجو بر اساس نام…",
+    "searchByAddress": "جستجو بر اساس آدرس…",
     "searchFolder": "جستجو در این پوشه…",
+    "searchIn": "جستجو در",
+    "searchFieldAll": "همه",
+    "searchFieldName": "نام",
+    "searchFieldAddress": "آدرس",
     "groupBy": "گروه‌بندی",
-    "groupNone": "همه",
+    "groupNone": "بدون گروه",
     "groupAz": "الفبا",
     "groupType": "نوع",
+    "sortBy": "مرتب‌سازی",
+    "sortDefault": "پیش‌فرض",
+    "sortNameAsc": "نام الف–ی",
+    "sortNameDesc": "نام ی–الف",
+    "sortType": "نوع",
     "emptySearch": "بوک‌مارکی با این جستجو پیدا نشد",
     "edit": "ویرایش",
     "clear": "حذف",

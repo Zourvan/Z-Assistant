@@ -46,6 +46,7 @@ const persistSettings = (
   firstDay: DayOfWeek,
   txtColor: string,
   bgColor: string,
+  outlineColor: string,
   fontRatio: number
 ) => {
   const settings: CalendarSettings = {
@@ -56,6 +57,7 @@ const persistSettings = (
     firstDayOfWeek: firstDay,
     textColor: txtColor,
     backgroundColor: bgColor,
+    textOutlineColor: outlineColor,
     language: localStorage.getItem("language") === "fa" ? "fa" : "en",
     fontSizeRatio: fontRatio,
   };
@@ -69,7 +71,15 @@ const persistSettings = (
 };
 
 export function CalendarProvider({ children }: CalendarProviderProps) {
-  const { textColor, backgroundColor, setTextColor, setBackgroundColor, fontSizeRatio, setFontSizeRatio } = useTheme();
+  const {
+    textColor,
+    backgroundColor,
+    textOutlineColor,
+    setTextColor,
+    setBackgroundColor,
+    fontSizeRatio,
+    setFontSizeRatio,
+  } = useTheme();
 
   const [calendarType, setCalendarTypeState] = useState<CalendarType>(() => {
     const saved = localStorage.getItem("calendarType");
@@ -131,8 +141,28 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
   }, []);
 
   useEffect(() => {
-    persistSettings(calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, fontSizeRatio);
-  }, [calendarType, tileNumber, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor, fontSizeRatio]);
+    persistSettings(
+      calendarType,
+      tileNumber,
+      weekendDays,
+      weekendColor,
+      firstDayOfWeek,
+      textColor,
+      backgroundColor,
+      textOutlineColor,
+      fontSizeRatio,
+    );
+  }, [
+    calendarType,
+    tileNumber,
+    weekendDays,
+    weekendColor,
+    firstDayOfWeek,
+    textColor,
+    backgroundColor,
+    textOutlineColor,
+    fontSizeRatio,
+  ]);
 
   return (
     <CalendarContext.Provider

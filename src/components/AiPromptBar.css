@@ -1,0 +1,283 @@
+.ai-prompt-bar-wrap {
+  position: fixed;
+  z-index: 20;
+  bottom: 0.75rem;
+  /* Slight left bias + extra right inset so social links do not collide */
+  left: max(0.75rem, calc(50% - 22rem - 1.25rem));
+  right: max(5.25rem, calc(50% - 22rem + 1.25rem));
+  width: auto;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .ai-prompt-bar-wrap {
+    bottom: 1rem;
+    left: max(1rem, calc(50% - 22rem - 2.5rem));
+    right: max(11.5rem, calc(50% - 22rem + 2.5rem));
+  }
+}
+
+@media (min-width: 1100px) {
+  .ai-prompt-bar-wrap {
+    max-width: 48rem;
+    left: max(1.25rem, calc(50% - 24rem - 2rem));
+    right: max(12rem, calc(50% - 24rem + 2rem));
+  }
+}
+
+.ai-prompt-bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  background-color: var(--theme-bg);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--theme-text) 6%, transparent);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ai-prompt-bar:focus-within {
+  border-color: var(--theme-accent);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.32),
+    0 0 0 2px color-mix(in srgb, var(--theme-accent) 22%, transparent);
+}
+
+.ai-prompt-bar__provider {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ai-prompt-bar__provider-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 9.5rem;
+  height: 2.25rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 9999px;
+  background: var(--theme-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.ai-prompt-bar__provider-btn:hover,
+.ai-prompt-bar__provider-btn.is-open {
+  background: var(--theme-surface-hover);
+  border-color: var(--theme-accent);
+}
+
+.ai-prompt-bar__provider-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-accent) 28%, transparent);
+}
+
+.ai-prompt-bar__provider-icon {
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  opacity: 0.95;
+}
+
+.ai-prompt-bar__provider-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-prompt-bar__provider-chevron {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.ai-prompt-bar__provider-btn.is-open .ai-prompt-bar__provider-chevron {
+  transform: rotate(180deg);
+}
+
+.ai-prompt-bar__menu {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  inset-inline-start: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  min-width: 10.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--theme-border);
+  background: color-mix(in srgb, var(--theme-bg) 92%, #000 8%);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  animation: ai-prompt-bar-menu-in 0.16s ease;
+}
+
+.ai-prompt-bar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.ai-prompt-bar__menu-item:hover,
+.ai-prompt-bar__menu-item.is-active {
+  background: var(--theme-surface-hover);
+}
+
+.ai-prompt-bar__menu-item.is-selected {
+  background: var(--theme-surface-active);
+  font-weight: 600;
+}
+
+.ai-prompt-bar__input {
+  flex: 1;
+  min-width: 0;
+  min-height: 1.5rem;
+  max-height: 10rem;
+  margin: 0;
+  padding: 0.35rem 0.25rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  resize: none;
+  outline: none;
+  overflow-y: hidden;
+  field-sizing: content;
+}
+
+.ai-prompt-bar__input::placeholder {
+  color: var(--theme-muted);
+  opacity: 1;
+}
+
+.ai-prompt-bar__send {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 9999px;
+  background: var(--theme-surface-active);
+  color: var(--theme-text);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ai-prompt-bar__send:hover:not(:disabled) {
+  transform: scale(1.06);
+  background: color-mix(in srgb, var(--theme-text) 32%, transparent);
+  border-color: var(--theme-accent);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.ai-prompt-bar__send:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--theme-accent) 35%, transparent);
+}
+
+.ai-prompt-bar__send:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ai-prompt-bar__send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@keyframes ai-prompt-bar-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-prompt-bar,
+  .ai-prompt-bar__provider-btn,
+  .ai-prompt-bar__provider-chevron,
+  .ai-prompt-bar__menu-item,
+  .ai-prompt-bar__send {
+    transition: none;
+  }
+
+  .ai-prompt-bar__menu {
+    animation: none;
+  }
+}
+
+@media (max-width: 479px) {
+  .ai-prompt-bar-wrap {
+    left: 0.5rem;
+    right: 4.75rem;
+    max-width: none;
+    bottom: 0.5rem;
+  }
+
+  .ai-prompt-bar {
+    gap: 0.35rem;
+    padding: 0.5rem 0.55rem;
+    border-radius: 1rem;
+  }
+
+  .ai-prompt-bar__provider-btn {
+    max-width: 6.75rem;
+    padding: 0.35rem 0.45rem;
+    font-size: 0.75rem;
+  }
+
+  .ai-prompt-bar__input {
+    font-size: 0.875rem;
+  }
+
+  .ai-prompt-bar__send {
+    width: 2rem;
+    height: 2rem;
+  }
+}

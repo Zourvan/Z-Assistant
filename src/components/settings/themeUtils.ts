@@ -49,6 +49,8 @@ export const buildThemeCssVars = (textColor: string, backgroundColor: string): C
     "--theme-surface-active": withAlpha(textColor, 0.24),
     "--theme-muted": withAlpha(textColor, 0.6),
     "--theme-accent": withAlpha(textColor, 0.85),
+    /* Near-opaque menu panel (First Day of Week / react-select style) */
+    "--theme-menu-bg": withAlpha(backgroundColor, 0.95),
   }) as CSSProperties;
 
 export const buildThemeVars = (textColor: string, backgroundColor: string): CSSProperties =>

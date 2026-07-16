@@ -19,6 +19,7 @@ export interface CalendarSettings {
   firstDayOfWeek: DayOfWeek;
   textColor: string;
   backgroundColor: string;
+  textOutlineColor?: string;
   language: "en" | "fa";
   fontSizeRatio?: number;
 }

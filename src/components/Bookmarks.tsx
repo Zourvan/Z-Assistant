@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo, Fragment, type CSSProperties } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
-import { Folder, ChevronLeft, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, SortDesc, List, Grid, Smile } from "lucide-react";
+import { Folder, ChevronLeft, ChevronDown, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, List, Smile } from "lucide-react";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
@@ -9,6 +9,7 @@ import { buildThemeCssVars } from "./settings/themeUtils";
 import { useI18n } from "../i18n/LanguageProvider";
 import { scheduleSyncPush } from "./settings/settingsSync";
 import "./Bookmarks.css";
+import "./shared/themedSelect.css";
 // Import emoji-mart
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -48,8 +49,10 @@ interface ActionMenuPortalProps {
   labels: { edit: string; clear: string; color: string; icon: string };
 }
 
-// Add types for grouping options
+// Add types for grouping / sorting options
 type GroupingType = "none" | "alphabetical" | "type";
+type SortType = "default" | "name-asc" | "name-desc" | "type";
+type SearchField = "all" | "name" | "address";
 
 // Add interfaces for grouped nodes
 interface GroupedData {
@@ -112,20 +115,35 @@ function getHostname(url?: string): string {
   }
 }
 
-function nodeMatchesSearch(node: BookmarkNode, term: string): boolean {
-  const lowerTerm = term.toLowerCase();
-  return node.title.toLowerCase().includes(lowerTerm) || Boolean(node.url && node.url.toLowerCase().includes(lowerTerm));
+function matchesName(title: string, term: string): boolean {
+  return title.toLowerCase().includes(term.toLowerCase());
 }
 
-function searchNodesRecursive(nodes: BookmarkNode[], term: string): BookmarkNode[] {
+function matchesAddress(url: string | undefined, term: string): boolean {
+  const lowerTerm = term.toLowerCase();
+  if (url?.toLowerCase().includes(lowerTerm)) return true;
+  return getHostname(url).toLowerCase().includes(lowerTerm);
+}
+
+function matchesSearchField(title: string, url: string | undefined, term: string, field: SearchField): boolean {
+  if (field === "name") return matchesName(title, term);
+  if (field === "address") return matchesAddress(url, term);
+  return matchesName(title, term) || matchesAddress(url, term);
+}
+
+function nodeMatchesSearch(node: BookmarkNode, term: string, field: SearchField = "all"): boolean {
+  return matchesSearchField(node.title, node.url, term, field);
+}
+
+function searchNodesRecursive(nodes: BookmarkNode[], term: string, field: SearchField = "all"): BookmarkNode[] {
   const results: BookmarkNode[] = [];
 
   for (const node of nodes) {
-    if (nodeMatchesSearch(node, term)) {
+    if (nodeMatchesSearch(node, term, field)) {
       results.push(node);
     }
     if (node.children?.length) {
-      results.push(...searchNodesRecursive(node.children, term));
+      results.push(...searchNodesRecursive(node.children, term, field));
     }
   }
 
@@ -332,8 +350,12 @@ export function Bookmarks() {
   const [menuButtonRect, setMenuButtonRect] = useState<DOMRect | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [folderSearchTerm, setFolderSearchTerm] = useState<string>(""); // New state for folder panel search
-  const [groupingType, setGroupingTypeState] = useState<GroupingType>("none"); // New state for grouping
+  const [isSearchingBookmarks, setIsSearchingBookmarks] = useState(false);
+  const [searchField, setSearchField] = useState<SearchField>("all");
+  const [groupingType, setGroupingTypeState] = useState<GroupingType>("none");
+  const [sortType, setSortTypeState] = useState<SortType>("default");
   const [searchRecursive, setSearchRecursiveState] = useState(false);
+  const [openSelectId, setOpenSelectId] = useState<string | null>(null);
 
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -348,13 +370,20 @@ export function Bookmarks() {
   const selectorRef = useRef<HTMLDivElement>(null);
   const folderContentRef = useRef<HTMLDivElement>(null);
   const tileGridRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const sortableRef = useRef<Sortable | null>(null);
   const menuButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // Custom setter for groupingType that also saves to localStorage
+  // Custom setters that also save to localStorage
   const setGroupingType = (type: GroupingType) => {
     setGroupingTypeState(type);
     localStorage.setItem("typeofBookmarkForm", type);
+    scheduleSyncPush();
+  };
+
+  const setSortType = (type: SortType) => {
+    setSortTypeState(type);
+    localStorage.setItem("bookmarkSortType", type);
     scheduleSyncPush();
   };
 
@@ -374,8 +403,10 @@ export function Bookmarks() {
       setOpenMenuId(null);
       setIsColorPickerOpen(false);
       setIsEmojiPickerOpen(false);
+      setIsSearchingBookmarks(false);
       setSearchTerm("");
       setFolderSearchTerm("");
+      setSearchField("all");
     };
 
     window.addEventListener("nexx:settings-open", closeAll);
@@ -411,12 +442,21 @@ export function Bookmarks() {
           setBookmarks(transformedNodes);
         });
 
-        // Load grouping preference from localStorage
+        // Load grouping / sort preferences from localStorage
         try {
           const savedGroupingType = localStorage.getItem("typeofBookmarkForm");
-          if (savedGroupingType) {
-            // Use the state setter directly to avoid double-saving to localStorage
-            setGroupingTypeState(savedGroupingType as GroupingType);
+          if (savedGroupingType === "none" || savedGroupingType === "alphabetical" || savedGroupingType === "type") {
+            setGroupingTypeState(savedGroupingType);
+          }
+
+          const savedSortType = localStorage.getItem("bookmarkSortType");
+          if (
+            savedSortType === "default" ||
+            savedSortType === "name-asc" ||
+            savedSortType === "name-desc" ||
+            savedSortType === "type"
+          ) {
+            setSortTypeState(savedSortType);
           }
 
           const savedSearchRecursive = localStorage.getItem("bookmarkSearchRecursive");
@@ -424,7 +464,7 @@ export function Bookmarks() {
             setSearchRecursiveState(savedSearchRecursive === "1");
           }
         } catch (error) {
-          console.error("Error loading grouping preference from localStorage:", error);
+          console.error("Error loading bookmark view preferences from localStorage:", error);
         }
       } catch (error) {
         console.error("Error loading tile data:", error);
@@ -443,10 +483,20 @@ export function Bookmarks() {
   // Handle clicks outside the selector and folder content to close them.
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isSelecting && selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
-        setIsSelecting(false);
-        setSelectedTileIndex(null);
-        setCurrentFolder(null);
+      if ((isSelecting || isSearchingBookmarks) && selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+        if (isSelecting) {
+          setIsSelecting(false);
+          setSelectedTileIndex(null);
+          setCurrentFolder(null);
+          setFolderHistory([]);
+          setSearchTerm("");
+        } else {
+          setIsSearchingBookmarks(false);
+          setCurrentFolder(null);
+          setFolderHistory([]);
+          setSearchTerm("");
+          setSearchField("all");
+        }
       }
       if (activeFolderContent && folderContentRef.current && !folderContentRef.current.contains(event.target as Node)) {
         setActiveFolderContent(null);
@@ -455,7 +505,7 @@ export function Bookmarks() {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isSelecting, activeFolderContent]);
+  }, [isSelecting, isSearchingBookmarks, activeFolderContent]);
 
   // Handle clicks outside the action menu to close it.
   useEffect(() => {
@@ -525,11 +575,46 @@ export function Bookmarks() {
     };
   }, [handleSortEndCallback]);
 
+  useEffect(() => {
+    if (isSearchingBookmarks) {
+      searchInputRef.current?.focus();
+    }
+  }, [isSearchingBookmarks]);
+
   // --- Tile Interaction Functions ---
   const openSelector = (index: number) => {
+    setIsSearchingBookmarks(false);
     setSelectedTileIndex(index);
     setIsSelecting(true);
     setCurrentFolder(null);
+    setFolderHistory([]);
+    setSearchTerm("");
+  };
+
+  const openBookmarkSearch = () => {
+    setIsSelecting(false);
+    setSelectedTileIndex(null);
+    setActiveFolderContent(null);
+    setCurrentFolder(null);
+    setFolderHistory([]);
+    setSearchTerm("");
+    setIsSearchingBookmarks(true);
+  };
+
+  const closeBookmarkSearch = () => {
+    setIsSearchingBookmarks(false);
+    setCurrentFolder(null);
+    setFolderHistory([]);
+    setSearchTerm("");
+    setSearchField("all");
+  };
+
+  const openBookmarkUrl = (url: string, e?: React.MouseEvent) => {
+    if (e?.ctrlKey) {
+      window.open(url, "_blank");
+    } else {
+      window.location.href = url;
+    }
   };
 
   const selectNode = async (node: BookmarkNode) => {
@@ -655,7 +740,7 @@ export function Bookmarks() {
     chrome.bookmarks.getSubTree(folderId, (nodes) => {
       if (nodes[0]) {
         const transformedNode = transformBookmarkNode(nodes[0]);
-        if (isSelecting) {
+        if (isSelecting || isSearchingBookmarks) {
           if (currentFolder) {
             setFolderHistory((prev) => [...prev, currentFolder]);
           }
@@ -672,7 +757,7 @@ export function Bookmarks() {
   };
 
   const navigateBack = () => {
-    if (isSelecting) {
+    if (isSelecting || isSearchingBookmarks) {
       if (folderHistory.length > 0) {
         const previousFolder = folderHistory[folderHistory.length - 1];
         setFolderHistory((prev) => prev.slice(0, prev.length - 1));
@@ -698,7 +783,7 @@ export function Bookmarks() {
   const navigateToBreadcrumb = (index: number) => {
     if (index === 0) {
       setFolderHistory([]);
-      if (isSelecting) {
+      if (isSelecting || isSearchingBookmarks) {
         setCurrentFolder(null);
         setSearchTerm("");
       } else {
@@ -714,7 +799,7 @@ export function Bookmarks() {
     const targetFolder = folderHistory[historyIndex];
     const newHistory = folderHistory.slice(0, historyIndex);
 
-    if (isSelecting) {
+    if (isSelecting || isSearchingBookmarks) {
       setFolderHistory(newHistory);
       setCurrentFolder(targetFolder);
       setSearchTerm("");
@@ -771,56 +856,73 @@ export function Bookmarks() {
   };
 
   // Add a helper function to filter nodes based on search term
-  const filterNodesBySearch = (nodes: BookmarkNode[], term: string, recursive = false): BookmarkNode[] => {
+  const filterNodesBySearch = (
+    nodes: BookmarkNode[],
+    term: string,
+    recursive = false,
+    field: SearchField = "all"
+  ): BookmarkNode[] => {
     if (!term) return nodes;
-    if (recursive) return searchNodesRecursive(nodes, term);
+    if (recursive) return searchNodesRecursive(nodes, term, field);
 
-    return nodes.filter((node) => nodeMatchesSearch(node, term));
+    return nodes.filter((node) => nodeMatchesSearch(node, term, field));
   };
 
-  // Modify the getGroupedNodes function to check for empty inputs
-  const getGroupedNodes = (nodes: BookmarkNode[], groupType: GroupingType): GroupedData[] | BookmarkNode[] => {
-    // Return empty array if nodes is undefined or empty
+  const sortNodes = (nodes: BookmarkNode[], sort: SortType): BookmarkNode[] => {
+    if (sort === "default") return [...nodes];
+
+    if (sort === "type") {
+      return [...nodes].sort((a, b) => {
+        const aIsFolder = Boolean(a.children);
+        const bIsFolder = Boolean(b.children);
+        if (aIsFolder !== bIsFolder) return aIsFolder ? -1 : 1;
+        return a.title.localeCompare(b.title);
+      });
+    }
+
+    const sorted = [...nodes].sort((a, b) => a.title.localeCompare(b.title));
+    return sort === "name-desc" ? sorted.reverse() : sorted;
+  };
+
+  const getGroupedNodes = (
+    nodes: BookmarkNode[],
+    groupType: GroupingType,
+    sort: SortType = sortType
+  ): GroupedData[] | BookmarkNode[] => {
     if (!nodes || nodes.length === 0) return [];
 
-    if (groupType === "none") return nodes;
+    const ordered = sortNodes(nodes, sort);
+
+    if (groupType === "none") return ordered;
 
     if (groupType === "alphabetical") {
-      // Group alphabetically by first letter
       const groups: Record<string, BookmarkNode[]> = {};
 
-      // Sort and group by first letter
-      [...nodes]
-        .sort((a, b) => a.title.localeCompare(b.title))
-        .forEach((node) => {
-          const firstLetter = node.title.charAt(0).toUpperCase();
-          if (!groups[firstLetter]) {
-            groups[firstLetter] = [];
-          }
-          groups[firstLetter].push(node);
-        });
+      ordered.forEach((node) => {
+        const firstLetter = node.title.charAt(0).toUpperCase() || "#";
+        if (!groups[firstLetter]) {
+          groups[firstLetter] = [];
+        }
+        groups[firstLetter].push(node);
+      });
 
-      // Convert to array of groups
       return Object.entries(groups).map(([letter, groupNodes]) => ({
         title: letter,
         nodes: groupNodes,
       }));
-    } else if (groupType === "type") {
-      // Create folder and bookmark groups
-      const folders: BookmarkNode[] = [];
-      const bookmarks: BookmarkNode[] = [];
+    }
 
-      nodes.forEach((node) => {
+    if (groupType === "type") {
+      const folders: BookmarkNode[] = [];
+      const bookmarkItems: BookmarkNode[] = [];
+
+      ordered.forEach((node) => {
         if (node.children) {
           folders.push(node);
         } else {
-          bookmarks.push(node);
+          bookmarkItems.push(node);
         }
       });
-
-      // Sort each group alphabetically
-      folders.sort((a, b) => a.title.localeCompare(b.title));
-      bookmarks.sort((a, b) => a.title.localeCompare(b.title));
 
       const result: GroupedData[] = [];
 
@@ -831,17 +933,88 @@ export function Bookmarks() {
         });
       }
 
-      if (bookmarks.length > 0) {
+      if (bookmarkItems.length > 0) {
         result.push({
           title: "Bookmarks",
-          nodes: bookmarks,
+          nodes: bookmarkItems,
         });
       }
 
       return result;
     }
 
-    return nodes;
+    return ordered;
+  };
+
+  const renderOrganizeSelects = () => (
+    <div className="bookmarks-organize-selects">
+      {renderThemedSelect("groupBy", t("bookmarks.groupBy"), groupingType, [
+        { value: "none", label: t("bookmarks.groupNone") },
+        { value: "alphabetical", label: t("bookmarks.groupAz") },
+        { value: "type", label: t("bookmarks.groupType") },
+      ], setGroupingType)}
+      {renderThemedSelect("sortBy", t("bookmarks.sortBy"), sortType, [
+        { value: "default", label: t("bookmarks.sortDefault") },
+        { value: "name-asc", label: t("bookmarks.sortNameAsc") },
+        { value: "name-desc", label: t("bookmarks.sortNameDesc") },
+        { value: "type", label: t("bookmarks.sortType") },
+      ], setSortType)}
+    </div>
+  );
+
+  type ThemedSelectOption<T extends string> = { value: T; label: string };
+
+  const renderThemedSelect = <T extends string>(
+    id: string,
+    label: string,
+    value: T,
+    options: ThemedSelectOption<T>[],
+    onChange: (next: T) => void
+  ) => {
+    const isOpen = openSelectId === id;
+    const selectedLabel = options.find((option) => option.value === value)?.label ?? value;
+
+    return (
+      <div className="bookmarks-select">
+        <span className="bookmarks-select__label" id={`${id}-label`}>
+          {label}
+        </span>
+        <div className="bookmarks-select__control">
+          <button
+            type="button"
+            className={`bookmarks-select__btn${isOpen ? " is-open" : ""}`}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            aria-labelledby={`${id}-label`}
+            onClick={() => setOpenSelectId(isOpen ? null : id)}
+          >
+            <span className="bookmarks-select__value">{selectedLabel}</span>
+            <ChevronDown size={14} className="bookmarks-select__chevron" aria-hidden />
+          </button>
+          {isOpen && (
+            <ul className="bookmarks-select__menu" role="listbox" aria-labelledby={`${id}-label`}>
+              {options.map((option) => {
+                const selected = option.value === value;
+                return (
+                  <li key={option.value} role="option" aria-selected={selected}>
+                    <button
+                      type="button"
+                      className={`bookmarks-select__option${selected ? " is-selected" : ""}`}
+                      onClick={() => {
+                        onChange(option.value);
+                        setOpenSelectId(null);
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // Add a type guard function to check if data is grouped
@@ -866,11 +1039,33 @@ export function Bookmarks() {
     </label>
   );
 
+  useEffect(() => {
+    if (!openSelectId) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest(".bookmarks-select")) {
+        setOpenSelectId(null);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenSelectId(null);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [openSelectId]);
+
   // Add a scroll padding utility function to handle scrolling behavior
   useEffect(() => {
     // Apply scroll padding when the selector or folder content is open
     const applyScrollPadding = () => {
-      if (isSelecting && selectorRef.current) {
+      if ((isSelecting || isSearchingBookmarks) && selectorRef.current) {
         const searchControls = selectorRef.current.querySelector(".search-controls");
         if (searchControls) {
           const height = searchControls.getBoundingClientRect().height;
@@ -894,29 +1089,95 @@ export function Bookmarks() {
       window.removeEventListener("resize", applyScrollPadding);
       document.documentElement.style.setProperty("--scroll-padding-top", "0px");
     };
-  }, [isSelecting, activeFolderContent]);
+  }, [isSelecting, isSearchingBookmarks, activeFolderContent]);
 
   // --- Rendering Functions ---
+  const handlePickerNodeClick = (node: BookmarkNode, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (node.children) {
+      navigateToFolder(node.id);
+      return;
+    }
+    if (isSearchingBookmarks && node.url) {
+      openBookmarkUrl(node.url, e);
+      return;
+    }
+    selectNode(node);
+  };
+
+  const renderPickerNode = (node: BookmarkNode) => (
+    <a
+      key={node.id}
+      href={node.url || "#"}
+      onClick={(e) => handlePickerNodeClick(node, e)}
+      className="bookmark-selector-item"
+      style={{ textDecoration: "none" }}
+      title={node.url || node.title}
+    >
+      {node.children ? (
+        node.tileIcon && node.tileIcon !== "default" ? (
+          <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
+        ) : (
+          <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
+        )
+      ) : (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
+          alt=""
+          className="w-6 h-6 mb-1"
+          onError={(e) => {
+            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
+          }}
+        />
+      )}
+      <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
+        {truncateTitle(node.title)}
+      </span>
+      {isSearchingBookmarks && !node.children && node.url && (
+        <span className="bookmark-tile__domain">{getHostname(node.url)}</span>
+      )}
+    </a>
+  );
+
   const renderSelector = () => {
-    const nodes = currentFolder?.children || bookmarks;
-    const filteredNodes = filterNodesBySearch(nodes || [], searchTerm, searchRecursive);
-    const groupedData = getGroupedNodes(filteredNodes, groupingType);
+    const hasSearchTerm = searchTerm.trim().length > 0;
+    // When searching, always scan the full bookmark tree so every match is listed
+    const nodes =
+      isSearchingBookmarks && hasSearchTerm ? bookmarks : currentFolder?.children || bookmarks;
+    const useRecursive = isSearchingBookmarks || searchRecursive;
+    const activeSearchField = isSearchingBookmarks ? searchField : "all";
+    const filteredNodes = filterNodesBySearch(nodes || [], searchTerm, useRecursive, activeSearchField);
+
+    const groupedData = getGroupedNodes(filteredNodes, groupingType, sortType);
 
     // Use type guard to safely check if data is grouped
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
+    const closeModal = isSearchingBookmarks ? closeBookmarkSearch : closeSelector;
+    const modalTitle = currentFolder
+      ? currentFolder.title
+      : isSearchingBookmarks
+        ? t("bookmarks.searchTitle")
+        : t("bookmarks.select");
+
+    const searchPlaceholder =
+      !isSearchingBookmarks
+        ? t("bookmarks.search")
+        : searchField === "name"
+          ? t("bookmarks.searchByName")
+          : searchField === "address"
+            ? t("bookmarks.searchByAddress")
+            : t("bookmarks.searchTiles");
 
     return (
       <div className="bookmarks-overlay">
         <div ref={selectorRef} className="bookmarks-modal bookmarks-modal--large" style={themeCssVars}>
           <div className="bookmarks-toolbar">
-            <button type="button" onClick={currentFolder ? navigateBack : closeSelector} className="bookmarks-btn">
+            <button type="button" onClick={currentFolder ? navigateBack : closeModal} className="bookmarks-btn">
               <ChevronLeft className="w-3.5 h-3.5" />
               {currentFolder ? t("bookmarks.back") : t("bookmarks.cancel")}
             </button>
-            <h3 className="text-base font-medium flex-grow text-center">
-              {currentFolder ? currentFolder.title : t("bookmarks.select")}
-            </h3>
-            {currentFolder && (
+            <h3 className="text-base font-medium flex-grow text-center">{modalTitle}</h3>
+            {isSelecting && currentFolder && (
               <button
                 type="button"
                 onClick={() =>
@@ -941,171 +1202,76 @@ export function Bookmarks() {
           {renderFolderBreadcrumb(currentFolder)}
 
           <div className="bookmarks-search-panel search-controls">
-            <div className="relative">
-              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <Search className="w-4 h-4 opacity-60" />
-              </div>
-              <input
-                type="text"
-                placeholder={t("bookmarks.search")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bookmarks-input"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm("")}
-                  className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {renderRecursiveSearchOption()}
-
-            <div className="bookmarks-group-controls">
-              <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>
-              <div className="bookmarks-toggle-group" role="group" aria-label={t("bookmarks.groupBy")}>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("none")}
-                  className={`bookmarks-toggle-btn ${groupingType === "none" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <Grid className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupNone")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("alphabetical")}
-                  className={`bookmarks-toggle-btn ${groupingType === "alphabetical" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <SortDesc className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupAz")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("type")}
-                  className={`bookmarks-toggle-btn ${groupingType === "type" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <List className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupType")}
-                </button>
+            <div className="bookmarks-search-row">
+              {renderOrganizeSelects()}
+              {isSearchingBookmarks &&
+                renderThemedSelect("searchIn", t("bookmarks.searchIn"), searchField, [
+                  { value: "all", label: t("bookmarks.searchFieldAll") },
+                  { value: "name", label: t("bookmarks.searchFieldName") },
+                  { value: "address", label: t("bookmarks.searchFieldAddress") },
+                ], setSearchField)}
+              <div className="relative bookmarks-search-field">
+                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                  <Search className="w-4 h-4 opacity-60" />
+                </div>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder={searchPlaceholder}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bookmarks-input"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm("")}
+                    className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
+
+            {!isSearchingBookmarks && renderRecursiveSearchOption()}
           </div>
 
           <div className="bookmarks-scroll-area">
-              {!isGrouped ? (
-                // Render regular grid when not grouped
-                <div className="bookmarks-picker-grid">
-                  {filteredNodes.length > 0 ? (
-                    filteredNodes.map((node) => (
-                      <a
-                        key={node.id}
-                        href={node.url || "#"}
-                        onClick={(e) => {
-                          e.preventDefault(); // Prevent default for left click
-                          if (node.children) {
-                            navigateToFolder(node.id);
-                          } else {
-                            selectNode(node);
-                          }
-                        }}
-                        className="bookmark-selector-item"
-                        style={{ textDecoration: "none" }}
-                      >
-                        {node.children ? (
-                          node.tileIcon && node.tileIcon !== "default" ? (
-                            <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
-                          ) : (
-                            <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
-                          )
+            {!isGrouped ? (
+              <div className="bookmarks-picker-grid">
+                {filteredNodes.length > 0 ? (
+                  filteredNodes.map((node) => renderPickerNode(node))
+                ) : (
+                  <div className="bookmarks-empty col-span-full">{t("bookmarks.emptySearch")}</div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {isGroupedData(groupedData) &&
+                  groupedData.map((group) => (
+                    <div key={group.title} className="space-y-1">
+                      <div className="bookmarks-group-header">
+                        {group.title === "Folders" ? (
+                          <Folder className="w-4 h-4" />
+                        ) : group.title === "Bookmarks" ? (
+                          <List className="w-4 h-4" />
                         ) : (
-                          <img
-                            src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
-                            alt=""
-                            className="w-6 h-6 mb-1"
-                            onError={(e) => {
-                              e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                            }}
-                          />
+                          <span className="w-4 h-4 inline-block text-center">{group.title.charAt(0)}</span>
                         )}
-                        <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
-                          {truncateTitle(node.title)}
-                        </span>
-                      </a>
-                    ))
-                  ) : (
-                    <div className="bookmarks-empty col-span-full">{t("bookmarks.emptySearch")}</div>
-                  )}
-                </div>
-              ) : (
-                // Render grouped content with headers
-                <div className="space-y-4">
-                  {isGroupedData(groupedData) &&
-                    groupedData.map((group) => (
-                      <div key={group.title} className="space-y-1">
-                        {/* Group header - No longer sticky, scrolls with content */}
-                        <div className="bookmarks-group-header">
-                          {group.title === "Folders" ? (
-                            <Folder className="w-4 h-4" />
-                          ) : group.title === "Bookmarks" ? (
-                            <List className="w-4 h-4" />
-                          ) : (
-                            <span className="w-4 h-4 inline-block text-center">{group.title.charAt(0)}</span>
-                          )}
-                          <span>{groupLabel(group.title)}</span>
-                          <span className="text-xs opacity-60">({group.nodes.length})</span>
-                        </div>
-                        {/* Group items */}
-                        <div className="bookmarks-picker-grid">
-                          {group.nodes &&
-                            group.nodes.map((node) => (
-                              <a
-                                key={node.id}
-                                href={node.url || "#"}
-                                onClick={(e) => {
-                                  e.preventDefault(); // Prevent default for left click
-                                  if (node.children) {
-                                    navigateToFolder(node.id);
-                                  } else {
-                                    selectNode(node);
-                                  }
-                                }}
-                                className="bookmark-selector-item"
-                                style={{ textDecoration: "none" }}
-                              >
-                                {node.children ? (
-                                  node.tileIcon && node.tileIcon !== "default" ? (
-                                    <span className="text-3xl sm:text-4xl mb-1">{node.tileIcon}</span>
-                                  ) : (
-                                    <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
-                                  )
-                                ) : (
-                                  <img
-                                    src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
-                                    alt=""
-                                    className="w-6 h-6 mb-1"
-                                    onError={(e) => {
-                                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                                    }}
-                                  />
-                                )}
-                                <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
-                                  {truncateTitle(node.title)}
-                                </span>
-                              </a>
-                            ))}
-                        </div>
+                        <span>{groupLabel(group.title)}</span>
+                        <span className="text-xs opacity-60">({group.nodes.length})</span>
                       </div>
-                    ))}
-                  {isGroupedData(groupedData) && groupedData.length === 0 && (
-                    <div className="bookmarks-empty">{t("bookmarks.emptySearch")}</div>
-                  )}
-                </div>
-              )}
+                      <div className="bookmarks-picker-grid">
+                        {group.nodes?.map((node) => renderPickerNode(node))}
+                      </div>
+                    </div>
+                  ))}
+                {isGroupedData(groupedData) && groupedData.length === 0 && (
+                  <div className="bookmarks-empty">{t("bookmarks.emptySearch")}</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1116,7 +1282,7 @@ export function Bookmarks() {
     if (!activeFolderContent) return null;
 
     const filteredFolderContent = filterFolderContentBySearch(activeFolderContent.children || [], folderSearchTerm, searchRecursive);
-    const groupedData = getGroupedNodes(filteredFolderContent, groupingType);
+    const groupedData = getGroupedNodes(filteredFolderContent, groupingType, sortType);
 
     // Use the type guard for safer type checking
     const isGrouped = Array.isArray(groupedData) && groupedData.length > 0 && isGroupedData(groupedData);
@@ -1136,59 +1302,32 @@ export function Bookmarks() {
           {renderFolderBreadcrumb(activeFolderContent)}
 
           <div className="bookmarks-search-panel search-controls">
-            <div className="relative">
-              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <Search className="w-4 h-4 opacity-60" />
+            <div className="bookmarks-search-row">
+              {renderOrganizeSelects()}
+              <div className="relative bookmarks-search-field">
+                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                  <Search className="w-4 h-4 opacity-60" />
+                </div>
+                <input
+                  type="text"
+                  placeholder={t("bookmarks.searchFolder")}
+                  value={folderSearchTerm}
+                  onChange={(e) => setFolderSearchTerm(e.target.value)}
+                  className="bookmarks-input"
+                />
+                {folderSearchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setFolderSearchTerm("")}
+                    className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder={t("bookmarks.searchFolder")}
-                value={folderSearchTerm}
-                onChange={(e) => setFolderSearchTerm(e.target.value)}
-                className="bookmarks-input"
-              />
-              {folderSearchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setFolderSearchTerm("")}
-                  className="absolute inset-y-0 end-0 flex items-center pe-3 opacity-70 hover:opacity-100"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
             </div>
 
             {renderRecursiveSearchOption()}
-
-            <div className="bookmarks-group-controls">
-              <span className="bookmarks-group-label">{t("bookmarks.groupBy")}</span>
-              <div className="bookmarks-toggle-group" role="group" aria-label={t("bookmarks.groupBy")}>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("none")}
-                  className={`bookmarks-toggle-btn ${groupingType === "none" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <Grid className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupNone")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("alphabetical")}
-                  className={`bookmarks-toggle-btn ${groupingType === "alphabetical" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <SortDesc className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupAz")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setGroupingType("type")}
-                  className={`bookmarks-toggle-btn ${groupingType === "type" ? "bookmarks-toggle-btn--active" : ""}`}
-                >
-                  <List className="w-3.5 h-3.5" />
-                  {t("bookmarks.groupType")}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="bookmarks-scroll-area">
@@ -1442,7 +1581,19 @@ export function Bookmarks() {
   return (
     <div className="bookmarks-root" style={{ ...themeCssVars, color: textColor }}>
       <div className="bookmarks-header">
-        <h2 className="bookmarks-title">{t("bookmarks.title")}</h2>
+        <div className="bookmarks-title-row">
+          <h2 className="bookmarks-title">{t("bookmarks.title")}</h2>
+          <button
+            type="button"
+            className={`bookmarks-search-toggle ${isSearchingBookmarks ? "bookmarks-search-toggle--active" : ""}`}
+            onClick={openBookmarkSearch}
+            aria-label={t("bookmarks.search")}
+            aria-expanded={isSearchingBookmarks}
+            title={t("bookmarks.search")}
+          >
+            <Search className="w-5 h-5" strokeWidth={2.5} />
+          </button>
+        </div>
         <p className="bookmarks-hint">{t("bookmarks.hint")}</p>
       </div>
       <div ref={tileGridRef} className="bookmarks-grid">
@@ -1450,7 +1601,7 @@ export function Bookmarks() {
           .fill(null)
           .map((_, i) => renderTile(tiles[i], i))}
       </div>
-      {isSelecting && renderSelector()}
+      {(isSelecting || isSearchingBookmarks) && renderSelector()}
       {activeFolderContent && renderFolderContent()}
       {isColorPickerOpen && (
         <ColorPicker

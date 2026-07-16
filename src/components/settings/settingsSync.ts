@@ -1,6 +1,7 @@
 import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
 import { getStoredLocation, saveLocation } from "../weather/storage";
 import { POMODORO_SETTINGS_KEY, DEFAULT_POMODORO_SETTINGS } from "../timerAlarm/pomodoroUtils";
+import { CUSTOM_THEMES_KEY, MAX_CUSTOM_THEMES, type CustomTheme } from "../ThemeProvider";
 import type { StoredBackground } from "./types";
 import type { Task } from "../tasks/types";
 import type { AlarmItem, PomodoroSettings } from "../timerAlarm/types";
@@ -31,7 +32,9 @@ export interface SyncPreferences {
   language: string;
   textColor: string;
   backgroundColor: string;
+  textOutlineColor: string;
   fontSizeRatio: number;
+  customThemes: CustomTheme[];
   calendarType: string;
   tileNumber: number;
   weekendDays: string[];
@@ -40,6 +43,7 @@ export interface SyncPreferences {
   selectedBackground: string | null;
   typeofBookmarkForm: string | null;
   bookmarkSearchRecursive: string | null;
+  corgiMode: boolean;
   pomodoroSettings: PomodoroSettings;
   toolsFavorites: string[];
   weatherLocation: WeatherLocation | null;
@@ -99,6 +103,23 @@ const readJson = <T>(raw: string | null, fallback: T): T => {
   } catch {
     return fallback;
   }
+};
+
+const readCustomThemes = (): CustomTheme[] => {
+  const parsed = readJson<unknown>(localStorage.getItem(CUSTOM_THEMES_KEY), []);
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter(
+      (item): item is CustomTheme =>
+        !!item &&
+        typeof item === "object" &&
+        typeof (item as CustomTheme).id === "string" &&
+        typeof (item as CustomTheme).name === "string" &&
+        typeof (item as CustomTheme).text === "string" &&
+        typeof (item as CustomTheme).bg === "string" &&
+        typeof (item as CustomTheme).outline === "string",
+    )
+    .slice(0, MAX_CUSTOM_THEMES);
 };
 
 const readStringArray = (key: string): string[] => {
@@ -169,7 +190,9 @@ export const collectLocalData = async (): Promise<SyncPayload> => {
     language: localStorage.getItem("language") === "fa" ? "fa" : "en",
     textColor: localStorage.getItem("textColor") || "#FFFFFF",
     backgroundColor: localStorage.getItem("backgroundColor") || "rgba(0, 0, 0, 0.2)",
+    textOutlineColor: localStorage.getItem("textOutlineColor") || "#000000",
     fontSizeRatio: Number.isFinite(fontSizeParsed) ? fontSizeParsed : 1,
+    customThemes: readCustomThemes(),
     calendarType: localStorage.getItem("calendarType") || "gregorian",
     tileNumber: readJson<number>(localStorage.getItem("tileNumber"), 10),
     weekendDays: readJson<string[]>(localStorage.getItem("weekendDays"), ["Friday"]),
@@ -178,6 +201,7 @@ export const collectLocalData = async (): Promise<SyncPayload> => {
     selectedBackground: localStorage.getItem("selectedBackground"),
     typeofBookmarkForm: localStorage.getItem("typeofBookmarkForm"),
     bookmarkSearchRecursive: localStorage.getItem("bookmarkSearchRecursive"),
+    corgiMode: localStorage.getItem("corgiMode") === "1",
     pomodoroSettings: { ...DEFAULT_POMODORO_SETTINGS, ...pomodoroSettings },
     toolsFavorites: readStringArray("toolsFavorites"),
     weatherLocation: await getStoredLocation(),
@@ -204,7 +228,12 @@ const applyPreferences = async (preferences: SyncPreferences) => {
   localStorage.setItem("language", preferences.language);
   localStorage.setItem("textColor", preferences.textColor);
   localStorage.setItem("backgroundColor", preferences.backgroundColor);
+  localStorage.setItem("textOutlineColor", preferences.textOutlineColor || "#000000");
   localStorage.setItem("fontSizeRatio", String(preferences.fontSizeRatio));
+  localStorage.setItem(
+    CUSTOM_THEMES_KEY,
+    JSON.stringify(Array.isArray(preferences.customThemes) ? preferences.customThemes.slice(0, MAX_CUSTOM_THEMES) : []),
+  );
   localStorage.setItem("calendarType", preferences.calendarType);
   localStorage.setItem("tileNumber", JSON.stringify(preferences.tileNumber));
   localStorage.setItem("weekendDays", JSON.stringify(preferences.weekendDays));
@@ -225,6 +254,15 @@ const applyPreferences = async (preferences: SyncPreferences) => {
     localStorage.setItem("bookmarkSearchRecursive", preferences.bookmarkSearchRecursive);
   }
 
+  if (typeof preferences.corgiMode === "boolean") {
+    localStorage.setItem("corgiMode", preferences.corgiMode ? "1" : "0");
+    window.dispatchEvent(
+      new CustomEvent("nexx:corgi-mode-change", {
+        detail: { enabled: preferences.corgiMode },
+      }),
+    );
+  }
+
   localStorage.setItem(POMODORO_SETTINGS_KEY, JSON.stringify(preferences.pomodoroSettings));
   localStorage.setItem("toolsFavorites", JSON.stringify(preferences.toolsFavorites));
 
@@ -236,6 +274,7 @@ const applyPreferences = async (preferences: SyncPreferences) => {
     firstDayOfWeek: preferences.firstDayOfWeek,
     textColor: preferences.textColor,
     backgroundColor: preferences.backgroundColor,
+    textOutlineColor: preferences.textOutlineColor || "#000000",
     language: preferences.language,
     fontSizeRatio: preferences.fontSizeRatio,
   };
