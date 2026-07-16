@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-07-17 02:15:46
+- Halved Charles corgi size (84×60) for a less dominant overlay
+- Components affected: src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css
+
+## 2026-07-17 02:14:13
+- Added a diagonal walk-cycle for Charles corgi legs while moving (paws step in opposite pairs; gait speed matches travel speed)
+- Components affected: src/features/corgi/CharlesCorgi.css, src/features/corgi/Corgi.ts
+
 ## 2026-07-17 02:10:02
 - Replaced Corgi Mode art with Charles the CSS Corgi (CodePen aNmoYR by JayJay89): pure CSS structure with blink, ear wiggle, tail wag, and tongue animations while walking across the page
 - Components affected: src/features/corgi/Corgi.ts, src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css, src/features/corgi/CorgiLayer.css

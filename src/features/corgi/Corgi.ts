@@ -61,6 +61,7 @@ export class Corgi implements Pet {
     this.state = "Walking";
     this.walkTime = 0;
     this.nextBehaviorAt = rand(3, 7);
+    this.syncWalkClass();
     this.applyTransform();
   }
 
@@ -102,6 +103,7 @@ export class Corgi implements Pet {
           this.stateTimer = 0;
           this.walkTime = 0;
           this.nextBehaviorAt = rand(4, 9);
+          this.syncWalkClass();
         }
         break;
     }
@@ -136,10 +138,20 @@ export class Corgi implements Pet {
       this.state = "Idle";
       this.stateTimer = 0;
       this.nextBehaviorAt = rand(2, 5);
+      this.syncWalkClass();
     } else {
       this.walkTime = 0;
       this.nextBehaviorAt = rand(4, 8);
     }
+  }
+
+  private syncWalkClass(): void {
+    if (!this.visual) return;
+    const walking = this.state === "Walking" || this.state === "Leaving";
+    this.visual.classList.toggle("is-walking", walking);
+    // Faster travel → faster gait
+    const duration = Math.max(0.28, Math.min(0.55, 42 / this.speed));
+    this.visual.style.setProperty("--walk-duration", `${duration.toFixed(2)}s`);
   }
 
   private hasExited(): boolean {

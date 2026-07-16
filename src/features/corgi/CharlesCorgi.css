@@ -24,8 +24,8 @@
 }
 
 @keyframes charles-tongue-stick {
-  0% { transform: scaleY(0.1) translateY(-20px); }
-  20% { transform: scaleY(0.1) translateY(-20px); }
+  0% { transform: scaleY(0.1) translateY(-10px); }
+  20% { transform: scaleY(0.1) translateY(-10px); }
   30% { transform: scaleY(0.5) translateY(0); }
   40% { transform: scaleY(1) translateY(0) rotate(0deg); }
   50% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
@@ -33,7 +33,7 @@
   70% { transform: scaleY(0.8) translateY(0) rotate(-15deg); }
   80% { transform: scaleY(1) translateY(0) rotate(0deg); }
   90% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
-  100% { transform: scaleY(0.1) translateY(-20px) rotate(0deg); }
+  100% { transform: scaleY(0.1) translateY(-10px) rotate(0deg); }
 }
 
 @keyframes charles-ear-shake-right {
@@ -70,6 +70,19 @@
   66.666% { transform: scaleY(1) scaleX(1); }
   83.333% { transform: scaleY(0.9) scaleX(1.05) translateY(10%); }
   100% { transform: scaleY(1) scaleX(1); }
+}
+
+/* Diagonal walk gait — opposite pairs share a phase */
+@keyframes charles-leg-walk-a {
+  0% { transform: rotate(22deg) translateY(-6%); }
+  50% { transform: rotate(-20deg) translateY(4%); }
+  100% { transform: rotate(22deg) translateY(-6%); }
+}
+
+@keyframes charles-leg-walk-b {
+  0% { transform: rotate(-20deg) translateY(4%); }
+  50% { transform: rotate(22deg) translateY(-6%); }
+  100% { transform: rotate(-20deg) translateY(4%); }
 }
 
 @keyframes charles-neck-shake {
@@ -110,12 +123,13 @@
   --charles-ink: #3e3954;
   --charles-tongue: #f15f55;
   --charles-duration: 2s;
+  --walk-duration: 0.42s;
 
-  height: 120px;
-  width: 168px;
+  height: 60px;
+  width: 84px;
   position: relative;
   transform-origin: center bottom;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28));
   pointer-events: none;
 }
 
@@ -303,7 +317,7 @@
   width: 39%;
   height: 100%;
   border-color: var(--charles-ink);
-  border-width: 2px;
+  border-width: 1px;
   border-style: solid;
   border-bottom-right-radius: 50%;
   border-bottom-left-radius: 50%;
@@ -394,6 +408,26 @@
   height: 35%;
   width: 9.5%;
   bottom: 0;
+  transform-origin: 50% 8%;
+}
+
+.charles-corgi.is-walking .foot__1,
+.charles-corgi.is-walking .foot__4 {
+  animation: charles-leg-walk-a var(--walk-duration) linear infinite;
+}
+
+.charles-corgi.is-walking .foot__2,
+.charles-corgi.is-walking .foot__3 {
+  animation: charles-leg-walk-b var(--walk-duration) linear infinite;
+}
+
+.charles-corgi.is-walking .foot:after {
+  /* Paw squash rides along with the stride */
+  animation: charles-paw-press var(--walk-duration) linear infinite;
+}
+
+.charles-corgi:not(.is-walking) .foot:after {
+  animation: charles-paw-press var(--charles-duration) none infinite;
 }
 
 .charles-corgi .foot__left {
@@ -470,7 +504,6 @@
   height: 18%;
   border-top-left-radius: 50% 100%;
   border-top-right-radius: 50% 100%;
-  animation: charles-paw-press var(--charles-duration) none infinite;
 }
 
 .charles-corgi .tail {

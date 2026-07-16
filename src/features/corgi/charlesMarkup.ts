@@ -38,5 +38,5 @@ export const CHARLES_CORGI_HTML = `
   </div>
 `.trim();
 
-export const CHARLES_CORGI_WIDTH = 168;
-export const CHARLES_CORGI_HEIGHT = 120;
+export const CHARLES_CORGI_WIDTH = 84;
+export const CHARLES_CORGI_HEIGHT = 60;
