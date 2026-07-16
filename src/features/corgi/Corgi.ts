@@ -39,7 +39,6 @@ export class Corgi implements Pet {
     const visual = el.querySelector<HTMLElement>(".charles-corgi");
     if (!visual) return;
 
-    // Desync CSS loops slightly between pets
     visual.style.setProperty("--charles-duration", `${(1.7 + Math.random() * 0.8).toFixed(2)}s`);
     const delay = `-${(Math.random() * 1.8).toFixed(2)}s`;
     visual.querySelectorAll<HTMLElement>(".ear, .eye, .tongue, .tail, .body, .head, .mouth, .neck__back, .foot").forEach((node) => {
@@ -61,7 +60,7 @@ export class Corgi implements Pet {
     this.state = "Walking";
     this.walkTime = 0;
     this.nextBehaviorAt = rand(3, 7);
-    this.syncWalkClass();
+    this.syncPoseClass();
     this.applyTransform();
   }
 
@@ -97,13 +96,12 @@ export class Corgi implements Pet {
       case "Sitting":
       case "Sleeping":
       case "Barking":
-        // Stay put; Charles CSS animations (blink / tail / tongue) keep running.
         if (this.stateTimer >= this.nextBehaviorAt) {
           this.state = "Walking";
           this.stateTimer = 0;
           this.walkTime = 0;
           this.nextBehaviorAt = rand(4, 9);
-          this.syncWalkClass();
+          this.syncPoseClass();
         }
         break;
     }
@@ -134,22 +132,29 @@ export class Corgi implements Pet {
   }
 
   private maybeStartBehavior(): void {
-    if (Math.random() < 0.55) {
+    const roll = Math.random();
+    if (roll < 0.35) {
+      this.state = "Sitting";
+      this.stateTimer = 0;
+      this.nextBehaviorAt = rand(2.5, 6);
+      this.syncPoseClass();
+    } else if (roll < 0.65) {
       this.state = "Idle";
       this.stateTimer = 0;
-      this.nextBehaviorAt = rand(2, 5);
-      this.syncWalkClass();
+      this.nextBehaviorAt = rand(2, 4);
+      this.syncPoseClass();
     } else {
       this.walkTime = 0;
       this.nextBehaviorAt = rand(4, 8);
     }
   }
 
-  private syncWalkClass(): void {
+  private syncPoseClass(): void {
     if (!this.visual) return;
     const walking = this.state === "Walking" || this.state === "Leaving";
+    const sitting = this.state === "Sitting";
     this.visual.classList.toggle("is-walking", walking);
-    // Faster travel → faster gait
+    this.visual.classList.toggle("is-sitting", sitting);
     const duration = Math.max(0.28, Math.min(0.55, 42 / this.speed));
     this.visual.style.setProperty("--walk-duration", `${duration.toFixed(2)}s`);
   }
@@ -162,7 +167,6 @@ export class Corgi implements Pet {
 
   private applyTransform(): void {
     if (!this.el || !this.visual) return;
-    // Charles faces right by default; mirror when walking left.
     const face = this.direction === 1 ? 1 : -1;
     this.el.style.transform = `translate3d(${this.x}px, ${-this.y}px, 0) scale(${this.scale})`;
     this.visual.style.transform = `scaleX(${face})`;
@@ -172,8 +176,8 @@ export class Corgi implements Pet {
 export const createRandomCorgiOptions = (): CorgiSpawnOptions => ({
   direction: Math.random() < 0.5 ? 1 : -1,
   speed: rand(48, 110),
-  scale: rand(0.85, 1.25),
-  verticalOffset: rand(-8, 8),
+  scale: rand(0.9, 1.2),
+  verticalOffset: rand(-6, 6),
   spriteVariant: 0,
 });
 

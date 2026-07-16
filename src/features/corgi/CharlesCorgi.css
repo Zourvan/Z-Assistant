@@ -24,8 +24,8 @@
 }
 
 @keyframes charles-tongue-stick {
-  0% { transform: scaleY(0.1) translateY(-10px); }
-  20% { transform: scaleY(0.1) translateY(-10px); }
+  0% { transform: scaleY(0.1) translateY(-5px); }
+  20% { transform: scaleY(0.1) translateY(-5px); }
   30% { transform: scaleY(0.5) translateY(0); }
   40% { transform: scaleY(1) translateY(0) rotate(0deg); }
   50% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
@@ -33,7 +33,7 @@
   70% { transform: scaleY(0.8) translateY(0) rotate(-15deg); }
   80% { transform: scaleY(1) translateY(0) rotate(0deg); }
   90% { transform: scaleY(0.8) translateY(0) rotate(15deg); }
-  100% { transform: scaleY(0.1) translateY(-10px) rotate(0deg); }
+  100% { transform: scaleY(0.1) translateY(-5px) rotate(0deg); }
 }
 
 @keyframes charles-ear-shake-right {
@@ -125,11 +125,11 @@
   --charles-duration: 2s;
   --walk-duration: 0.42s;
 
-  height: 60px;
-  width: 84px;
+  height: 30px;
+  width: 42px;
   position: relative;
   transform-origin: center bottom;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.28));
   pointer-events: none;
 }
 
@@ -519,3 +519,93 @@
   transform-origin: 80% center;
   animation: charles-tail-wag var(--charles-duration) none infinite;
 }
+
+/* —— Sitting pose —— */
+.charles-corgi.is-sitting .body {
+  height: 40%;
+  bottom: 6%;
+  border-top-left-radius: 35% 55%;
+  border-bottom-left-radius: 40% 55%;
+  border-top-right-radius: 30% 50%;
+  border-bottom-right-radius: 45% 55%;
+  animation: none;
+  transform: none;
+}
+
+.charles-corgi.is-sitting .body__chest {
+  height: 70%;
+  width: 34%;
+  right: 4%;
+  bottom: 0;
+}
+
+.charles-corgi.is-sitting .head {
+  top: 0%;
+  right: 8%;
+  animation: none;
+}
+
+.charles-corgi.is-sitting .neck__back {
+  top: 4%;
+  height: 42%;
+  animation: none;
+}
+
+.charles-corgi.is-sitting .neck__front {
+  top: 14%;
+  height: 42%;
+}
+
+.charles-corgi.is-sitting .mouth {
+  animation: none;
+  bottom: 0;
+}
+
+.charles-corgi.is-sitting .foot {
+  animation: none !important;
+}
+
+.charles-corgi.is-sitting .foot:after {
+  animation: none !important;
+}
+
+/* Front legs tucked under the chest */
+.charles-corgi.is-sitting .foot__1,
+.charles-corgi.is-sitting .foot__2 {
+  height: 20%;
+  width: 10%;
+  bottom: 0;
+  transform: rotate(-6deg);
+}
+
+.charles-corgi.is-sitting .foot__1 {
+  right: 34%;
+}
+
+.charles-corgi.is-sitting .foot__2 {
+  right: 18%;
+}
+
+/* Hind legs folded under the rump (sit) */
+.charles-corgi.is-sitting .foot__3,
+.charles-corgi.is-sitting .foot__4 {
+  height: 14%;
+  width: 16%;
+  bottom: 1%;
+  transform: rotate(55deg);
+  transform-origin: 80% 50%;
+}
+
+.charles-corgi.is-sitting .foot__3 {
+  left: 6%;
+}
+
+.charles-corgi.is-sitting .foot__4 {
+  left: 22%;
+}
+
+.charles-corgi.is-sitting .tail {
+  bottom: 28%;
+  left: -2%;
+}
+

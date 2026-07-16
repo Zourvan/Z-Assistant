@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2026-07-17 02:22:36
+- Halved Charles corgi size again (42×30) and added a sitting pose that it occasionally uses while crossing the page
+- Components affected: src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css, src/features/corgi/Corgi.ts
+
 ## 2026-07-17 02:15:46
 - Halved Charles corgi size (84×60) for a less dominant overlay
 - Components affected: src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css
