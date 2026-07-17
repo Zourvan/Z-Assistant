@@ -1,0 +1,258 @@
+/**
+ * Nano Corgi standing variant — adapted from CodePen OZZyxp (SlicedBreadAnimation).
+ * Standing pose only; horizontal movement handled by AnimatedPet.
+ */
+.nano-corgi {
+  --nano-yellow: #feae0c;
+  --nano-yellow-shade: #ef840e;
+  --nano-white: #ffffff;
+  --nano-dark: #383e56;
+  --nano-collar: #ff6326;
+  --nano-collar-shade: #b84517;
+  position: relative;
+  width: 100px;
+  height: 80px;
+  transform: scale(0.42);
+  transform-origin: bottom center;
+}
+
+.nano-dog-head-container {
+  position: absolute;
+  top: -17px;
+  left: -17px;
+  height: 104px;
+  width: 114px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.nano-dog-head-2 {
+  position: absolute;
+  height: 21px;
+  width: 41px;
+  background: linear-gradient(105deg, transparent 20%, var(--nano-white) 10px, var(--nano-white) 100%);
+  left: 32px;
+  top: 53px;
+  transform: skew(-18deg);
+}
+
+.nano-dog-head-spot {
+  position: absolute;
+  height: 32px;
+  width: 50px;
+  background: linear-gradient(252deg, transparent 20%, var(--nano-yellow) 10px, var(--nano-yellow) 100%);
+  right: 5px;
+  top: 52px;
+  z-index: 2;
+  border-bottom-left-radius: 30px;
+}
+
+.nano-dog-head {
+  position: absolute;
+  bottom: 1px;
+  height: 31px;
+  width: 130px;
+  border-bottom-left-radius: 21px;
+  z-index: 1;
+  overflow: hidden;
+  background: linear-gradient(-470deg, transparent 20%, var(--nano-white) 10px, var(--nano-white) 100%);
+}
+
+.nano-dog-nose {
+  position: absolute;
+  background: var(--nano-dark);
+  left: -6px;
+  top: -5px;
+  height: 18px;
+  width: 21px;
+  border-radius: 20px;
+}
+
+.nano-dog-eye {
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  background: var(--nano-dark);
+  border-radius: 20px;
+  bottom: 7px;
+  left: 0;
+}
+
+.nano-dog-right-ear {
+  position: absolute;
+  height: 37px;
+  width: 19px;
+  background: var(--nano-yellow);
+  right: 14px;
+  top: 21px;
+  transform: rotate(1deg);
+  border-top-right-radius: 21px;
+  border-bottom-right-radius: 8px;
+}
+
+.nano-dog-left-ear {
+  position: absolute;
+  height: 39px;
+  width: 17px;
+  background: var(--nano-yellow-shade);
+  left: 43px;
+  top: 20px;
+  transform: rotate(1deg);
+  border-top-left-radius: 21px;
+  border-bottom-left-radius: 8px;
+}
+
+.nano-collar {
+  position: absolute;
+  width: 80px;
+  height: 13px;
+  top: 87px;
+  left: 14px;
+  background: var(--nano-collar);
+  z-index: 3;
+}
+
+.nano-collar-shade {
+  position: relative;
+  height: 100%;
+  width: 25%;
+  background: var(--nano-collar-shade);
+}
+
+.nano-dog-torso-standing-up {
+  position: absolute;
+  height: 94px;
+  width: 174px;
+  top: 98px;
+  left: 0;
+}
+
+.nano-dog-torso-chest {
+  position: relative;
+  width: 59px;
+  height: 84%;
+  background: white;
+  left: 17px;
+  border-bottom-left-radius: 40px;
+}
+
+.nano-left-dog-foot-standing {
+  position: absolute;
+  height: 72px;
+  width: 22px;
+  background: var(--nano-yellow-shade);
+  bottom: -20px;
+  left: 27px;
+}
+
+.nano-right-dog-foot-standing {
+  position: absolute;
+  height: 47px;
+  width: 23px;
+  background: var(--nano-yellow);
+  bottom: -19px;
+  left: 74px;
+}
+
+.nano-left-leg-standing {
+  position: absolute;
+  width: 78px;
+  height: 77px;
+  background: var(--nano-yellow);
+  right: -66px;
+  top: 0;
+  border-bottom-left-radius: 54px;
+  border-top-right-radius: 50px;
+}
+
+.nano-left-hind-standing {
+  position: absolute;
+  width: 26px;
+  height: 77px;
+  background: var(--nano-yellow);
+  right: -75px;
+  top: 41px;
+  border-bottom-right-radius: 54px;
+  border-top-right-radius: 34px;
+}
+
+.nano-right-leg-standing {
+  position: absolute;
+  width: 78px;
+  height: 77px;
+  background: var(--nano-yellow-shade);
+  right: -34px;
+  top: 0;
+  border-bottom-left-radius: 54px;
+  border-top-right-radius: 50px;
+}
+
+.nano-right-hind-standing {
+  position: absolute;
+  width: 26px;
+  height: 77px;
+  background: var(--nano-yellow-shade);
+  right: -34px;
+  top: 41px;
+  border-bottom-right-radius: 54px;
+  border-top-right-radius: 34px;
+}
+
+.nano-dog-torso-light-standing {
+  position: absolute;
+  height: 90%;
+  width: 84px;
+  background: var(--nano-yellow);
+  left: 57px;
+  border-bottom-right-radius: 500px;
+  border-bottom-left-radius: 500px;
+  top: -1px;
+}
+
+.nano-doggy-cushion-standing {
+  display: none;
+}
+
+.nano-look-right {
+  transform: rotateY(180deg);
+}
+
+@keyframes nano-tail-wag {
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+}
+
+.nano-tail-wrap {
+  position: absolute;
+  right: -8px;
+  top: 110px;
+  width: 20px;
+  height: 30px;
+  transform-origin: left center;
+  animation: nano-tail-wag 0.6s ease-in-out infinite;
+}
+
+.nano-nano-tail {
+  width: 100%;
+  height: 100%;
+  background: var(--nano-yellow);
+  border-radius: 50% 50% 0 0;
+}
+
+.nano-corgi.is-walking {
+  animation: nano-walk-bob var(--walk-duration, 0.4s) ease-in-out infinite;
+}
+
+@keyframes nano-walk-bob {
+  0%, 100% { transform: scale(0.42) translateY(0); }
+  50% { transform: scale(0.42) translateY(-3px); }
+}
+
+.nano-corgi.is-paused,
+.nano-corgi.is-paused * {
+  animation-play-state: paused !important;
+}
+
+.nano-corgi.is-sitting .nano-dog-torso-standing-up {
+  transform: translateY(4px);
+}

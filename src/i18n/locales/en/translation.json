@@ -1,4 +1,7 @@
 {
+  "app": {
+    "loading": "Processing"
+  },
   "aiPromptBar": {
     "label": "AI prompt bar",
     "placeholder": "Ask anything...",
@@ -41,10 +44,23 @@
     "animations": {
       "title": "Animations",
       "description": "Optional decorative motion on the new tab page.",
-      "corgiMode": "Corgi Mode",
-      "corgiModeDesc": "Let playful corgis stroll across the bottom of the page.",
+      "corgiMode": "Pet Mode",
+      "corgiModeDesc": "Let playful pets stroll across the bottom of the page.",
       "on": "On",
-      "off": "Off"
+      "off": "Off",
+      "variants": "Choose pets",
+      "variantsDesc": "Pick one or more — each strolls across the page at random.",
+      "selectAll": "Select all",
+      "petSize": "Pet size",
+      "petSizeDesc": "Scale all selected pets on screen.",
+      "petSpeed": "Pet speed",
+      "petSpeedDesc": "How fast pets walk across the page.",
+      "variantsList": {
+        "charles": "Charles Corgi",
+        "nano": "Nano Corgi",
+        "husky-parmar": "Husky",
+        "alex-husky": "Alex Husky"
+      }
     },
     "calendarType": {
       "title": "Calendar Type",

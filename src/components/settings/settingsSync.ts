@@ -3,6 +3,8 @@ import { getStoredLocation, saveLocation } from "../weather/storage";
 import { POMODORO_SETTINGS_KEY, DEFAULT_POMODORO_SETTINGS } from "../timerAlarm/pomodoroUtils";
 import { CUSTOM_THEMES_KEY, MAX_CUSTOM_THEMES, type CustomTheme } from "../ThemeProvider";
 import type { StoredBackground } from "./types";
+import type { PetModeSettings } from "../../features/corgi/types";
+import { getPetModeSettings, setPetModeSettings } from "../../features/corgi/CorgiSettings";
 import type { Task } from "../tasks/types";
 import type { AlarmItem, PomodoroSettings } from "../timerAlarm/types";
 import type { WeatherLocation } from "../weather/types";
@@ -44,6 +46,7 @@ export interface SyncPreferences {
   typeofBookmarkForm: string | null;
   bookmarkSearchRecursive: string | null;
   corgiMode: boolean;
+  petModeSettings?: PetModeSettings;
   pomodoroSettings: PomodoroSettings;
   toolsFavorites: string[];
   weatherLocation: WeatherLocation | null;
@@ -201,7 +204,8 @@ export const collectLocalData = async (): Promise<SyncPayload> => {
     selectedBackground: localStorage.getItem("selectedBackground"),
     typeofBookmarkForm: localStorage.getItem("typeofBookmarkForm"),
     bookmarkSearchRecursive: localStorage.getItem("bookmarkSearchRecursive"),
-    corgiMode: localStorage.getItem("corgiMode") === "1",
+    corgiMode: getPetModeSettings().enabled,
+    petModeSettings: getPetModeSettings(),
     pomodoroSettings: { ...DEFAULT_POMODORO_SETTINGS, ...pomodoroSettings },
     toolsFavorites: readStringArray("toolsFavorites"),
     weatherLocation: await getStoredLocation(),
@@ -254,13 +258,17 @@ const applyPreferences = async (preferences: SyncPreferences) => {
     localStorage.setItem("bookmarkSearchRecursive", preferences.bookmarkSearchRecursive);
   }
 
-  if (typeof preferences.corgiMode === "boolean") {
-    localStorage.setItem("corgiMode", preferences.corgiMode ? "1" : "0");
-    window.dispatchEvent(
-      new CustomEvent("nexx:corgi-mode-change", {
-        detail: { enabled: preferences.corgiMode },
-      }),
-    );
+  if (preferences.petModeSettings) {
+    setPetModeSettings({
+      ...getPetModeSettings(),
+      ...preferences.petModeSettings,
+      enabled:
+        typeof preferences.petModeSettings.enabled === "boolean"
+          ? preferences.petModeSettings.enabled
+          : preferences.corgiMode,
+    });
+  } else if (typeof preferences.corgiMode === "boolean") {
+    setPetModeSettings({ ...getPetModeSettings(), enabled: preferences.corgiMode });
   }
 
   localStorage.setItem(POMODORO_SETTINGS_KEY, JSON.stringify(preferences.pomodoroSettings));

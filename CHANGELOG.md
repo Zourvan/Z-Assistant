@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-07-17 11:49:22
+- Background images now fill the viewport with `cover` (scale uniformly, no stretch) via a fixed full-screen layer
+- Components affected: src/App.tsx, src/App.css
+
+## 2026-07-17 11:49:18
+- Fixed Pet Mode crash when opening Appearance settings (`variants` undefined after on/off toggle event)
+- Components affected: src/features/corgi/CorgiSettings.ts, src/features/corgi/CorgiLayer.tsx, src/components/settings/SettingsPanel.tsx
+
+## 2026-07-17 11:30:00
+- Added selectable pet variants: Charles Corgi, Nano Corgi (CodePen OZZyxp), Husky (harshalparmar/husky), and Alex Husky (Codrops AnimatedAnimals)
+- Pet Mode settings now support multi-select breeds plus global size and speed sliders; choices sync across devices
+- Components affected: src/features/corgi/, src/components/settings/SettingsPanel.tsx, src/i18n/locales
+
+## 2026-07-17 11:00:09
+- Added gear-driven boot loading page (CodePen raMyGRY by yongtaozheng) shown on new-tab open until the dashboard is ready
+- Components affected: src/components/LoadingPage.tsx, src/components/LoadingPage.css, src/App.tsx, src/i18n/locales
+
 ## 2026-07-17 02:22:36
 - Halved Charles corgi size again (42×30) and added a sitting pose that it occasionally uses while crossing the page
 - Components affected: src/features/corgi/charlesMarkup.ts, src/features/corgi/CharlesCorgi.css, src/features/corgi/Corgi.ts

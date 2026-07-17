@@ -1,3 +1,21 @@
+/* Fixed viewport fill: cover scales uniformly (no stretch), crops overflow */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
 .app-content {
   min-height: 100vh;
   padding-bottom: 7.5rem;

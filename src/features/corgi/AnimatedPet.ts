@@ -1,12 +1,15 @@
-import { CHARLES_CORGI_HEIGHT, CHARLES_CORGI_HTML, CHARLES_CORGI_WIDTH } from "./charlesMarkup";
-import type { CorgiSpawnOptions, Pet, PetState, WalkDirection } from "./types";
+import { getPetVariant } from "./petVariants";
+import type { Pet, PetSpawnOptions, PetState, WalkDirection } from "./types";
 import "./CharlesCorgi.css";
+import "./NanoCorgi.css";
+import "./ParmarHusky.css";
+import "./AlexHusky.css";
 
 let nextId = 0;
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
-export class Corgi implements Pet {
+export class AnimatedPet implements Pet {
   readonly id: string;
   private el: HTMLDivElement | null = null;
   private visual: HTMLElement | null = null;
@@ -21,29 +24,37 @@ export class Corgi implements Pet {
   private nextBehaviorAt = 0;
   private walkTime = 0;
   private pausedForPeer = 0;
+  private frameWidth = 42;
 
-  constructor(private readonly options: CorgiSpawnOptions) {
-    this.id = `corgi-${++nextId}`;
+  constructor(private readonly options: PetSpawnOptions) {
+    this.id = `pet-${++nextId}`;
     this.direction = options.direction;
     this.speed = options.speed;
     this.scale = options.scale;
+    this.frameWidth = getPetVariant(options.variant).width;
   }
 
   spawn(container: HTMLElement): void {
+    const variant = getPetVariant(this.options.variant);
     const el = document.createElement("div");
     el.className = "corgi-pet";
     el.setAttribute("aria-hidden", "true");
     el.dataset.petId = this.id;
-    el.innerHTML = CHARLES_CORGI_HTML;
+    el.dataset.petVariant = this.options.variant;
+    el.innerHTML = variant.html;
 
-    const visual = el.querySelector<HTMLElement>(".charles-corgi");
+    const visual = el.querySelector<HTMLElement>(variant.visualSelector);
     if (!visual) return;
 
-    visual.style.setProperty("--charles-duration", `${(1.7 + Math.random() * 0.8).toFixed(2)}s`);
-    const delay = `-${(Math.random() * 1.8).toFixed(2)}s`;
-    visual.querySelectorAll<HTMLElement>(".ear, .eye, .tongue, .tail, .body, .head, .mouth, .neck__back, .foot").forEach((node) => {
-      node.style.animationDelay = delay;
-    });
+    if (this.options.variant === "charles") {
+      visual.style.setProperty("--charles-duration", `${(1.7 + Math.random() * 0.8).toFixed(2)}s`);
+      const delay = `-${(Math.random() * 1.8).toFixed(2)}s`;
+      visual
+        .querySelectorAll<HTMLElement>(".ear, .eye, .tongue, .tail, .body, .head, .mouth, .neck__back, .foot")
+        .forEach((node) => {
+          node.style.animationDelay = delay;
+        });
+    }
 
     container.appendChild(el);
 
@@ -51,7 +62,7 @@ export class Corgi implements Pet {
     this.y = this.options.verticalOffset;
     this.x =
       this.direction === 1
-        ? -CHARLES_CORGI_WIDTH * this.scale - 8
+        ? -this.frameWidth * this.scale - 8
         : viewportW + 8;
 
     this.el = el;
@@ -116,7 +127,7 @@ export class Corgi implements Pet {
   getBounds(): { x: number; width: number } {
     return {
       x: this.x,
-      width: CHARLES_CORGI_WIDTH * this.scale,
+      width: this.frameWidth * this.scale,
     };
   }
 
@@ -160,7 +171,7 @@ export class Corgi implements Pet {
   }
 
   private hasExited(): boolean {
-    const w = CHARLES_CORGI_WIDTH * this.scale;
+    const w = this.frameWidth * this.scale;
     if (this.direction === 1) return this.x > window.innerWidth + 4;
     return this.x + w < -4;
   }
@@ -173,13 +184,4 @@ export class Corgi implements Pet {
   }
 }
 
-export const createRandomCorgiOptions = (): CorgiSpawnOptions => ({
-  direction: Math.random() < 0.5 ? 1 : -1,
-  speed: rand(48, 110),
-  scale: rand(0.9, 1.2),
-  verticalOffset: rand(-6, 6),
-  spriteVariant: 0,
-});
-
 export { rand };
-export { CHARLES_CORGI_WIDTH as BASE_FRAME_WIDTH, CHARLES_CORGI_HEIGHT as BASE_FRAME_HEIGHT };

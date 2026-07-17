@@ -37,7 +37,22 @@ import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_POR
 import { createSettingsSelectStyles } from "./selectTheme";
 import { THEME_PRESETS, colorsMatch } from "./themePresets";
 import type { SettingsSection, StoredBackground } from "./types";
-import { isCorgiModeEnabled, setCorgiModeEnabled } from "../../features/corgi";
+import {
+  getPetModeSettings,
+  normalizePetModeSettings,
+  setPetModeSettings,
+  subscribePetModeSettings,
+} from "../../features/corgi";
+import { ALL_PET_VARIANT_IDS } from "../../features/corgi/petVariants";
+import type { PetModeSettings, PetVariantId } from "../../features/corgi/types";
+import {
+  MAX_PET_SIZE,
+  MAX_PET_SPEED,
+  MIN_PET_SIZE,
+  MIN_PET_SPEED,
+  PET_SIZE_STEP,
+  PET_SPEED_STEP,
+} from "../../features/corgi/types";
 import "../Settings.css";
 
 interface SettingsProps {
@@ -172,7 +187,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
   const [savedBackgrounds, setSavedBackgrounds] = useState<StoredBackground[]>([]);
   const [selectedBgId, setSelectedBgId] = useState<string | null>(null);
   const [selectPortal, setSelectPortal] = useState<HTMLElement | null>(null);
-  const [corgiMode, setCorgiMode] = useState(() => isCorgiModeEnabled());
+  const [petSettings, setPetSettings] = useState<PetModeSettings>(() => getPetModeSettings());
   const [customThemeName, setCustomThemeName] = useState("");
 
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -239,6 +254,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     () => ALL_DAYS.map((day) => ({ value: day, label: t(`days.${day}`) })),
     [t]
   );
+
+  useEffect(() => subscribePetModeSettings(setPetSettings), []);
 
   const navItems: { id: SettingsSection; icon: React.ReactNode; label: string }[] = [
     { id: "general", icon: <Globe className="w-4 h-4" />, label: t("settings.sections.general") },
@@ -423,7 +440,8 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           customThemes,
           language,
           selectedBackground: localStorage.getItem(storageKey),
-          corgiMode,
+          corgiMode: petSettings.enabled,
+          petModeSettings: petSettings,
         },
         backgrounds: await backgroundsDB.getAllItems(),
         bookmarks: await bookmarksDB.getAllItems(),
@@ -454,7 +472,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
     customThemes,
     language,
     storageKey,
-    corgiMode,
+    petSettings,
     t,
   ]);
 
@@ -489,9 +507,17 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         if (Array.isArray(s.customThemes)) setCustomThemes(s.customThemes);
         if (s.language) setLanguage(s.language);
         if (s.selectedBackground) localStorage.setItem(storageKey, s.selectedBackground);
-        if (typeof s.corgiMode === "boolean") {
-          setCorgiMode(s.corgiMode);
-          setCorgiModeEnabled(s.corgiMode);
+        if (s.petModeSettings && typeof s.petModeSettings === "object") {
+          const next = normalizePetModeSettings({
+            ...getPetModeSettings(),
+            ...s.petModeSettings,
+          });
+          setPetSettings(next);
+          setPetModeSettings(next);
+        } else if (typeof s.corgiMode === "boolean") {
+          const next = normalizePetModeSettings({ ...getPetModeSettings(), enabled: s.corgiMode });
+          setPetSettings(next);
+          setPetModeSettings(next);
         }
 
         const clearAndImport = async <T extends { id: string }>(db: typeof backgroundsDB, items: T[]) => {
@@ -878,26 +904,119 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
           <div className="settings-toggle-group settings-toggle-group--compact">
             <button
               type="button"
-              className={`settings-toggle-btn ${!corgiMode ? "settings-toggle-btn--active" : ""}`}
+              className={`settings-toggle-btn ${!petSettings.enabled ? "settings-toggle-btn--active" : ""}`}
               onClick={() => {
-                setCorgiMode(false);
-                setCorgiModeEnabled(false);
+                const next = { ...petSettings, enabled: false };
+                setPetSettings(next);
+                setPetModeSettings(next);
               }}
             >
               {t("settings.animations.off")}
             </button>
             <button
               type="button"
-              className={`settings-toggle-btn ${corgiMode ? "settings-toggle-btn--active" : ""}`}
+              className={`settings-toggle-btn ${petSettings.enabled ? "settings-toggle-btn--active" : ""}`}
               onClick={() => {
-                setCorgiMode(true);
-                setCorgiModeEnabled(true);
+                const next = { ...petSettings, enabled: true };
+                setPetSettings(next);
+                setPetModeSettings(next);
               }}
             >
               {t("settings.animations.on")}
             </button>
           </div>
         </div>
+
+        {petSettings.enabled && (
+          <>
+            <div className="settings-pet-variants">
+              <div className="settings-pet-variants-header">
+                <span className="settings-label">{t("settings.animations.variants")}</span>
+                <button
+                  type="button"
+                  className="settings-pet-select-all"
+                  onClick={() => {
+                    const next = { ...petSettings, variants: [...ALL_PET_VARIANT_IDS] };
+                    setPetSettings(next);
+                    setPetModeSettings(next);
+                  }}
+                >
+                  {t("settings.animations.selectAll")}
+                </button>
+              </div>
+              <p className="settings-card-desc">{t("settings.animations.variantsDesc")}</p>
+              <div className="settings-pet-variant-grid">
+                {ALL_PET_VARIANT_IDS.map((variantId) => {
+                  const selected = (petSettings.variants ?? []).includes(variantId);
+                  return (
+                    <button
+                      key={variantId}
+                      type="button"
+                      className={`settings-pet-variant-chip ${selected ? "settings-pet-variant-chip--active" : ""}`}
+                      onClick={() => {
+                        const nextVariants = new Set(petSettings.variants ?? []);
+                        if (selected) nextVariants.delete(variantId);
+                        else nextVariants.add(variantId);
+                        const variants =
+                          nextVariants.size > 0
+                            ? (ALL_PET_VARIANT_IDS.filter((id) => nextVariants.has(id)) as PetVariantId[])
+                            : [variantId];
+                        const next = { ...petSettings, variants };
+                        setPetSettings(next);
+                        setPetModeSettings(next);
+                      }}
+                    >
+                      {selected && <Check className="w-3.5 h-3.5" aria-hidden />}
+                      {t(`settings.animations.variantsList.${variantId}`)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="settings-range-block">
+              <label className="settings-label">{t("settings.animations.petSize")}</label>
+              <p className="settings-card-desc">{t("settings.animations.petSizeDesc")}</p>
+              <div className="settings-range-row">
+                <input
+                  type="range"
+                  min={MIN_PET_SIZE}
+                  max={MAX_PET_SIZE}
+                  step={PET_SIZE_STEP}
+                  value={petSettings.size}
+                  onChange={(e) => {
+                    const next = { ...petSettings, size: Number(e.target.value) };
+                    setPetSettings(next);
+                    setPetModeSettings(next);
+                  }}
+                  className="settings-range"
+                />
+                <span className="settings-range-value">{Math.round(petSettings.size * 100)}%</span>
+              </div>
+            </div>
+
+            <div className="settings-range-block">
+              <label className="settings-label">{t("settings.animations.petSpeed")}</label>
+              <p className="settings-card-desc">{t("settings.animations.petSpeedDesc")}</p>
+              <div className="settings-range-row">
+                <input
+                  type="range"
+                  min={MIN_PET_SPEED}
+                  max={MAX_PET_SPEED}
+                  step={PET_SPEED_STEP}
+                  value={petSettings.speed}
+                  onChange={(e) => {
+                    const next = { ...petSettings, speed: Number(e.target.value) };
+                    setPetSettings(next);
+                    setPetModeSettings(next);
+                  }}
+                  className="settings-range"
+                />
+                <span className="settings-range-value">{Math.round(petSettings.speed * 100)}%</span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

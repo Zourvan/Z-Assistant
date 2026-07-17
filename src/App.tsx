@@ -14,7 +14,10 @@ import "./i18n/i18n"; // Import i18n initialization
 
 import { parseStoredBackground, resolveBackgroundUrl } from "./components/settings/backgroundUtils";
 import { CorgiLayer } from "./features/corgi";
+import { LoadingPage } from "./components/LoadingPage";
 import "./App.css";
+
+const MIN_BOOT_LOADING_MS = 1200;
 
 // Helper function to get image from IndexedDB
 const getImageFromIndexedDB = async (id: string): Promise<string> => {
@@ -37,13 +40,11 @@ const getImageFromIndexedDB = async (id: string): Promise<string> => {
 
 function App() {
   const [background, setBackground] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isBootLoading, setIsBootLoading] = useState(true);
   const [isWeatherForecastOpen, setIsWeatherForecastOpen] = useState(false);
 
   const handleBackgroundChange = async (newBackground: string) => {
     try {
-      setIsLoading(true);
-
       // If it's a color
       if (newBackground.startsWith("#")) {
         setBackground("none");
@@ -77,47 +78,56 @@ function App() {
       }
     } catch (error) {
       console.error("Error changing background:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Load saved background on initial render
+  // Boot: gear loading page, then reveal the dashboard
   useEffect(() => {
-    const loadSavedBackground = async () => {
-      const savedBackground = localStorage.getItem("selectedBackground");
-      if (savedBackground) {
-        await handleBackgroundChange(parseStoredBackground(savedBackground));
+    const boot = async () => {
+      const startedAt = Date.now();
+      try {
+        const savedBackground = localStorage.getItem("selectedBackground");
+        if (savedBackground) {
+          await handleBackgroundChange(parseStoredBackground(savedBackground));
+        }
+      } finally {
+        const remaining = Math.max(0, MIN_BOOT_LOADING_MS - (Date.now() - startedAt));
+        if (remaining > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remaining));
+        }
+        setIsBootLoading(false);
       }
     };
 
-    loadSavedBackground();
+    boot();
   }, []);
 
   // Get theme values
   const { textColor, backgroundColor } = useTheme();
 
+  const hasImageBackground = Boolean(background) && background !== "none";
+
   return (
     <LanguageProvider>
+      {isBootLoading && <LoadingPage />}
+
+      {hasImageBackground && (
+        <div
+          className="app-bg"
+          style={{ backgroundImage: `url(${background})` }}
+          aria-hidden
+        />
+      )}
+
       {/* <MarketBoard /> */}
       <div
-        className={`min-h-screen bg-cover bg-center transition-all duration-700 ease-in-out relative ${isLoading ? "opacity-40" : "opacity-100"}`}
-        style={{
-          backgroundImage: background !== "none" ? `url(${background})` : "none",
-          // Remove all filters to display the image clearly
-          filter: isLoading ? "opacity(0.4)" : "none",
-        }}
+        className={`app-shell transition-opacity duration-700 ease-in-out ${isBootLoading ? "opacity-0" : "opacity-100"}`}
+        aria-hidden={isBootLoading}
       >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-          </div>
-        )}
-
         <div
           className="app-content p-3 sm:p-4 md:p-6 lg:p-8 transition-all duration-300 overflow-x-hidden"
           style={{
-            backgroundColor: background !== "none" ? "transparent" : backgroundColor,
+            backgroundColor: hasImageBackground ? "transparent" : backgroundColor,
             color: textColor,
           }}
         >
@@ -170,7 +180,7 @@ function App() {
       </div>
 
       {/* Decorative pets: above widgets, below settings/tools/modals (z-index 100) */}
-      <CorgiLayer />
+      {!isBootLoading && <CorgiLayer />}
     </LanguageProvider>
   );
 }
