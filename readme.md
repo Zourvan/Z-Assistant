@@ -325,3 +325,23 @@ After code changes: run `npm run build:extension`, then click **Reload** on `chr
 ---
 
 This project is under active development. See [CHANGELOG.md](./CHANGELOG.md) for recent changes.
+
+## Next features
+
+### Search engine picker
+Choose which search engine runs queries from the New Tab (Google, DuckDuckGo, Brave to start). More engines can be added based on user feedback.
+
+### Birthday profile
+Set your birthday in Settings → Profile. On your birthday, get a surprise gift experience and birthday-related stats.
+
+### Calendar occasion filters
+In Settings → Calendar, pick which occasion types appear on the calendar so unwanted holidays/events stay hidden.
+
+### News widgets
+Serious news feeds from [Davvvat](https://davvvat.ir/?utm_source=dastyar&utm_medium=widget&utm_campaign=new-launch) and [Daste Aval](https://dasteaval.news/news/).
+
+### Google Calendar sync
+Connect Google Calendar so events show alongside the local calendar widget.
+
+### Multi-service search
+Search across popular services from the New Tab — Digikala, Novatel, Houshang, Maniro, Monaghese Jadid, YouTube, Divar, and more.
