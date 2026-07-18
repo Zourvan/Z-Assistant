@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 2026-07-18 12:30:04
+- Restored themed background on the prompt input bar (`--theme-bg`) while keeping the wrap transparent
+- Components affected: src/components/AiPromptBar.css
+
+## 2026-07-18 12:10:26
+- Prompt bar tabs aligned to the right with soft pill corners; removed wrap/bar background fill
+- Components affected: src/components/AiPromptBar.tsx, src/components/AiPromptBar.css
+
+## 2026-07-18 11:29:27
+- Restyled prompt-bar tabs: flush to one side, no container chrome, sliding accent indicator and mode-switch animation
+- Components affected: src/components/AiPromptBar.tsx, src/components/AiPromptBar.css
+
+## 2026-07-18 10:59:44
+- Added AI Chat / Search tabs above the prompt bar with Google, Digikala, and Divar search targets
+- Components affected: src/components/AiPromptBar.tsx, src/components/AiPromptBar.css, src/components/aiPromptBar/, src/i18n/locales
+
+## 2026-07-18 09:55:58
+- AI prompt input now switches to RTL/right-align when Persian text is entered (same content detection as tasks)
+- Components affected: src/components/AiPromptBar.tsx, src/components/AiPromptBar.css
+
 ## 2026-07-17 11:49:22
 - Background images now fill the viewport with `cover` (scale uniformly, no stretch) via a fixed full-screen layer
 - Components affected: src/App.tsx, src/App.css

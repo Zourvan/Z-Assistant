@@ -4,9 +4,18 @@
   },
   "aiPromptBar": {
     "label": "نوار درخواست هوش مصنوعی",
+    "searchLabel": "نوار جستجو",
+    "modesLabel": "حالت نوار",
     "placeholder": "هر چیزی بپرسید...",
+    "searchPlaceholder": "جستجو کنید...",
     "send": "ارسال",
+    "search": "جستجو",
     "selectProvider": "انتخاب سرویس هوش مصنوعی",
+    "selectSearchSite": "انتخاب سایت جستجو",
+    "tabs": {
+      "ai": "چت AI",
+      "search": "جستجو"
+    },
     "providers": {
       "chatgpt": "ChatGPT",
       "claude": "Claude",
@@ -15,6 +24,11 @@
       "perplexity": "Perplexity",
       "deepseek": "DeepSeek",
       "copilot": "Copilot"
+    },
+    "searchSites": {
+      "google": "گوگل",
+      "digikala": "دیجیکالا",
+      "divar": "دیوار"
     }
   },
   "settings": {

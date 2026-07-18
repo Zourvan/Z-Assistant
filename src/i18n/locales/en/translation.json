@@ -4,9 +4,18 @@
   },
   "aiPromptBar": {
     "label": "AI prompt bar",
+    "searchLabel": "Search bar",
+    "modesLabel": "Bar mode",
     "placeholder": "Ask anything...",
+    "searchPlaceholder": "Search the web...",
     "send": "Send",
+    "search": "Search",
     "selectProvider": "Select AI provider",
+    "selectSearchSite": "Select search site",
+    "tabs": {
+      "ai": "AI Chat",
+      "search": "Search"
+    },
     "providers": {
       "chatgpt": "ChatGPT",
       "claude": "Claude",
@@ -15,6 +24,11 @@
       "perplexity": "Perplexity",
       "deepseek": "DeepSeek",
       "copilot": "Copilot"
+    },
+    "searchSites": {
+      "google": "Google",
+      "digikala": "Digikala",
+      "divar": "Divar"
     }
   },
   "settings": {

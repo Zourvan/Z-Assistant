@@ -2,7 +2,8 @@ import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } f
 import { ChevronDown, Send } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useI18n } from "../i18n/LanguageProvider";
-import { buildThemeVars } from "./settings/themeUtils";
+import { buildThemeCssVars } from "./settings/themeUtils";
+import { isPersianText } from "./tasks/taskUtils";
 import {
   AI_PROVIDERS,
   getAiProvider,
@@ -10,7 +11,17 @@ import {
   saveAiProviderId,
   type AiProviderId,
 } from "./aiPromptBar/providers";
-import { AI_PROVIDER_ICONS } from "./aiPromptBar/icons";
+import {
+  SEARCH_SITES,
+  getSearchSite,
+  loadPromptBarMode,
+  loadSearchSiteId,
+  savePromptBarMode,
+  saveSearchSiteId,
+  type PromptBarMode,
+  type SearchSiteId,
+} from "./aiPromptBar/searchSites";
+import { AI_PROVIDER_ICONS, SEARCH_SITE_ICONS } from "./aiPromptBar/icons";
 import "./AiPromptBar.css";
 
 const MIN_TEXTAREA_HEIGHT = 24;
@@ -23,15 +34,30 @@ export function AiPromptBar() {
   const rootRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [prompt, setPrompt] = useState("");
+  const [mode, setMode] = useState<PromptBarMode>(() => loadPromptBarMode());
   const [providerId, setProviderId] = useState<AiProviderId>(() => loadAiProviderId());
+  const [searchSiteId, setSearchSiteId] = useState<SearchSiteId>(() => loadSearchSiteId());
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeOption, setActiveOption] = useState(0);
 
-  const themeStyle = buildThemeVars(textColor, backgroundColor);
+  const themeStyle = buildThemeCssVars(textColor, backgroundColor);
+  const isAiMode = mode === "ai";
   const provider = getAiProvider(providerId);
+  const searchSite = getSearchSite(searchSiteId);
   const ProviderIcon = AI_PROVIDER_ICONS[provider.id];
+  const SearchIcon = SEARCH_SITE_ICONS[searchSite.id];
+  const ActiveIcon = isAiMode ? ProviderIcon : SearchIcon;
+  const activeName = isAiMode
+    ? t(`aiPromptBar.providers.${provider.nameKey}`)
+    : t(`aiPromptBar.searchSites.${searchSite.nameKey}`);
+  const selectLabel = isAiMode ? t("aiPromptBar.selectProvider") : t("aiPromptBar.selectSearchSite");
+  const placeholder = isAiMode ? t("aiPromptBar.placeholder") : t("aiPromptBar.searchPlaceholder");
+  const sendLabel = isAiMode ? t("aiPromptBar.send") : t("aiPromptBar.search");
+  const barLabel = isAiMode ? t("aiPromptBar.label") : t("aiPromptBar.searchLabel");
+  const menuItems = isAiMode ? AI_PROVIDERS : SEARCH_SITES;
   const trimmed = prompt.trim();
   const canSend = trimmed.length > 0;
+  const inputDir = trimmed ? (isPersianText(prompt) ? "rtl" : "ltr") : dir;
 
   const resizeTextarea = useCallback(() => {
     const el = textareaRef.current;
@@ -69,6 +95,14 @@ export function AiPromptBar() {
     };
   }, [menuOpen]);
 
+  const selectMode = (next: PromptBarMode) => {
+    if (next === mode) return;
+    setMode(next);
+    savePromptBarMode(next);
+    setMenuOpen(false);
+    textareaRef.current?.focus();
+  };
+
   const selectProvider = (id: AiProviderId) => {
     setProviderId(id);
     saveAiProviderId(id);
@@ -76,10 +110,16 @@ export function AiPromptBar() {
     textareaRef.current?.focus();
   };
 
+  const selectSearchSite = (id: SearchSiteId) => {
+    setSearchSiteId(id);
+    saveSearchSiteId(id);
+    setMenuOpen(false);
+    textareaRef.current?.focus();
+  };
+
   const sendPrompt = () => {
     if (!canSend) return;
-    const url = provider.buildUrl(trimmed);
-    // Navigate the current New Tab into the AI chat so the prompt can auto-start.
+    const url = isAiMode ? provider.buildUrl(trimmed) : searchSite.buildUrl(trimmed);
     window.location.assign(url);
   };
 
@@ -94,39 +134,77 @@ export function AiPromptBar() {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       if (!menuOpen) {
-        const index = AI_PROVIDERS.findIndex((p) => p.id === providerId);
+        const index = isAiMode
+          ? AI_PROVIDERS.findIndex((p) => p.id === providerId)
+          : SEARCH_SITES.findIndex((s) => s.id === searchSiteId);
         setMenuOpen(true);
         setActiveOption(index >= 0 ? index : 0);
         return;
       }
       setActiveOption((prev) => {
         const delta = event.key === "ArrowDown" ? 1 : -1;
-        return (prev + delta + AI_PROVIDERS.length) % AI_PROVIDERS.length;
+        return (prev + delta + menuItems.length) % menuItems.length;
       });
       return;
     }
 
     if (menuOpen && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
-      const next = AI_PROVIDERS[activeOption];
-      if (next) selectProvider(next.id);
+      if (isAiMode) {
+        const next = AI_PROVIDERS[activeOption];
+        if (next) selectProvider(next.id);
+      } else {
+        const next = SEARCH_SITES[activeOption];
+        if (next) selectSearchSite(next.id);
+      }
     }
   };
 
   const openMenu = () => {
-    const index = AI_PROVIDERS.findIndex((p) => p.id === providerId);
+    const index = isAiMode
+      ? AI_PROVIDERS.findIndex((p) => p.id === providerId)
+      : SEARCH_SITES.findIndex((s) => s.id === searchSiteId);
     setActiveOption(index >= 0 ? index : 0);
     setMenuOpen((open) => !open);
   };
 
   return (
-    <div className="ai-prompt-bar-wrap" dir={dir}>
+    <div className="ai-prompt-bar-wrap" dir={dir} style={themeStyle}>
+      <div
+        className="ai-prompt-bar__tabs"
+        role="tablist"
+        aria-label={t("aiPromptBar.modesLabel")}
+        data-mode={mode}
+      >
+        <button
+          type="button"
+          role="tab"
+          id="ai-prompt-tab-ai"
+          aria-selected={isAiMode}
+          className={`ai-prompt-bar__tab${isAiMode ? " is-active" : ""}`}
+          onClick={() => selectMode("ai")}
+        >
+          {t("aiPromptBar.tabs.ai")}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="ai-prompt-tab-search"
+          aria-selected={!isAiMode}
+          className={`ai-prompt-bar__tab${!isAiMode ? " is-active" : ""}`}
+          onClick={() => selectMode("search")}
+        >
+          {t("aiPromptBar.tabs.search")}
+        </button>
+      </div>
+
       <div
         ref={rootRef}
-        className="ai-prompt-bar backdrop-blur-md shadow-lg"
-        style={themeStyle}
+        className="ai-prompt-bar"
+        data-mode={mode}
         role="search"
-        aria-label={t("aiPromptBar.label")}
+        aria-label={barLabel}
+        aria-labelledby={isAiMode ? "ai-prompt-tab-ai" : "ai-prompt-tab-search"}
       >
         <div className="ai-prompt-bar__provider">
           <button
@@ -135,53 +213,68 @@ export function AiPromptBar() {
             aria-haspopup="listbox"
             aria-expanded={menuOpen}
             aria-controls={listboxId}
-            aria-label={t("aiPromptBar.selectProvider")}
+            aria-label={selectLabel}
             onClick={openMenu}
             onKeyDown={onProviderKeyDown}
           >
-            <ProviderIcon className="ai-prompt-bar__provider-icon" size={14} aria-hidden />
-            <span className="ai-prompt-bar__provider-name">{t(`aiPromptBar.providers.${provider.nameKey}`)}</span>
+            <ActiveIcon className="ai-prompt-bar__provider-icon" size={14} aria-hidden />
+            <span className="ai-prompt-bar__provider-name">{activeName}</span>
             <ChevronDown size={14} className="ai-prompt-bar__provider-chevron" aria-hidden />
           </button>
 
           {menuOpen && (
-            <ul
-              id={listboxId}
-              className="ai-prompt-bar__menu"
-              role="listbox"
-              aria-label={t("aiPromptBar.selectProvider")}
-            >
-              {AI_PROVIDERS.map((item, index) => {
-                const selected = item.id === providerId;
-                const active = index === activeOption;
-                const ItemIcon = AI_PROVIDER_ICONS[item.id];
-                return (
-                  <li key={item.id} role="option" aria-selected={selected}>
-                    <button
-                      type="button"
-                      className={`ai-prompt-bar__menu-item${selected ? " is-selected" : ""}${active ? " is-active" : ""}`}
-                      onClick={() => selectProvider(item.id)}
-                      onMouseEnter={() => setActiveOption(index)}
-                    >
-                      <ItemIcon className="ai-prompt-bar__provider-icon" size={14} aria-hidden />
-                      <span>{t(`aiPromptBar.providers.${item.nameKey}`)}</span>
-                    </button>
-                  </li>
-                );
-              })}
+            <ul id={listboxId} className="ai-prompt-bar__menu" role="listbox" aria-label={selectLabel}>
+              {isAiMode
+                ? AI_PROVIDERS.map((item, index) => {
+                    const selected = item.id === providerId;
+                    const active = index === activeOption;
+                    const ItemIcon = AI_PROVIDER_ICONS[item.id];
+                    return (
+                      <li key={item.id} role="option" aria-selected={selected}>
+                        <button
+                          type="button"
+                          className={`ai-prompt-bar__menu-item${selected ? " is-selected" : ""}${active ? " is-active" : ""}`}
+                          onClick={() => selectProvider(item.id)}
+                          onMouseEnter={() => setActiveOption(index)}
+                        >
+                          <ItemIcon className="ai-prompt-bar__provider-icon" size={14} aria-hidden />
+                          <span>{t(`aiPromptBar.providers.${item.nameKey}`)}</span>
+                        </button>
+                      </li>
+                    );
+                  })
+                : SEARCH_SITES.map((item, index) => {
+                    const selected = item.id === searchSiteId;
+                    const active = index === activeOption;
+                    const ItemIcon = SEARCH_SITE_ICONS[item.id];
+                    return (
+                      <li key={item.id} role="option" aria-selected={selected}>
+                        <button
+                          type="button"
+                          className={`ai-prompt-bar__menu-item${selected ? " is-selected" : ""}${active ? " is-active" : ""}`}
+                          onClick={() => selectSearchSite(item.id)}
+                          onMouseEnter={() => setActiveOption(index)}
+                        >
+                          <ItemIcon className="ai-prompt-bar__provider-icon" size={14} aria-hidden />
+                          <span>{t(`aiPromptBar.searchSites.${item.nameKey}`)}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
             </ul>
           )}
         </div>
 
         <textarea
           ref={textareaRef}
-          className="ai-prompt-bar__input"
+          className={`ai-prompt-bar__input ${inputDir === "rtl" ? "rtl" : "ltr"}`}
+          dir={inputDir}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
           onKeyDown={onTextareaKeyDown}
-          placeholder={t("aiPromptBar.placeholder")}
+          placeholder={placeholder}
           rows={1}
-          aria-label={t("aiPromptBar.placeholder")}
+          aria-label={placeholder}
         />
 
         <button
@@ -189,8 +282,8 @@ export function AiPromptBar() {
           className="ai-prompt-bar__send"
           onClick={sendPrompt}
           disabled={!canSend}
-          aria-label={t("aiPromptBar.send")}
-          title={t("aiPromptBar.send")}
+          aria-label={sendLabel}
+          title={sendLabel}
         >
           <Send size={18} aria-hidden />
         </button>
