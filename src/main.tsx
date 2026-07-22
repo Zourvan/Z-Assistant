@@ -4,6 +4,7 @@ import App from "./App";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { CalendarProvider } from "./components/Settings";
 import { TasksProvider } from "./components/tasks/TasksContext";
+import { RemindersProvider } from "./components/bookmarks/reminders/RemindersContext";
 import { SyncProvider } from "./components/settings/SyncProvider";
 import "./index.css";
 
@@ -30,7 +31,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ThemeProvider>
         <CalendarProvider>
           <TasksProvider>
-            <App />
+            <RemindersProvider>
+              <App />
+            </RemindersProvider>
           </TasksProvider>
         </CalendarProvider>
       </ThemeProvider>

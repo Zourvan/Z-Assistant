@@ -43,4 +43,17 @@ export const alarmsDB = createDatabase({
   ],
 });
 
+export const bookmarkRemindersDB = createDatabase({
+  dbName: "bookmarkRemindersDB",
+  storeName: "reminders",
+  version: 1,
+  keyPath: "id",
+  indexes: [
+    { name: "bookmarkId", keyPath: "bookmarkId", unique: false },
+    { name: "reminderAt", keyPath: "reminderAt", unique: false },
+    { name: "enabled", keyPath: "enabled", unique: false },
+    { name: "createdAt", keyPath: "createdAt", unique: false },
+  ],
+});
+
 export type { StoredBackground };

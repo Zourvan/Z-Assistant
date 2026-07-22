@@ -1,4 +1,4 @@
-import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
+import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB, bookmarkRemindersDB } from "./settingsDb";
 import { getStoredLocation, saveLocation } from "../weather/storage";
 import { POMODORO_SETTINGS_KEY, DEFAULT_POMODORO_SETTINGS } from "../timerAlarm/pomodoroUtils";
 import { CUSTOM_THEMES_KEY, MAX_CUSTOM_THEMES, type CustomTheme } from "../ThemeProvider";
@@ -7,6 +7,7 @@ import type { PetModeSettings } from "../../features/corgi/types";
 import { getPetModeSettings, setPetModeSettings } from "../../features/corgi/CorgiSettings";
 import type { Task } from "../tasks/types";
 import type { AlarmItem, PomodoroSettings } from "../timerAlarm/types";
+import type { BookmarkReminder } from "../bookmarks/reminders/types";
 import type { WeatherLocation } from "../weather/types";
 
 export const SYNC_VERSION = 1;
@@ -19,6 +20,7 @@ export const SYNC_KEYS = {
   alarms: "nexx_sync_alarms",
   bookmarks: "nexx_sync_bookmarks",
   backgrounds: "nexx_sync_backgrounds",
+  reminders: "nexx_sync_reminders",
 } as const;
 
 const MAX_ITEM_BYTES = 8192;
@@ -71,6 +73,7 @@ export interface SyncPayload {
   alarms: AlarmItem[];
   bookmarks: SyncBookmarkTile[];
   backgrounds: StoredBackground[];
+  reminders: BookmarkReminder[];
 }
 
 let pushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -211,11 +214,12 @@ export const collectLocalData = async (): Promise<SyncPayload> => {
     weatherLocation: await getStoredLocation(),
   };
 
-  const [tasks, alarms, bookmarks, backgrounds] = await Promise.all([
+  const [tasks, alarms, bookmarks, backgrounds, reminders] = await Promise.all([
     tasksDB.getAllItems<Task>(),
     alarmsDB.getAllItems<AlarmItem>(),
     bookmarksDB.getAllItems<SyncBookmarkTile>(),
     backgroundsDB.getAllItems<StoredBackground>(),
+    bookmarkRemindersDB.getAllItems<BookmarkReminder>(),
   ]);
 
   return {
@@ -225,6 +229,7 @@ export const collectLocalData = async (): Promise<SyncPayload> => {
     alarms,
     bookmarks,
     backgrounds,
+    reminders,
   };
 };
 
@@ -338,6 +343,7 @@ export const applySyncPayload = async (payload: SyncPayload) => {
   await replaceStoreItems(alarmsDB, payload.alarms);
   await applyBookmarks(payload.bookmarks);
   await replaceStoreItems(backgroundsDB, payload.backgrounds);
+  await replaceStoreItems(bookmarkRemindersDB, payload.reminders ?? []);
   localStorage.setItem(LOCAL_UPDATED_KEY, String(payload.meta.updatedAt));
 };
 
@@ -355,6 +361,7 @@ const readSyncPayload = async (): Promise<SyncPayload | null> => {
     alarms: (result[SYNC_KEYS.alarms] as AlarmItem[]) ?? [],
     bookmarks: (result[SYNC_KEYS.bookmarks] as SyncBookmarkTile[]) ?? [],
     backgrounds: (result[SYNC_KEYS.backgrounds] as StoredBackground[]) ?? [],
+    reminders: (result[SYNC_KEYS.reminders] as BookmarkReminder[]) ?? [],
   };
 };
 
@@ -370,6 +377,7 @@ export const pushLocalToSync = async (): Promise<boolean> => {
     const tasks = shrinkArrayUntilFit(payload.tasks);
     const alarms = shrinkArrayUntilFit(payload.alarms);
     const bookmarks = shrinkArrayUntilFit(payload.bookmarks);
+    const reminders = shrinkArrayUntilFit(payload.reminders ?? []);
 
     const items: Record<string, unknown> = {
       [SYNC_META_KEY]: payload.meta,
@@ -378,6 +386,7 @@ export const pushLocalToSync = async (): Promise<boolean> => {
       [SYNC_KEYS.alarms]: alarms,
       [SYNC_KEYS.bookmarks]: bookmarks,
       [SYNC_KEYS.backgrounds]: backgrounds,
+      [SYNC_KEYS.reminders]: reminders,
     };
 
     return syncSet(items);

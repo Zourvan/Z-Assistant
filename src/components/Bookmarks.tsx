@@ -1,13 +1,18 @@
 import { useEffect, useState, useRef, useCallback, useMemo, Fragment, type CSSProperties } from "react";
 import ReactDOM from "react-dom";
 import createDatabase from "./IndexedDatabase/IndexedDatabase";
-import { Folder, ChevronLeft, ChevronDown, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, List, Smile } from "lucide-react";
+import { Folder, ChevronLeft, ChevronDown, MoreHorizontal, Settings, Plus, Trash2, Palette, Search, X, List, Smile, Bell } from "lucide-react";
 import Sortable from "sortablejs";
 import { throttle } from "lodash";
 import { useCalendar } from "./Settings";
 import { buildThemeCssVars } from "./settings/themeUtils";
 import { useI18n } from "../i18n/LanguageProvider";
 import { scheduleSyncPush } from "./settings/settingsSync";
+import { BookmarkFavicon } from "./bookmarks/BookmarkFavicon";
+import { cacheFaviconForUrl, prefetchFaviconsForUrls } from "./bookmarks/faviconCache";
+import { BookmarkReminderModal } from "./bookmarks/reminders/BookmarkReminderModal";
+import { ReminderManager } from "./bookmarks/reminders/ReminderManager";
+import { useReminders } from "./bookmarks/reminders/RemindersContext";
 import "./Bookmarks.css";
 import "./shared/themedSelect.css";
 // Import emoji-mart
@@ -44,9 +49,10 @@ interface ActionMenuPortalProps {
   onClear: () => void;
   onColor: () => void;
   onIcon?: () => void;
+  onReminder?: () => void;
   onClose: () => void;
   themeStyle: CSSProperties;
-  labels: { edit: string; clear: string; color: string; icon: string };
+  labels: { edit: string; clear: string; color: string; icon: string; reminder: string };
 }
 
 // Add types for grouping / sorting options
@@ -243,7 +249,7 @@ function getMenuPosition(buttonRect: DOMRect) {
   return { top, left };
 }
 
-function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, onClose, themeStyle, labels }: ActionMenuPortalProps) {
+function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, onReminder, onClose, themeStyle, labels }: ActionMenuPortalProps) {
   const { top, left } = getMenuPosition(buttonRect);
   const style = {
     position: "fixed" as const,
@@ -293,6 +299,21 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, 
         <Palette className="w-3.5 h-3.5" />
         <span>{labels.color}</span>
       </button>
+      {(tile.type === "bookmark" || tile.type === "folder") && onReminder && (
+        <button
+          id={`reminder-button-${tile.id}`}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onReminder();
+            onClose();
+          }}
+        >
+          <Bell className="w-3.5 h-3.5" />
+          <span>{labels.reminder}</span>
+        </button>
+      )}
       {tile.type === "folder" && onIcon && (
         <button
           id={`icon-button-${tile.id}`}
@@ -316,6 +337,20 @@ function ActionMenuPortal({ tile, buttonRect, onEdit, onClear, onColor, onIcon, 
 export function Bookmarks() {
   const { tileNumber, textColor, backgroundColor } = useCalendar();
   const { t } = useI18n();
+  const { addReminder, reminders } = useReminders();
+
+  const tileHasReminder = useCallback(
+    (tile: TileConfig) =>
+      reminders.some(
+        (r) =>
+          !r.completedAt &&
+          !r.dismissedAt &&
+          (r.bookmarkId === tile.id ||
+            r.bookmarkId === tile.nodeId ||
+            (Boolean(tile.url) && r.bookmarkUrl === tile.url)),
+      ),
+    [reminders],
+  );
 
   const themeCssVars = useMemo(() => buildThemeCssVars(textColor, backgroundColor), [textColor, backgroundColor]);
 
@@ -325,6 +360,7 @@ export function Bookmarks() {
       clear: t("bookmarks.clear"),
       color: t("bookmarks.color"),
       icon: t("bookmarks.icon"),
+      reminder: t("bookmarks.reminder.setReminder"),
     }),
     [t]
   );
@@ -356,6 +392,8 @@ export function Bookmarks() {
   const [sortType, setSortTypeState] = useState<SortType>("default");
   const [searchRecursive, setSearchRecursiveState] = useState(false);
   const [openSelectId, setOpenSelectId] = useState<string | null>(null);
+  const [reminderTile, setReminderTile] = useState<TileConfig | null>(null);
+  const [isReminderManagerOpen, setIsReminderManagerOpen] = useState(false);
 
   const [selectedTileColor, setSelectedTileColor] = useState<string>("rgba(0, 0, 0, 0.6)"); // State for color
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
@@ -435,6 +473,11 @@ export function Bookmarks() {
         });
 
         setTiles(initialTiles);
+
+        const bookmarkUrls = sortedTiles
+          .filter((tile) => tile.type === "bookmark" && tile.url)
+          .map((tile) => tile.url as string);
+        void prefetchFaviconsForUrls(bookmarkUrls, 32);
 
         // Get bookmark data from Chrome
         chrome.bookmarks.getTree((bookmarkNodes) => {
@@ -649,6 +692,10 @@ export function Bookmarks() {
 
     // Save to database directly like in Notes.tsx
     await bookmarkDB.saveItem(updatedTile);
+
+    if (updatedTile.type === "bookmark" && updatedTile.url) {
+      void cacheFaviconForUrl(updatedTile.url, 32);
+    }
 
     // Update state with new tile
     setTiles((prevTiles) => {
@@ -1121,14 +1168,7 @@ export function Bookmarks() {
           <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
         )
       ) : (
-        <img
-          src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
-          alt=""
-          className="w-6 h-6 mb-1"
-          onError={(e) => {
-            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-          }}
-        />
+        <BookmarkFavicon url={node.url} size={16} className="w-6 h-6 mb-1" />
       )}
       <span className="bookmark-tile__title text-xs sm:text-sm" title={node.title}>
         {truncateTitle(node.title)}
@@ -1361,14 +1401,7 @@ export function Bookmarks() {
                             <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                           )
                         ) : (
-                          <img
-                            src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
-                            alt=""
-                            className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
-                            onError={(e) => {
-                              e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                            }}
-                          />
+                          <BookmarkFavicon url={node.url} size={16} className="w-6 h-6 sm:w-8 sm:h-8 mb-1" />
                         )}
                         <span className="bookmark-tile__title text-xs" title={node.title}>
                           {truncateTitle(node.title)}
@@ -1426,14 +1459,7 @@ export function Bookmarks() {
                                     <Folder className="w-8 h-8 sm:w-10 sm:h-10 mb-1" />
                                   )
                                 ) : (
-                                  <img
-                                    src={`https://www.google.com/s2/favicons?domain=${getHostname(node.url)}&sz=16`}
-                                    alt=""
-                                    className="w-6 h-6 sm:w-8 sm:h-8 mb-1"
-                                    onError={(e) => {
-                                      e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=16";
-                                    }}
-                                  />
+                                  <BookmarkFavicon url={node.url} size={16} className="w-6 h-6 sm:w-8 sm:h-8 mb-1" />
                                 )}
                                 <span className="bookmark-tile__title text-xs" title={node.title}>
                                   {truncateTitle(node.title)}
@@ -1484,6 +1510,7 @@ export function Bookmarks() {
           onClear={onClear}
           onColor={() => handleColorClick(index)}
           onIcon={() => handleIconClick(index)}
+          onReminder={() => setReminderTile(tile)}
           onClose={() => setOpenMenuId(null)}
           themeStyle={themeCssVars}
           labels={menuLabels}
@@ -1531,6 +1558,11 @@ export function Bookmarks() {
           title={tile.title}
         >
           {renderTileMenu(tile, index, () => openSelector(index), () => clearTile(index))}
+          {tileHasReminder(tile) && (
+            <span className="bookmark-tile__reminder-badge" title={t("bookmarks.reminder.hasReminder")}>
+              <Bell className="w-3 h-3" />
+            </span>
+          )}
           {tile.tileIcon && tile.tileIcon !== "default" ? (
             <span className="text-2xl bookmark-tile__icon">{tile.tileIcon}</span>
           ) : (
@@ -1563,14 +1595,12 @@ export function Bookmarks() {
         }}
       >
         {renderTileMenu(tile, index, () => openSelector(index), () => clearTile(index))}
-        <img
-          src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=32`}
-          alt=""
-          className="w-6 h-6 bookmark-tile__icon"
-          onError={(e) => {
-            e.currentTarget.src = "https://www.google.com/s2/favicons?domain=chrome&sz=32";
-          }}
-        />
+        <BookmarkFavicon url={tile.url} size={32} className="w-6 h-6 bookmark-tile__icon" />
+        {tileHasReminder(tile) && (
+          <span className="bookmark-tile__reminder-badge" title={t("bookmarks.reminder.hasReminder")}>
+            <Bell className="w-3 h-3" />
+          </span>
+        )}
         <span className="bookmark-tile__title">{truncateTitle(tile.title)}</span>
         {hostname && <span className="bookmark-tile__domain">{hostname}</span>}
       </div>
@@ -1583,16 +1613,27 @@ export function Bookmarks() {
       <div className="bookmarks-header">
         <div className="bookmarks-title-row">
           <h2 className="bookmarks-title">{t("bookmarks.title")}</h2>
-          <button
-            type="button"
-            className={`bookmarks-search-toggle ${isSearchingBookmarks ? "bookmarks-search-toggle--active" : ""}`}
-            onClick={openBookmarkSearch}
-            aria-label={t("bookmarks.search")}
-            aria-expanded={isSearchingBookmarks}
-            title={t("bookmarks.search")}
-          >
-            <Search className="w-5 h-5" strokeWidth={2.5} />
-          </button>
+          <div className="bookmarks-header-actions">
+            <button
+              type="button"
+              className="bookmarks-search-toggle"
+              onClick={() => setIsReminderManagerOpen(true)}
+              aria-label={t("bookmarks.reminder.managerTitle")}
+              title={t("bookmarks.reminder.managerTitle")}
+            >
+              <Bell className="w-5 h-5" strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              className={`bookmarks-search-toggle ${isSearchingBookmarks ? "bookmarks-search-toggle--active" : ""}`}
+              onClick={openBookmarkSearch}
+              aria-label={t("bookmarks.search")}
+              aria-expanded={isSearchingBookmarks}
+              title={t("bookmarks.search")}
+            >
+              <Search className="w-5 h-5" strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
         <p className="bookmarks-hint">{t("bookmarks.hint")}</p>
       </div>
@@ -1622,6 +1663,16 @@ export function Bookmarks() {
           </div>
         </div>
       )}
+      {reminderTile && (
+        <BookmarkReminderModal
+          bookmarkId={reminderTile.id}
+          bookmarkTitle={reminderTile.title}
+          bookmarkUrl={reminderTile.url}
+          onSave={addReminder}
+          onClose={() => setReminderTile(null)}
+        />
+      )}
+      {isReminderManagerOpen && <ReminderManager onClose={() => setIsReminderManagerOpen(false)} />}
     </div>
   );
 }

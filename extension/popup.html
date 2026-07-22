@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NEXX Bookmark</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="popup__header">
+        <img src="icons/icon32.png" alt="" width="20" height="20" />
+        <h1 id="popupTitle">Bookmark & Reminder</h1>
+      </header>
+
+      <p class="popup__status" id="statusText" hidden></p>
+      <p class="popup__error" id="errorText" hidden></p>
+
+      <section class="popup__section" id="bookmarkSection" hidden>
+        <h2 id="bookmarkSectionTitle">Bookmark</h2>
+        <label class="popup__field">
+          <span id="labelTitle">Title</span>
+          <input type="text" id="bookmarkTitleInput" />
+        </label>
+        <div class="popup__field">
+          <span id="labelFolder">Folder</span>
+          <div class="folder-picker" id="folderPicker">
+            <button type="button" class="folder-picker__trigger" id="folderTrigger" aria-expanded="false">
+              <span class="folder-picker__trigger-icon" aria-hidden="true">📁</span>
+              <span class="folder-picker__trigger-label" id="folderTriggerLabel">Bookmarks bar</span>
+              <span class="folder-picker__chevron" aria-hidden="true">▾</span>
+            </button>
+            <div class="folder-picker__panel" id="folderPanel" hidden>
+              <input
+                type="search"
+                class="folder-picker__search"
+                id="folderSearch"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <div class="folder-picker__tree" id="folderTree" role="tree"></div>
+              <p class="folder-picker__empty" id="folderEmpty" hidden></p>
+            </div>
+            <input type="hidden" id="folderSelect" value="1" />
+          </div>
+        </div>
+        <p class="popup__url" id="pageUrl"></p>
+      </section>
+
+      <section class="popup__section" id="existingSection" hidden>
+        <p class="popup__bookmark" id="existingTitle">—</p>
+        <p class="popup__url" id="existingUrl"></p>
+      </section>
+
+      <section class="popup__section" id="reminderSection">
+        <label class="popup__check">
+          <input type="checkbox" id="reminderEnabled" />
+          <span id="labelReminder">Reminder</span>
+        </label>
+
+        <div class="popup__fields" id="reminderFields" hidden>
+          <label class="popup__field popup__field--half">
+            <span id="labelDate">Date</span>
+            <input type="date" id="reminderDate" />
+          </label>
+          <label class="popup__field popup__field--half">
+            <span id="labelTime">Time</span>
+            <input type="time" id="reminderTime" />
+          </label>
+          <label class="popup__field popup__field--full">
+            <span id="labelNote">Note</span>
+            <textarea id="reminderNote" rows="2"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <div class="popup__actions">
+        <button type="button" class="btn btn--ghost" id="cancelBtn">Cancel</button>
+        <button type="button" class="btn btn--primary" id="saveBtn">Save</button>
+      </div>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -3,6 +3,7 @@ import { ClockCalendar } from "./components/ClockCalendar";
 import { Weather } from "./components/Weather";
 import { TimerAlarm } from "./components/TimerAlarm";
 import { Bookmarks } from "./components/Bookmarks";
+import { BookmarkRemindersWidget } from "./components/bookmarks/reminders/BookmarkRemindersWidget";
 import { Settings } from "./components/Settings";
 import { TasksAndNotes } from "./components/TasksAndNotes";
 import SocialLinks from "./components/SocialLinks";
@@ -158,6 +159,7 @@ function App() {
 
               <div className="dashboard-col dashboard-col--bookmarks">
                 <div className="dashboard-widget">
+                  <BookmarkRemindersWidget />
                   <Bookmarks />
                 </div>
               </div>

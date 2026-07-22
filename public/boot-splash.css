@@ -1,0 +1,15 @@
+/* Critical paint: black before any CSS/JS (avoids browser blue/white flash) */
+html,
+body {
+  margin: 0;
+  background-color: #000 !important;
+  color-scheme: dark;
+}
+
+#boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: #000;
+  pointer-events: none;
+}

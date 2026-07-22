@@ -16,7 +16,31 @@
 .bookmarks-title-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.375rem;
+}
+
+.bookmarks-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-start: auto;
+}
+
+.bookmark-tile__reminder-badge {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background: rgba(251, 191, 36, 0.85);
+  color: #1a1a1a;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .bookmarks-title {

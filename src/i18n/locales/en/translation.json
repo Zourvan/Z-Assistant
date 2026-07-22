@@ -142,6 +142,7 @@
     "searchByName": "Search by name…",
     "searchByAddress": "Search by address…",
     "searchFolder": "Search in this folder…",
+    "filterFolder": "Filter folders and bookmarks…",
     "searchIn": "Search in",
     "searchFieldAll": "All",
     "searchFieldName": "Name",
@@ -165,7 +166,109 @@
     "bookmarksGroup": "Bookmarks",
     "root": "All bookmarks",
     "path": "Folder path",
-    "searchRecursive": "Search in subfolders"
+    "searchRecursive": "Search in subfolders",
+    "reminder": {
+      "setReminder": "Set Reminder",
+      "hasReminder": "Has active reminder",
+      "enableReminder": "Enable reminder",
+      "date": "Date",
+      "time": "Time",
+      "when": "When",
+      "addForAny": "Add reminder",
+      "pickBookmark": "Choose bookmark or folder",
+      "pickBookmarkHint": "Open a folder, or click Use on a folder to set a reminder for it.",
+      "useFolder": "Use",
+      "dateOnly": "Date only (no specific time)",
+      "note": "Note",
+      "notePlaceholder": "Why is this bookmark important?",
+      "category": "Category",
+      "noCategory": "No category",
+      "priority": "Priority",
+      "repeat": "Repeat",
+      "repeatNone": "Never",
+      "repeatDaily": "Daily",
+      "repeatWeekly": "Weekly",
+      "repeatMonthly": "Monthly",
+      "create": "Create Reminder",
+      "save": "Save Reminder",
+      "snooze": "Snooze",
+      "snoozeCustom": "Snooze until",
+      "open": "Open",
+      "edit": "Edit",
+      "complete": "Mark Done",
+      "delete": "Delete",
+      "managerTitle": "Bookmark Reminders",
+      "widgetTitle": "Reading Reminders",
+      "empty": "No reminders match your filters",
+      "searchPlaceholder": "Search reminders…",
+      "presets": {
+        "later_today": "Later Today",
+        "tomorrow": "Tomorrow",
+        "this_weekend": "This Weekend",
+        "next_week": "Next Week",
+        "next_month": "Next Month",
+        "custom": "Pick Custom Date"
+      },
+      "snoozePresets": {
+        "10m": "10 Minutes",
+        "30m": "30 Minutes",
+        "1h": "1 Hour",
+        "tomorrow_morning": "Tomorrow Morning",
+        "next_week": "Next Week"
+      },
+      "categories": {
+        "read_later": "Read Later",
+        "documentation": "Documentation",
+        "research": "Research",
+        "ai": "AI",
+        "programming": "Programming",
+        "shopping": "Shopping",
+        "work": "Work",
+        "personal": "Personal"
+      },
+      "priorities": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "status": {
+        "pending": "Pending",
+        "upcoming": "Upcoming",
+        "today": "Today",
+        "overdue": "Overdue",
+        "completed": "Completed",
+        "dismissed": "Dismissed",
+        "snoozed": "Snoozed"
+      },
+      "filters": {
+        "all": "All",
+        "today": "Today",
+        "upcoming": "Upcoming",
+        "overdue": "Overdue",
+        "completed": "Completed",
+        "snoozed": "Snoozed"
+      },
+      "sort": {
+        "reminderDate": "Reminder Date",
+        "createdAt": "Creation Date",
+        "title": "Bookmark Title",
+        "updatedAt": "Recently Updated",
+        "priority": "Priority"
+      },
+      "views": {
+        "list": "List",
+        "calendar": "Calendar",
+        "timeline": "Timeline"
+      },
+      "timeline": {
+        "overdue": "Overdue",
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "this_week": "This Week",
+        "next_week": "Next Week",
+        "later": "Later"
+      }
+    }
   },
   "days": {
     "Saturday": "Saturday",

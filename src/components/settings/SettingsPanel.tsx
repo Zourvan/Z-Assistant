@@ -30,7 +30,7 @@ import {
 } from "../ThemeProvider";
 import { useCalendar, DayOfWeek } from "./CalendarContext";
 import { DEFAULT_BACKGROUNDS, COLOR_OPTIONS } from "./defaultBackgrounds";
-import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB } from "./settingsDb";
+import { backgroundsDB, bookmarksDB, tasksDB, alarmsDB, bookmarkRemindersDB } from "./settingsDb";
 import { scheduleSyncPush } from "./settingsSync";
 import { generateThumbnail, isDataUrl, processImageUrl, parseStoredBackground, resolveBackgroundUrl } from "./backgroundUtils";
 import { buildThemeVars, withAlpha, applyThemeVarsToElement, SETTINGS_SELECT_PORTAL_ID } from "./themeUtils";
@@ -447,6 +447,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
         bookmarks: await bookmarksDB.getAllItems(),
         tasks: await tasksDB.getAllItems(),
         alarms: await alarmsDB.getAllItems(),
+        reminders: await bookmarkRemindersDB.getAllItems(),
       };
 
       const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(exportObj, null, 2))}`;
@@ -560,6 +561,10 @@ export const Settings: React.FC<SettingsProps> = ({ onSelectBackground, storageK
 
         if (importData.alarms) {
           await clearAndImport(alarmsDB, importData.alarms);
+        }
+
+        if (importData.reminders) {
+          await clearAndImport(bookmarkRemindersDB, importData.reminders);
         }
 
         await loadSavedBackgrounds();

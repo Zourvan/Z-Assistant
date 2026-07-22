@@ -345,3 +345,6 @@ Connect Google Calendar so events show alongside the local calendar widget.
 
 ### Multi-service search
 Search across popular services from the New Tab — Digikala, Novatel, Houshang, Maniro, Monaghese Jadid, YouTube, Divar, and more.
+
+
+امکان ایجاد یک سیستم یادآوری (Reminder) برای بوکمارک‌ها فراهم شود؛ به‌گونه‌ای که کاربر بتواند برای هر بوکمارک تاریخ و ساعت مشخصی تعیین کند. در زمان تعیین‌شده، سیستم با ارسال یک اعلان (Notification) یا آلارم، مطالعه یا بررسی آن بوکمارک را به کاربر یادآوری کند.

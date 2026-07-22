@@ -79,9 +79,122 @@ function createGearSVG(config: GearConfig): { svg: string; size: number } {
   return { svg, size: svgSize };
 }
 
+/* Dark-only blobs — no blue tones that flash before gears mount */
+const BLOB_COLORS = [
+  { r: 233, g: 69, b: 96, a: 0.18 },
+  { r: 80, g: 24, b: 36, a: 0.35 },
+  { r: 28, g: 28, b: 28, a: 0.45 },
+  { r: 48, g: 48, b: 48, a: 0.35 },
+] as const;
+
+const GRADIENT_FADE_RGB = "0, 0, 0";
+
+type BlobPoint = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+};
+
+function createBlobLayer(width: number, height: number, color: (typeof BLOB_COLORS)[number]): {
+  points: BlobPoint[];
+  color: (typeof BLOB_COLORS)[number];
+} {
+  return {
+    color,
+    points: Array.from({ length: 15 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: 0.1 * Math.random() - 0.05,
+      vy: 0.1 * Math.random() - 0.05,
+      radius: 200 * Math.random() + 100,
+    })),
+  };
+}
+
 export function LoadingPage() {
   const { t } = useTranslation();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const systemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    document.getElementById("boot-splash")?.remove();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId = 0;
+
+    const fillBlack = () => {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      fillBlack();
+    };
+
+    let layers = BLOB_COLORS.map((color) =>
+      createBlobLayer(canvas.width, canvas.height, color),
+    );
+
+    const handleResize = () => {
+      resizeCanvas();
+      layers = BLOB_COLORS.map((color) =>
+        createBlobLayer(canvas.width, canvas.height, color),
+      );
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    const drawFrame = () => {
+      fillBlack();
+
+      layers.forEach((layer) => {
+        layer.points.forEach((point) => {
+          point.x += point.vx;
+          point.y += point.vy;
+
+          if (point.x < 0 || point.x > canvas.width) point.vx *= -1;
+          if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
+        });
+
+        layer.points.forEach((point) => {
+          const gradient = ctx.createRadialGradient(
+            point.x,
+            point.y,
+            0,
+            point.x,
+            point.y,
+            point.radius,
+          );
+          const { r, g, b, a } = layer.color;
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${a})`);
+          gradient.addColorStop(1, `rgba(${GRADIENT_FADE_RGB}, 0)`);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        });
+      });
+
+      animationFrameId = window.requestAnimationFrame(drawFrame);
+    };
+
+    drawFrame();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   useEffect(() => {
     const system = systemRef.current;
@@ -124,7 +237,6 @@ export function LoadingPage() {
       steam.style.top = `${gear.y + Math.sin(angle) * dist}px`;
       steam.style.setProperty("--drift", `${Math.random() * 30 - 15}px`);
       steam.style.animationDuration = `${1.5 + Math.random()}s`;
-      steam.style.background = `rgba(255, 255, 255, ${0.2 + Math.random() * 0.3})`;
       const size = 2 + Math.random() * 3;
       steam.style.width = steam.style.height = `${size}px`;
 
@@ -154,6 +266,12 @@ export function LoadingPage() {
 
   return (
     <div className="loading-page" role="status" aria-live="polite" aria-busy="true">
+      <canvas
+        ref={canvasRef}
+        className="loading-page__canvas"
+        aria-hidden="true"
+      />
+      <div className="loading-page__overlay" aria-hidden="true" />
       <div className="loading-page__system" ref={systemRef}>
         <div className="loading-page__bar-container">
           <div className="loading-page__bar" />

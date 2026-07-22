@@ -14,6 +14,26 @@ export default defineConfig({
           dest: ''
         },
         {
+          src: './extension/background.js',
+          dest: ''
+        },
+        {
+          src: './extension/popup.html',
+          dest: ''
+        },
+        {
+          src: './extension/popup.js',
+          dest: ''
+        },
+        {
+          src: './extension/popup.css',
+          dest: ''
+        },
+        {
+          src: './extension/boot-splash.css',
+          dest: ''
+        },
+        {
           src: './extension/icons/*',
           dest: 'icons'
         },

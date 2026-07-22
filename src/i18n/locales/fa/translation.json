@@ -165,7 +165,109 @@
     "bookmarksGroup": "بوک‌مارک‌ها",
     "root": "همه بوک‌مارک‌ها",
     "path": "مسیر پوشه",
-    "searchRecursive": "جستجو در زیرپوشه‌ها"
+    "searchRecursive": "جستجو در زیرپوشه‌ها",
+    "reminder": {
+      "setReminder": "تنظیم یادآور",
+      "hasReminder": "یادآور فعال دارد",
+      "enableReminder": "فعال‌سازی یادآور",
+      "date": "تاریخ",
+      "time": "ساعت",
+      "when": "زمان",
+      "addForAny": "افزودن یادآور",
+      "pickBookmark": "انتخاب بوک‌مارک یا پوشه",
+      "pickBookmarkHint": "پوشه را باز کنید، یا روی «استفاده» بزنید تا برای خود پوشه یادآور بگذارید.",
+      "useFolder": "استفاده",
+      "dateOnly": "فقط تاریخ (بدون ساعت مشخص)",
+      "note": "یادداشت",
+      "notePlaceholder": "چرا این بوک‌مارک مهم است؟",
+      "category": "دسته‌بندی",
+      "noCategory": "بدون دسته",
+      "priority": "اولویت",
+      "repeat": "تکرار",
+      "repeatNone": "هرگز",
+      "repeatDaily": "روزانه",
+      "repeatWeekly": "هفتگی",
+      "repeatMonthly": "ماهانه",
+      "create": "ایجاد یادآور",
+      "save": "ذخیره یادآور",
+      "snooze": "به تعویق انداختن",
+      "snoozeCustom": "به تعویق تا",
+      "open": "باز کردن",
+      "edit": "ویرایش",
+      "complete": "انجام شد",
+      "delete": "حذف",
+      "managerTitle": "یادآورهای بوک‌مارک",
+      "widgetTitle": "یادآورهای مطالعه",
+      "empty": "یادآوری با این فیلترها پیدا نشد",
+      "searchPlaceholder": "جستجوی یادآورها…",
+      "presets": {
+        "later_today": "امروز بعداً",
+        "tomorrow": "فردا",
+        "this_weekend": "این آخر هفته",
+        "next_week": "هفته آینده",
+        "next_month": "ماه آینده",
+        "custom": "انتخاب تاریخ"
+      },
+      "snoozePresets": {
+        "10m": "۱۰ دقیقه",
+        "30m": "۳۰ دقیقه",
+        "1h": "۱ ساعت",
+        "tomorrow_morning": "فردا صبح",
+        "next_week": "هفته آینده"
+      },
+      "categories": {
+        "read_later": "بعداً بخوان",
+        "documentation": "مستندات",
+        "research": "تحقیق",
+        "ai": "هوش مصنوعی",
+        "programming": "برنامه‌نویسی",
+        "shopping": "خرید",
+        "work": "کاری",
+        "personal": "شخصی"
+      },
+      "priorities": {
+        "low": "کم",
+        "medium": "متوسط",
+        "high": "بالا"
+      },
+      "status": {
+        "pending": "در انتظار",
+        "upcoming": "پیش رو",
+        "today": "امروز",
+        "overdue": "عقب‌افتاده",
+        "completed": "انجام شده",
+        "dismissed": "رد شده",
+        "snoozed": "به تعویق"
+      },
+      "filters": {
+        "all": "همه",
+        "today": "امروز",
+        "upcoming": "پیش رو",
+        "overdue": "عقب‌افتاده",
+        "completed": "انجام شده",
+        "snoozed": "به تعویق"
+      },
+      "sort": {
+        "reminderDate": "تاریخ یادآور",
+        "createdAt": "تاریخ ایجاد",
+        "title": "عنوان بوک‌مارک",
+        "updatedAt": "آخرین به‌روزرسانی",
+        "priority": "اولویت"
+      },
+      "views": {
+        "list": "فهرست",
+        "calendar": "تقویم",
+        "timeline": "خط زمانی"
+      },
+      "timeline": {
+        "overdue": "عقب‌افتاده",
+        "today": "امروز",
+        "tomorrow": "فردا",
+        "this_week": "این هفته",
+        "next_week": "هفته آینده",
+        "later": "بعداً"
+      }
+    }
   },
   "days": {
     "Saturday": "شنبه",

@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-07-22 15:46:35
+- Folder picker in the toolbar popup is now a searchable tree: type to filter nested folders, expand/collapse branches, and select from a clean hierarchy
+- Components affected: extension/popup.html, extension/popup.js, extension/popup.css
+
+## 2026-07-22 15:09:18
+- Moved bookmark/reminder flow to the extension toolbar icon popup: checks if the current tab is bookmarked; if yes shows reminder settings only, if not shows bookmark fields plus reminder; removed auto popup after starring
+- Components affected: extension/popup.html, extension/popup.js, extension/popup.css, extension/manifest.json, extension/background.js, vite.config.ts
+
+## 2026-07-22 14:57:06
+- Bookmark reminders via two flows: after starring a page (popup with Reminder checkbox, date, time, note), and for any existing bookmark/folder from Reminder Manager Add picker; folder tiles also support Set Reminder
+- Components affected: extension/background.js, extension/reminder-prompt.*, src/components/bookmarks/reminders/*, src/components/Bookmarks.tsx, vite.config.ts
+
+## 2026-07-22 14:50:57
+- Eliminated blue boot flash: static black splash until LoadingPage mounts, forced black loading background, removed blue gradient blobs/bar stop
+- Components affected: index.html, src/components/LoadingPage.tsx, src/components/LoadingPage.css, src/index.css
+
+## 2026-07-22 14:46:39
+- Fixed brief blue/light flash before the loading screen by painting html/body black on first paint
+- Components affected: index.html, src/index.css
+
+## 2026-07-22 12:45:00
+- Added Bookmark Reminder feature: schedule reminders on bookmark tiles, Reminder Manager (list/calendar/timeline views), dashboard widget, Chrome notifications via background service worker, snooze/complete actions, categories, priority, repeat rules, and Chrome Sync support
+- Components affected: src/components/bookmarks/reminders/*, src/components/Bookmarks.tsx, src/App.tsx, src/main.tsx, src/components/settings/settingsDb.ts, src/components/settings/settingsSync.ts, src/components/settings/SettingsPanel.tsx, extension/manifest.json, extension/background.js, vite.config.ts
+
+## 2026-07-22 12:32:36
+- Bookmark favicons are cached in IndexedDB when added to tiles so icons still show when offline
+- Components affected: src/components/bookmarks/faviconCache.ts, src/components/bookmarks/BookmarkFavicon.tsx, src/components/Bookmarks.tsx, extension/manifest.json
+
+## 2026-07-22 12:26:00
+- Loading page follows OS color scheme via `prefers-color-scheme` (Digikala light/dark tokens)
+- Components affected: src/components/LoadingPage.tsx, src/components/LoadingPage.css
+
+## 2026-07-22 11:17:01
+- Fixed loading page crash: declare `layers` before canvas animation loop
+- Components affected: src/components/LoadingPage.tsx
+
+## 2026-07-22 10:26:19
+- Loading page background now uses Digikala Careers animated gradient blobs with light overlay (`bg-background/40`)
+- Components affected: src/components/LoadingPage.tsx, src/components/LoadingPage.css
+
 ## 2026-07-18 12:30:04
 - Restored themed background on the prompt input bar (`--theme-bg`) while keeping the wrap transparent
 - Components affected: src/components/AiPromptBar.css
