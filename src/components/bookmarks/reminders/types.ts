@@ -75,7 +75,7 @@ export type ReminderSort =
   | "updatedAt"
   | "priority";
 
-export type ReminderManagerView = "list" | "calendar" | "timeline";
+export type ReminderManagerView = "list" | "timeline";
 
 export type SnoozePreset = "10m" | "30m" | "1h" | "tomorrow_morning" | "next_week" | "custom";
 

@@ -74,6 +74,43 @@
   padding: 1.5rem 0.5rem;
 }
 
+.day-detail-modal__section {
+  margin-bottom: 0.75rem;
+}
+
+.day-detail-modal__section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.day-detail-modal__item--reminder {
+  background: color-mix(in srgb, #f59e0b 16%, transparent);
+}
+
+.day-detail-modal__reminder-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.day-detail-modal__reminder-note {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.day-detail-modal__reminder-time {
+  font-size: 0.6875rem;
+  opacity: 0.55;
+}
+
 .day-detail-modal__list {
   display: flex;
   flex-direction: column;

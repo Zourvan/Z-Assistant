@@ -59,14 +59,45 @@
         </label>
 
         <div class="popup__fields" id="reminderFields" hidden>
-          <label class="popup__field popup__field--half">
+          <div class="popup__field popup__field--half">
             <span id="labelDate">Date</span>
-            <input type="date" id="reminderDate" />
-          </label>
-          <label class="popup__field popup__field--half">
+            <div class="dt-picker" id="datePicker">
+              <button type="button" class="dt-picker__trigger" id="dateTrigger" aria-expanded="false">
+                <span id="dateTriggerLabel">—</span>
+                <span class="dt-picker__chevron" aria-hidden="true">▾</span>
+              </button>
+              <div class="dt-picker__panel dt-picker__panel--calendar" id="datePanel" hidden>
+                <div class="cal__nav">
+                  <button type="button" class="cal__nav-btn" id="calPrev" aria-label="Previous">‹</button>
+                  <span class="cal__title" id="calTitle"></span>
+                  <button type="button" class="cal__nav-btn" id="calNext" aria-label="Next">›</button>
+                </div>
+                <div class="cal__weekdays" id="calWeekdays"></div>
+                <div class="cal__grid" id="calGrid"></div>
+              </div>
+            </div>
+          </div>
+          <div class="popup__field popup__field--half">
             <span id="labelTime">Time</span>
-            <input type="time" id="reminderTime" />
-          </label>
+            <div class="dt-picker" id="timePicker">
+              <button type="button" class="dt-picker__trigger" id="timeTrigger" aria-expanded="false">
+                <span id="timeTriggerLabel">—</span>
+                <span class="dt-picker__chevron" aria-hidden="true">▾</span>
+              </button>
+              <div class="dt-picker__panel dt-picker__panel--time" id="timePanel" hidden>
+                <div class="time-cols">
+                  <div class="time-col">
+                    <span class="time-col__label" id="labelHour">Hour</span>
+                    <div class="time-col__list" id="hourList"></div>
+                  </div>
+                  <div class="time-col">
+                    <span class="time-col__label" id="labelMinute">Min</span>
+                    <div class="time-col__list" id="minuteList"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <label class="popup__field popup__field--full">
             <span id="labelNote">Note</span>
             <textarea id="reminderNote" rows="2"></textarea>
@@ -79,6 +110,7 @@
         <button type="button" class="btn btn--primary" id="saveBtn">Save</button>
       </div>
     </main>
+    <script src="jalaali.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

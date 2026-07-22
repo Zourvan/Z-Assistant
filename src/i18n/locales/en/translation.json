@@ -173,6 +173,8 @@
       "enableReminder": "Enable reminder",
       "date": "Date",
       "time": "Time",
+      "hour": "Hour",
+      "minute": "Min",
       "when": "When",
       "addForAny": "Add reminder",
       "pickBookmark": "Choose bookmark or folder",
@@ -257,7 +259,6 @@
       },
       "views": {
         "list": "List",
-        "calendar": "Calendar",
         "timeline": "Timeline"
       },
       "timeline": {
@@ -291,7 +292,8 @@
   "calendar": {
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
-    "hasTasks": "Has tasks or notes"
+    "hasTasks": "Has tasks or notes",
+    "hasReminders": "Has bookmark reminders"
   },
   "tasks": {
     "title": "Tasks & Notes",
@@ -325,8 +327,9 @@
     "dayDetail": {
       "title": "Items for {{date}}",
       "empty": "Nothing scheduled",
-      "noItems": "No tasks or notes for this day yet.",
-      "summary": "{{todos}} todos · {{notes}} notes"
+      "noItems": "No tasks, notes, or reminders for this day yet.",
+      "summary": "{{todos}} todos · {{notes}} notes",
+      "summaryWithReminders": "{{todos}} todos · {{notes}} notes · {{reminders}} reminders"
     }
   },
   "timerAlarm": {

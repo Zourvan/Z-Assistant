@@ -5,6 +5,7 @@ import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "../i18n/LanguageProvider";
 import { useTasks } from "./tasks/TasksContext";
+import { useReminders } from "./bookmarks/reminders/RemindersContext";
 import { DayDetailModal } from "./tasks/DayDetailModal";
 import { getDayTaskSummary, toDateKey } from "./tasks/taskUtils";
 
@@ -14,6 +15,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { t, dir } = useI18n();
   const { tasks } = useTasks();
+  const { dateKeysWithReminders } = useReminders();
 
   const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
@@ -80,6 +82,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
           hasTasks: boolean;
           hasPendingTodos: boolean;
           hasNotes: boolean;
+          hasReminders: boolean;
         }
     > = [];
 
@@ -96,6 +99,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
       const isCurrentDay = dateLib.isSameDay(date, today);
       const dateKey = toDateKey(date);
       const summary = getDayTaskSummary(tasks, dateKey);
+      const hasReminders = dateKeysWithReminders.has(dateKey);
 
       days.push({
         type: "day",
@@ -109,11 +113,12 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
         hasTasks: summary.hasItems,
         hasPendingTodos: summary.pendingTodos.length > 0,
         hasNotes: summary.notes.length > 0,
+        hasReminders,
       });
     }
 
     return days;
-  }, [daysInMonth, firstDayOfMonth, emptyDayCount, calendarType, weekendDays, dateLib, tasks]);
+  }, [daysInMonth, firstDayOfMonth, emptyDayCount, calendarType, weekendDays, dateLib, tasks, dateKeysWithReminders]);
 
   function convertToPersianNumbers(input: string): string {
     return input.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[parseInt(d, 10)]);
@@ -174,7 +179,15 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
             return <div key={item.id} className={embedded ? "py-0.5" : "p-1 sm:p-2"} />;
           }
 
-          const markerTitle = item.hasTasks ? t("calendar.hasTasks") : undefined;
+          const hasAnyMarker = item.hasTasks || item.hasReminders;
+          const markerTitle = hasAnyMarker
+            ? [
+                item.hasTasks ? t("calendar.hasTasks") : null,
+                item.hasReminders ? t("calendar.hasReminders") : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")
+            : undefined;
 
           return (
             <button
@@ -198,11 +211,12 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
               title={markerTitle}
             >
               <span className="calendar-day__number leading-none">{item.displayText}</span>
-              {item.hasTasks && (
+              {hasAnyMarker && (
                 <span className="calendar-day__markers" aria-hidden="true">
                   {item.hasPendingTodos && <span className="calendar-day__dot calendar-day__dot--todo" />}
                   {item.hasNotes && <span className="calendar-day__dot calendar-day__dot--note" />}
-                  {!item.hasPendingTodos && !item.hasNotes && (
+                  {item.hasReminders && <span className="calendar-day__dot calendar-day__dot--reminder" />}
+                  {!item.hasPendingTodos && !item.hasNotes && !item.hasReminders && item.hasTasks && (
                     <span className="calendar-day__dot calendar-day__dot--done" />
                   )}
                 </span>

@@ -172,6 +172,8 @@
       "enableReminder": "فعال‌سازی یادآور",
       "date": "تاریخ",
       "time": "ساعت",
+      "hour": "ساعت",
+      "minute": "دقیقه",
       "when": "زمان",
       "addForAny": "افزودن یادآور",
       "pickBookmark": "انتخاب بوک‌مارک یا پوشه",
@@ -256,7 +258,6 @@
       },
       "views": {
         "list": "فهرست",
-        "calendar": "تقویم",
         "timeline": "خط زمانی"
       },
       "timeline": {
@@ -290,7 +291,8 @@
   "calendar": {
     "previousMonth": "ماه قبل",
     "nextMonth": "ماه بعد",
-    "hasTasks": "دارای وظیفه یا یادداشت"
+    "hasTasks": "دارای وظیفه یا یادداشت",
+    "hasReminders": "دارای یادآور بوک‌مارک"
   },
   "tasks": {
     "title": "وظایف و یادداشت‌ها",
@@ -324,8 +326,9 @@
     "dayDetail": {
       "title": "موارد {{date}}",
       "empty": "برنامه‌ای ثبت نشده",
-      "noItems": "هنوز تسک یا یادداشتی برای این روز نیست.",
-      "summary": "{{todos}} تسک · {{notes}} یادداشت"
+      "noItems": "هنوز تسک، یادداشت یا یادآوری برای این روز نیست.",
+      "summary": "{{todos}} تسک · {{notes}} یادداشت",
+      "summaryWithReminders": "{{todos}} تسک · {{notes}} یادداشت · {{reminders}} یادآور"
     }
   },
   "timerAlarm": {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useI18n } from "../../../i18n/LanguageProvider";
 import { useCalendar } from "../../Settings";
@@ -6,6 +6,7 @@ import { buildThemeCssVars } from "../../settings/themeUtils";
 import { getReminderSettings } from "./reminderSettings";
 import type { BookmarkReminder, QuickPreset, ReminderCategory, ReminderInput, ReminderPriority } from "./types";
 import { applyQuickPreset, defaultRepeatRule } from "./reminderUtils";
+import { ThemedDateTimeFields } from "./ThemedDateTimeFields";
 import "./BookmarkReminderModal.css";
 
 interface BookmarkReminderModalProps {
@@ -55,16 +56,7 @@ export function BookmarkReminderModal({
   const [enabled, setEnabled] = useState(existing ? existing.enabled : true);
   const [dateOnly, setDateOnly] = useState(existing?.dateOnly ?? false);
   const [selectedPreset, setSelectedPreset] = useState<QuickPreset>(existing ? "custom" : "tomorrow");
-  const [customDate, setCustomDate] = useState(() => {
-    const base = existing?.reminderAt ?? applyQuickPreset("tomorrow");
-    const d = new Date(base);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  });
-  const [customTime, setCustomTime] = useState(() => {
-    const base = existing?.reminderAt ?? applyQuickPreset("tomorrow");
-    const d = new Date(base);
-    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  });
+  const [selectedAt, setSelectedAt] = useState(() => new Date(existing?.reminderAt ?? applyQuickPreset("tomorrow")));
   const [note, setNote] = useState(existing?.note ?? "");
   const [category, setCategory] = useState<ReminderCategory | "">(existing?.category ?? "");
   const [priority, setPriority] = useState<ReminderPriority>(existing?.priority ?? "medium");
@@ -72,29 +64,18 @@ export function BookmarkReminderModal({
   const [saving, setSaving] = useState(false);
 
   const reminderAt = useMemo(() => {
-    if (selectedPreset !== "custom") {
-      return applyQuickPreset(selectedPreset);
+    if (selectedPreset !== "custom") return applyQuickPreset(selectedPreset);
+    const next = new Date(selectedAt.getTime());
+    if (dateOnly) {
+      next.setHours(settings.defaultReminderHour, settings.defaultReminderMinute, 0, 0);
     }
-    const [year, month, day] = customDate.split("-").map(Number);
-    const date = new Date(year, month - 1, day);
-    if (!dateOnly) {
-      const [h, m] = customTime.split(":").map(Number);
-      date.setHours(h, m, 0, 0);
-    } else {
-      date.setHours(settings.defaultReminderHour, settings.defaultReminderMinute, 0, 0);
-    }
-    return date.getTime();
-  }, [selectedPreset, customDate, customTime, dateOnly, settings]);
+    return next.getTime();
+  }, [selectedPreset, selectedAt, dateOnly, settings]);
 
   const handlePresetClick = (preset: QuickPreset) => {
     setSelectedPreset(preset);
     if (preset === "custom") return;
-    const at = applyQuickPreset(preset);
-    const d = new Date(at);
-    setCustomDate(
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
-    );
-    setCustomTime(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+    setSelectedAt(new Date(applyQuickPreset(preset)));
   };
 
   const handleSave = async () => {
@@ -109,7 +90,7 @@ export function BookmarkReminderModal({
         bookmarkTitle,
         bookmarkUrl,
         note: note.trim() || undefined,
-        reminderAt: selectedPreset === "custom" ? reminderAt : applyQuickPreset(selectedPreset),
+        reminderAt,
         dateOnly,
         category: category || undefined,
         priority,
@@ -162,32 +143,14 @@ export function BookmarkReminderModal({
               </div>
             </fieldset>
 
-            <div className="reminder-modal__datetime">
-              <label className="reminder-modal__field" style={{ marginBottom: 0, flex: 1 }}>
-                <span>{t("bookmarks.reminder.date")}</span>
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => {
-                    setSelectedPreset("custom");
-                    setCustomDate(e.target.value);
-                  }}
-                />
-              </label>
-              {!dateOnly && (
-                <label className="reminder-modal__field" style={{ marginBottom: 0, flex: 1 }}>
-                  <span>{t("bookmarks.reminder.time")}</span>
-                  <input
-                    type="time"
-                    value={customTime}
-                    onChange={(e) => {
-                      setSelectedPreset("custom");
-                      setCustomTime(e.target.value);
-                    }}
-                  />
-                </label>
-              )}
-            </div>
+            <ThemedDateTimeFields
+              value={selectedAt}
+              dateOnly={dateOnly}
+              onChange={(next) => {
+                setSelectedPreset("custom");
+                setSelectedAt(next);
+              }}
+            />
 
             <div className="reminder-modal__row">
               <label className="reminder-modal__toggle">

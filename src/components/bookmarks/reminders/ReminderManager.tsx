@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import {
   Bell,
-  Calendar,
   Check,
   Clock,
   ExternalLink,
@@ -12,8 +11,6 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import * as dateFns from "date-fns";
-import * as dateFnsJalali from "date-fns-jalali";
 import { useI18n } from "../../../i18n/LanguageProvider";
 import { useCalendar } from "../../Settings";
 import { buildThemeCssVars } from "../../settings/themeUtils";
@@ -43,7 +40,7 @@ const TIMELINE_BUCKETS = ["overdue", "today", "tomorrow", "this_week", "next_wee
 
 export function ReminderManager({ onClose }: ReminderManagerProps) {
   const { t, language } = useI18n();
-  const { calendarType, textColor, backgroundColor } = useCalendar();
+  const { textColor, backgroundColor } = useCalendar();
   const themeCssVars = buildThemeCssVars(textColor, backgroundColor);
   const settings = getReminderSettings();
   const {
@@ -54,7 +51,6 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
     completeReminder,
     snoozeReminder,
     openReminderBookmark,
-    getRemindersForDate,
   } = useReminders();
 
   const [view, setView] = useState<ReminderManagerView>("list");
@@ -65,10 +61,6 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
   const [creatingFor, setCreatingFor] = useState<PickedBookmark | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
-  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
-  const [calendarDate, setCalendarDate] = useState(new Date());
-
-  const dateLib = calendarType === "gregorian" ? dateFns : dateFnsJalali;
 
   const filteredReminders = useMemo(() => {
     let result = filterReminders(reminders, filter);
@@ -159,52 +151,6 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
     );
   };
 
-  const renderCalendarView = () => {
-    const daysInMonth = dateLib.getDaysInMonth(calendarDate);
-    const firstDay = dateLib.startOfMonth(calendarDate);
-    const startWeekday = dateLib.getDay(firstDay);
-    const days: (number | null)[] = Array(startWeekday).fill(null);
-    for (let d = 1; d <= daysInMonth; d++) days.push(d);
-
-    const monthLabel = dateLib.format(calendarDate, "MMMM yyyy");
-
-    return (
-      <div className="reminder-manager__calendar">
-        <div className="reminder-calendar__nav">
-          <button type="button" onClick={() => setCalendarDate(dateLib.subMonths(calendarDate, 1))}>‹</button>
-          <span>{monthLabel}</span>
-          <button type="button" onClick={() => setCalendarDate(dateLib.addMonths(calendarDate, 1))}>›</button>
-        </div>
-        <div className="reminder-calendar__grid">
-          {days.map((day, i) => {
-            if (day === null) return <div key={`empty-${i}`} className="reminder-calendar__day reminder-calendar__day--empty" />;
-            const date = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-            const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-            const dayReminders = getRemindersForDate(dateKey);
-            const isSelected = selectedDateKey === dateKey;
-            return (
-              <button
-                key={dateKey}
-                type="button"
-                className={`reminder-calendar__day${dayReminders.length ? " reminder-calendar__day--has" : ""}${isSelected ? " reminder-calendar__day--selected" : ""}`}
-                onClick={() => setSelectedDateKey(isSelected ? null : dateKey)}
-              >
-                <span>{day}</span>
-                {dayReminders.length > 0 && <span className="reminder-calendar__dot" />}
-              </button>
-            );
-          })}
-        </div>
-        {selectedDateKey && (
-          <div className="reminder-calendar__day-detail">
-            <h4>{selectedDateKey}</h4>
-            {getRemindersForDate(selectedDateKey).map(renderReminderRow)}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="bookmarks-overlay" onClick={onClose}>
       <div
@@ -259,10 +205,6 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
             <List className="w-4 h-4" />
             {t("bookmarks.reminder.views.list")}
           </button>
-          <button type="button" className={view === "calendar" ? "active" : ""} onClick={() => setView("calendar")}>
-            <Calendar className="w-4 h-4" />
-            {t("bookmarks.reminder.views.calendar")}
-          </button>
           <button type="button" className={view === "timeline" ? "active" : ""} onClick={() => setView("timeline")}>
             <Clock className="w-4 h-4" />
             {t("bookmarks.reminder.views.timeline")}
@@ -271,7 +213,6 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
 
         <div className="reminder-manager__content">
           {view === "list" && renderListView()}
-          {view === "calendar" && renderCalendarView()}
           {view === "timeline" && renderTimelineView()}
         </div>
 

@@ -52,6 +52,10 @@
   background: #34d399;
 }
 
+.calendar-day__dot--reminder {
+  background: #f59e0b;
+}
+
 .calendar-embedded .calendar-day__dot {
   width: 3px;
   height: 3px;

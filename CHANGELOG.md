@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-07-22 15:56:34
+- Moved bookmark reminders onto the main calendar (day dots + day detail panel); removed the Reminder Manager calendar tab; Set Reminder modal now uses themed language-aware date/time pickers matching NEXX
+- Components affected: src/components/Calendar.tsx, src/components/tasks/DayDetailModal.tsx, src/components/bookmarks/reminders/ReminderManager.tsx, src/components/bookmarks/reminders/BookmarkReminderModal.tsx, src/components/bookmarks/reminders/ThemedDateTimeFields.tsx
+
+## 2026-07-22 15:50:33
+- Replaced native date/time inputs in the toolbar popup with themed pickers; date calendar follows language (Jalali + Persian labels/digits for fa, Gregorian for en) and respects Persian calendar setting
+- Components affected: extension/popup.html, extension/popup.js, extension/popup.css, extension/jalaali.js, vite.config.ts
+
 ## 2026-07-22 15:46:35
 - Folder picker in the toolbar popup is now a searchable tree: type to filter nested folders, expand/collapse branches, and select from a clean hierarchy
 - Components affected: extension/popup.html, extension/popup.js, extension/popup.css

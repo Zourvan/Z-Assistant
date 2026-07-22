@@ -30,6 +30,10 @@ export default defineConfig({
           dest: ''
         },
         {
+          src: './extension/jalaali.js',
+          dest: ''
+        },
+        {
           src: './extension/boot-splash.css',
           dest: ''
         },

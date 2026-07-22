@@ -285,6 +285,176 @@ body {
   font-weight: 600;
 }
 
+.dt-picker {
+  position: relative;
+}
+
+.dt-picker__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: inherit;
+  padding: 7px 8px;
+  font-size: 12px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.dt-picker__trigger:hover,
+.dt-picker__trigger[aria-expanded="true"] {
+  border-color: #666;
+  background: #323232;
+}
+
+.dt-picker__chevron {
+  opacity: 0.65;
+  font-size: 10px;
+}
+
+.dt-picker__panel {
+  position: absolute;
+  z-index: 40;
+  inset-inline: 0;
+  top: calc(100% + 6px);
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #252525;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.dt-picker__panel--calendar {
+  min-width: 240px;
+  padding: 8px;
+}
+
+.dt-picker__panel--time {
+  min-width: 160px;
+  padding: 8px;
+}
+
+.cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.cal__title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cal__nav-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.cal__nav-btn:hover {
+  background: #353535;
+  border-color: #666;
+}
+
+.cal__weekdays,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal__weekday {
+  text-align: center;
+  font-size: 10px;
+  opacity: 0.55;
+  padding: 4px 0;
+}
+
+.cal__day {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cal__day:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cal__day:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.cal__day.is-today {
+  box-shadow: inset 0 0 0 1px rgba(147, 197, 253, 0.55);
+}
+
+.cal__day.is-selected {
+  background: rgba(59, 130, 246, 0.35);
+  color: #fff;
+  font-weight: 600;
+}
+
+.time-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.time-col__label {
+  display: block;
+  font-size: 10px;
+  opacity: 0.55;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.time-col__list {
+  max-height: 150px;
+  overflow: auto;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  background: #2a2a2a;
+}
+
+.time-col__item {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  padding: 6px 0;
+  text-align: center;
+  cursor: pointer;
+}
+
+.time-col__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.time-col__item.is-selected {
+  background: rgba(59, 130, 246, 0.35);
+  font-weight: 600;
+}
+
 .popup__actions {
   display: flex;
   justify-content: flex-end;

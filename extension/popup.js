@@ -14,12 +14,29 @@ const STRINGS = {
     reminder: "Reminder",
     date: "Date",
     time: "Time",
+    hour: "Hour",
+    minute: "Min",
     note: "Note",
     notePlaceholder: "Why is this important?",
     cancel: "Cancel",
     save: "Save",
     unsupported: "This page cannot be bookmarked.",
     loadError: "Could not read the current tab.",
+    weekdays: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+    months: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ],
   },
   fa: {
     titleNew: "بوک‌مارک و یادآور",
@@ -36,17 +53,37 @@ const STRINGS = {
     reminder: "یادآور",
     date: "تاریخ",
     time: "ساعت",
+    hour: "ساعت",
+    minute: "دقیقه",
     note: "یادداشت",
     notePlaceholder: "چرا این صفحه مهم است؟",
     cancel: "انصراف",
     save: "ذخیره",
     unsupported: "این صفحه قابل بوک‌مارک نیست.",
     loadError: "خواندن تب فعلی ممکن نشد.",
+    weekdays: ["ی", "د", "س", "چ", "پ", "ج", "ش"],
+    months: [
+      "فروردین",
+      "اردیبهشت",
+      "خرداد",
+      "تیر",
+      "مرداد",
+      "شهریور",
+      "مهر",
+      "آبان",
+      "آذر",
+      "دی",
+      "بهمن",
+      "اسفند",
+    ],
   },
 };
 
 const language = localStorage.getItem("language") === "fa" ? "fa" : "en";
+const calendarType = localStorage.getItem("calendarType");
+const useJalali = language === "fa" || calendarType === "persian";
 const t = STRINGS[language];
+const weekStartsOn = useJalali ? 6 : 0; // Saturday for Jalali, Sunday for Gregorian
 
 document.documentElement.lang = language;
 if (language === "fa") document.body.classList.add("is-rtl");
@@ -72,8 +109,23 @@ const els = {
   existingUrl: document.getElementById("existingUrl"),
   reminderEnabled: document.getElementById("reminderEnabled"),
   reminderFields: document.getElementById("reminderFields"),
-  reminderDate: document.getElementById("reminderDate"),
-  reminderTime: document.getElementById("reminderTime"),
+  datePicker: document.getElementById("datePicker"),
+  dateTrigger: document.getElementById("dateTrigger"),
+  dateTriggerLabel: document.getElementById("dateTriggerLabel"),
+  datePanel: document.getElementById("datePanel"),
+  calPrev: document.getElementById("calPrev"),
+  calNext: document.getElementById("calNext"),
+  calTitle: document.getElementById("calTitle"),
+  calWeekdays: document.getElementById("calWeekdays"),
+  calGrid: document.getElementById("calGrid"),
+  timePicker: document.getElementById("timePicker"),
+  timeTrigger: document.getElementById("timeTrigger"),
+  timeTriggerLabel: document.getElementById("timeTriggerLabel"),
+  timePanel: document.getElementById("timePanel"),
+  hourList: document.getElementById("hourList"),
+  minuteList: document.getElementById("minuteList"),
+  labelHour: document.getElementById("labelHour"),
+  labelMinute: document.getElementById("labelMinute"),
   reminderNote: document.getElementById("reminderNote"),
   cancelBtn: document.getElementById("cancelBtn"),
   saveBtn: document.getElementById("saveBtn"),
@@ -94,6 +146,8 @@ els.folderEmpty.textContent = t.folderEmpty;
 els.labelReminder.textContent = t.reminder;
 els.labelDate.textContent = t.date;
 els.labelTime.textContent = t.time;
+els.labelHour.textContent = t.hour;
+els.labelMinute.textContent = t.minute;
 els.labelNote.textContent = t.note;
 els.reminderNote.placeholder = t.notePlaceholder;
 els.cancelBtn.textContent = t.cancel;
@@ -101,33 +155,230 @@ els.saveBtn.textContent = t.save;
 
 /** @type {{ id?: string, title: string, url: string, isBookmarked: boolean } | null} */
 let pageState = null;
-
 /** @type {Array<{ id: string, title: string, children: any[] }>} */
 let folderRoots = [];
-
 /** @type {Set<string>} */
 let expandedIds = new Set(["1", "2"]);
-
 /** @type {string} */
 let selectedFolderId = "1";
 
-const folderDisplayName = (id, title) => {
-  if (id === "1") return t.bookmarksBar;
-  if (id === "2") return t.otherBookmarks;
-  if (id === "3") return t.mobileBookmarks;
-  return title || "Folder";
+/** Selected reminder datetime (local Date object). */
+let selectedDate = new Date();
+/** Calendar view cursor year/month in active calendar system. */
+let viewYear = selectedDate.getFullYear();
+let viewMonth = selectedDate.getMonth() + 1; // 1-12
+
+const toPersianDigits = (value) =>
+  String(value).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+const localizeNumber = (value) => (language === "fa" ? toPersianDigits(value) : String(value));
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+const gregorianFromParts = (y, m, d) => new Date(y, m - 1, d);
+
+const getParts = (date) => {
+  if (useJalali) {
+    const j = window.NexxJalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    return { year: j.jy, month: j.jm, day: j.jd };
+  }
+  return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() };
+};
+
+const dateFromParts = (year, month, day) => {
+  if (useJalali) {
+    const g = window.NexxJalaali.toGregorian(year, month, day);
+    return gregorianFromParts(g.gy, g.gm, g.gd);
+  }
+  return gregorianFromParts(year, month, day);
+};
+
+const monthLength = (year, month) => {
+  if (useJalali) return window.NexxJalaali.jalaaliMonthLength(year, month);
+  return new Date(year, month, 0).getDate();
+};
+
+const formatDateLabel = (date) => {
+  const parts = getParts(date);
+  const monthName = t.months[parts.month - 1];
+  return `${localizeNumber(parts.day)} ${monthName} ${localizeNumber(parts.year)}`;
+};
+
+const formatTimeLabel = (date) => {
+  const text = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  return localizeNumber(text);
+};
+
+const syncDateTrigger = () => {
+  els.dateTriggerLabel.textContent = formatDateLabel(selectedDate);
+};
+
+const syncTimeTrigger = () => {
+  els.timeTriggerLabel.textContent = formatTimeLabel(selectedDate);
+};
+
+const setSelectedDateTime = (date) => {
+  selectedDate = new Date(date.getTime());
+  const parts = getParts(selectedDate);
+  viewYear = parts.year;
+  viewMonth = parts.month;
+  syncDateTrigger();
+  syncTimeTrigger();
+  renderCalendar();
+  renderTimeLists();
 };
 
 const setDefaultDateTime = () => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(9, 0, 0, 0);
-  els.reminderDate.value = [
-    tomorrow.getFullYear(),
-    String(tomorrow.getMonth() + 1).padStart(2, "0"),
-    String(tomorrow.getDate()).padStart(2, "0"),
-  ].join("-");
-  els.reminderTime.value = "09:00";
+  setSelectedDateTime(tomorrow);
+};
+
+const renderWeekdays = () => {
+  els.calWeekdays.innerHTML = "";
+  for (let i = 0; i < 7; i += 1) {
+    const idx = (weekStartsOn + i) % 7;
+    const cell = document.createElement("div");
+    cell.className = "cal__weekday";
+    cell.textContent = t.weekdays[idx];
+    els.calWeekdays.appendChild(cell);
+  }
+};
+
+const renderCalendar = () => {
+  els.calTitle.textContent = `${t.months[viewMonth - 1]} ${localizeNumber(viewYear)}`;
+  els.calGrid.innerHTML = "";
+
+  const first = dateFromParts(viewYear, viewMonth, 1);
+  const firstWeekday = first.getDay();
+  const offset = (firstWeekday - weekStartsOn + 7) % 7;
+  const daysInMonth = monthLength(viewYear, viewMonth);
+  const selectedParts = getParts(selectedDate);
+  const todayParts = getParts(new Date());
+
+  for (let i = 0; i < offset; i += 1) {
+    const empty = document.createElement("button");
+    empty.type = "button";
+    empty.className = "cal__day";
+    empty.disabled = true;
+    els.calGrid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cal__day";
+    btn.textContent = localizeNumber(day);
+
+    if (day === todayParts.day && viewMonth === todayParts.month && viewYear === todayParts.year) {
+      btn.classList.add("is-today");
+    }
+    if (
+      day === selectedParts.day &&
+      viewMonth === selectedParts.month &&
+      viewYear === selectedParts.year
+    ) {
+      btn.classList.add("is-selected");
+    }
+
+    btn.addEventListener("click", () => {
+      const next = dateFromParts(viewYear, viewMonth, day);
+      next.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0);
+      setSelectedDateTime(next);
+      closeDatePanel();
+    });
+
+    els.calGrid.appendChild(btn);
+  }
+};
+
+const shiftMonth = (delta) => {
+  let month = viewMonth + delta;
+  let year = viewYear;
+  if (month < 1) {
+    month = 12;
+    year -= 1;
+  } else if (month > 12) {
+    month = 1;
+    year += 1;
+  }
+  viewYear = year;
+  viewMonth = month;
+  renderCalendar();
+};
+
+const renderTimeLists = () => {
+  els.hourList.innerHTML = "";
+  els.minuteList.innerHTML = "";
+
+  for (let h = 0; h < 24; h += 1) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `time-col__item${h === selectedDate.getHours() ? " is-selected" : ""}`;
+    btn.textContent = localizeNumber(pad2(h));
+    btn.addEventListener("click", () => {
+      const next = new Date(selectedDate.getTime());
+      next.setHours(h);
+      setSelectedDateTime(next);
+    });
+    els.hourList.appendChild(btn);
+  }
+
+  for (let m = 0; m < 60; m += 1) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `time-col__item${m === selectedDate.getMinutes() ? " is-selected" : ""}`;
+    btn.textContent = localizeNumber(pad2(m));
+    btn.addEventListener("click", () => {
+      const next = new Date(selectedDate.getTime());
+      next.setMinutes(m);
+      setSelectedDateTime(next);
+      closeTimePanel();
+    });
+    els.minuteList.appendChild(btn);
+  }
+
+  const selectedHour = els.hourList.querySelector(".is-selected");
+  const selectedMinute = els.minuteList.querySelector(".is-selected");
+  if (selectedHour) selectedHour.scrollIntoView({ block: "center" });
+  if (selectedMinute) selectedMinute.scrollIntoView({ block: "center" });
+};
+
+const openDatePanel = () => {
+  closeTimePanel();
+  closeFolderPanel();
+  const parts = getParts(selectedDate);
+  viewYear = parts.year;
+  viewMonth = parts.month;
+  els.datePanel.hidden = false;
+  els.dateTrigger.setAttribute("aria-expanded", "true");
+  renderCalendar();
+};
+
+const closeDatePanel = () => {
+  els.datePanel.hidden = true;
+  els.dateTrigger.setAttribute("aria-expanded", "false");
+};
+
+const openTimePanel = () => {
+  closeDatePanel();
+  closeFolderPanel();
+  els.timePanel.hidden = false;
+  els.timeTrigger.setAttribute("aria-expanded", "true");
+  renderTimeLists();
+};
+
+const closeTimePanel = () => {
+  els.timePanel.hidden = true;
+  els.timeTrigger.setAttribute("aria-expanded", "false");
+};
+
+const folderDisplayName = (id, title) => {
+  if (id === "1") return t.bookmarksBar;
+  if (id === "2") return t.otherBookmarks;
+  if (id === "3") return t.mobileBookmarks;
+  return title || "Folder";
 };
 
 const isBookmarkableUrl = (url) => {
@@ -156,9 +407,7 @@ const findBookmarkByUrl = (url) =>
 
 const toFolderNode = (node) => {
   if (node.url) return null;
-  const children = (node.children || [])
-    .map(toFolderNode)
-    .filter(Boolean);
+  const children = (node.children || []).map(toFolderNode).filter(Boolean);
   return {
     id: node.id,
     title: folderDisplayName(node.id, node.title),
@@ -294,6 +543,8 @@ const renderFolderTree = (rawTerm = "") => {
 };
 
 const openFolderPanel = () => {
+  closeDatePanel();
+  closeTimePanel();
   els.folderPanel.hidden = false;
   els.folderTrigger.setAttribute("aria-expanded", "true");
   els.folderSearch.focus();
@@ -333,13 +584,7 @@ const applyExistingReminder = (reminder) => {
 
   els.reminderEnabled.checked = true;
   els.reminderFields.hidden = false;
-  const d = new Date(reminder.snoozeUntil || reminder.reminderAt);
-  els.reminderDate.value = [
-    d.getFullYear(),
-    String(d.getMonth() + 1).padStart(2, "0"),
-    String(d.getDate()).padStart(2, "0"),
-  ].join("-");
-  els.reminderTime.value = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  setSelectedDateTime(new Date(reminder.snoozeUntil || reminder.reminderAt));
   els.reminderNote.value = reminder.note || "";
 };
 
@@ -352,10 +597,25 @@ els.folderSearch.addEventListener("input", () => {
   renderFolderTree(els.folderSearch.value);
 });
 
+els.dateTrigger.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (els.datePanel.hidden) openDatePanel();
+  else closeDatePanel();
+});
+
+els.timeTrigger.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (els.timePanel.hidden) openTimePanel();
+  else closeTimePanel();
+});
+
+els.calPrev.addEventListener("click", () => shiftMonth(-1));
+els.calNext.addEventListener("click", () => shiftMonth(1));
+
 document.addEventListener("click", (e) => {
-  if (!els.folderPicker.contains(e.target) && !els.folderPanel.hidden) {
-    closeFolderPanel();
-  }
+  if (!els.folderPicker.contains(e.target) && !els.folderPanel.hidden) closeFolderPanel();
+  if (!els.datePicker.contains(e.target) && !els.datePanel.hidden) closeDatePanel();
+  if (!els.timePicker.contains(e.target) && !els.timePanel.hidden) closeTimePanel();
 });
 
 els.reminderEnabled.addEventListener("change", () => {
@@ -388,9 +648,7 @@ els.saveBtn.addEventListener("click", async () => {
     }
 
     if (els.reminderEnabled.checked) {
-      const [year, month, day] = els.reminderDate.value.split("-").map(Number);
-      const [hour, minute] = els.reminderTime.value.split(":").map(Number);
-      const reminderAt = new Date(year, month - 1, day, hour, minute, 0, 0).getTime();
+      const reminderAt = selectedDate.getTime();
       if (!Number.isFinite(reminderAt)) throw new Error("Invalid date/time");
 
       await chrome.runtime.sendMessage({
@@ -418,6 +676,7 @@ els.saveBtn.addEventListener("click", async () => {
 });
 
 const init = async () => {
+  renderWeekdays();
   setDefaultDateTime();
   els.reminderEnabled.checked = true;
   els.reminderFields.hidden = false;
