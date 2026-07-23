@@ -4,6 +4,7 @@ import {
   addWeeks,
   endOfDay,
   endOfWeek,
+  format as formatGregorian,
   isAfter,
   isBefore,
   isSameDay,
@@ -13,6 +14,8 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
+import { format as formatJalali } from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale/fa-IR";
 import type {
   BookmarkReminder,
   QuickPreset,
@@ -206,14 +209,17 @@ export const formatReminderDate = (
   locale: string,
 ): string => {
   const date = new Date(timestamp);
-  const dateStr = date.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" });
+  const usePersian = locale === "fa";
+  const dateStr = usePersian
+    ? formatJalali(date, "dd MMMM yyyy", { locale: faIR }).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)])
+    : formatGregorian(date, "dd MMM yyyy");
+
   if (dateOnly) return dateStr;
 
-  const timeStr = date.toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: use12h,
-  });
+  const timeStr = usePersian
+    ? formatGregorian(date, "HH:mm").replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)])
+    : formatGregorian(date, use12h ? "h:mm a" : "HH:mm");
+
   return `${dateStr} ${timeStr}`;
 };
 

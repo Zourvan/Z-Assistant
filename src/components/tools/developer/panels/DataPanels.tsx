@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import YAML from "yaml";
 import { XMLParser, XMLBuilder } from "fast-xml-parser";
 import Papa from "papaparse";
-import { parse as parseToml, stringify as stringifyToml } from "smol-toml";
+import { parse as parseToml } from "smol-toml";
 import { useI18n } from "../../../../i18n/LanguageProvider";
 import { ToolToolbar, ToolColumn, ToolTextarea, ToolError, ToolWorkspace } from "../../shared";
 import { SplitEditor } from "../SplitEditor";

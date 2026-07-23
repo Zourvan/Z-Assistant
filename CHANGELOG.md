@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 2026-07-23 12:10:17
+- Fixed "Date only" in Set Reminder: toggles now hide the time picker, switch to a date selector, and apply default reminder hours for all presets
+- Narrowed the Set Reminder modal to content width; target card shows folder name or bookmark title + URL
+- Components affected: src/components/bookmarks/reminders/BookmarkReminderModal.tsx, BookmarkReminderModal.css, ThemedDateTimeFields.tsx, ReminderManager.tsx, Bookmarks.tsx
+
+## 2026-07-23 11:59:50
+- Removed the dashboard Reading Reminders widget; reminders stay available via the Bookmark Reminders manager button
+- Redesigned Set Reminder modal into compact When / Details sections: quick presets first, custom date/time only when needed, clearer hierarchy and denser layout
+- Components affected: src/App.tsx, src/components/bookmarks/reminders/BookmarkReminderModal.tsx, BookmarkReminderModal.css, ThemedDateTimeFields.css; removed BookmarkRemindersWidget
+
+## 2026-07-23 11:31:11
+- Fixed extension popup reminder date label mixing Jalali day/year with Gregorian English month names (e.g. "2 May 1405"); Jalali months now always use Persian names
+- Components affected: extension/popup.js
+
+## 2026-07-23 11:10:38
+- Fixed CSP violation blocking Vazirmatn font load: removed inline `onload` handler from Google Fonts link (extension `script-src 'self'` forbids inline event handlers)
+- Cleared ESLint errors (unused vars/imports, prefer-const, no-explicit-any) across bookmarks, tools panels, and related modules
+- Components affected: index.html, src/components/Bookmarks.tsx, src/components/tools/developer/panels/*, src/components/tools/datetime/**
+
+## 2026-07-22 18:45:00
+- Fixed mixed Jalali/Gregorian date labels (e.g. "01 May 1405") by formatting Persian dates with `date-fns-jalali` `fa-IR` locale so month names stay Persian
+- Components affected: src/components/bookmarks/reminders/ThemedDateTimeFields.tsx, src/components/bookmarks/reminders/reminderUtils.ts, src/components/tasks/taskUtils.ts, src/components/Calendar.tsx, src/components/tools/datetime/ToolDatePicker.tsx
+
 ## 2026-07-22 15:56:34
 - Moved bookmark reminders onto the main calendar (day dots + day detail panel); removed the Reminder Manager calendar tab; Set Reminder modal now uses themed language-aware date/time pickers matching NEXX
 - Components affected: src/components/Calendar.tsx, src/components/tasks/DayDetailModal.tsx, src/components/bookmarks/reminders/ReminderManager.tsx, src/components/bookmarks/reminders/BookmarkReminderModal.tsx, src/components/bookmarks/reminders/ThemedDateTimeFields.tsx

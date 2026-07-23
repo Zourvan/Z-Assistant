@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
 import { useI18n } from "../../../../i18n/LanguageProvider";
-import { ToolToolbar, ToolColumn, ToolTextarea, ToolField, ToolOutputList, ToolWorkspace } from "../../shared";
-import { SplitEditor } from "../SplitEditor";
+import { ToolColumn, ToolTextarea, ToolField, ToolOutputList, ToolWorkspace } from "../../shared";
 import { HTTP_STATUS_CODES, MIME_TYPES } from "../utils/staticData";
 
 export function UrlParserPanel() {
-  const { t } = useI18n();
   const [input, setInput] = useState("https://site.com/api?a=1&b=2#section");
 
   const items = useMemo(() => {
@@ -104,7 +102,6 @@ export function MimeTypePanel() {
 }
 
 export function UserAgentPanel() {
-  const { t } = useI18n();
   const [ua, setUa] = useState(typeof navigator !== "undefined" ? navigator.userAgent : "");
 
   const parsed = useMemo(() => {

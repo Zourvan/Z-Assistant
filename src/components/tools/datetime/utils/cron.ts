@@ -1,6 +1,6 @@
-const FIELD_LABELS = ["minute", "hour", "dayOfMonth", "month", "dayOfWeek"] as const;
+type CronField = "minute" | "hour" | "dayOfMonth" | "month" | "dayOfWeek";
 
-function describeField(value: string, type: (typeof FIELD_LABELS)[number]): string {
+function describeField(value: string, type: CronField): string {
   if (value === "*") {
     if (type === "minute") return "every minute";
     if (type === "hour") return "every hour";

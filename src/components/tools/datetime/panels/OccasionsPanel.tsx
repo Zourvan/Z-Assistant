@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useI18n } from "../../../../i18n/LanguageProvider";
-import { ToolWorkspace, ToolField, ToolError, ToolOutputList } from "../../shared";
+import { ToolWorkspace, ToolError, ToolOutputList } from "../../shared";
 import { ToolDatePicker } from "../ToolDatePicker";
 import { parseDateTime, formatAllCalendars } from "../utils/calendars";
 import { findOccasionsForDate, OCCASIONS } from "../utils/occasions";

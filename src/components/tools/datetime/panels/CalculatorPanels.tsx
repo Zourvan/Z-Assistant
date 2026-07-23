@@ -197,7 +197,7 @@ export function BusinessDaysPanel() {
 }
 
 export function WeekdayPanel() {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const [input, setInput] = useState("");
   const [system, setSystem] = useState<CalendarSystem>("jalali");
 
@@ -205,7 +205,6 @@ export function WeekdayPanel() {
     const parsed = parseDateTime(input, system);
     if (!parsed) return null;
     const idx = getWeekdayIndex(parsed.date);
-    const locale = language === "fa" ? "fa-IR" : "en-US";
     const weekdayFa = new Intl.DateTimeFormat("fa-IR", { weekday: "long" }).format(parsed.date);
     const weekdayEn = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(parsed.date);
     const iso = getIsoWeekInfo(parsed.date);
@@ -217,7 +216,7 @@ export function WeekdayPanel() {
       isoWeek: iso.week,
       isoDay: iso.day,
     };
-  }, [input, system, language]);
+  }, [input, system]);
 
   return (
     <>

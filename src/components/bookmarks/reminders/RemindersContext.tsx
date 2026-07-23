@@ -17,7 +17,6 @@ import type { BookmarkReminder, ReminderInput } from "./types";
 import {
   computeNextRepeatAt,
   computeReminderStatus,
-  defaultRepeatRule,
   getActiveReminders,
   getDateKeysWithReminders,
   getRemindersForDateKey,

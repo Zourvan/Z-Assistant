@@ -21,7 +21,23 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          allowExportNames: [
+            'useTheme',
+            'useReminders',
+            'useCalendar',
+            'useTasks',
+            'useToolsNavigation',
+            'useLanguage',
+            'useI18n',
+            'computeReminderStatus',
+            'copyToClipboard',
+            'getWeatherIcon',
+            'AI_PROVIDER_ICONS',
+            'SEARCH_SITE_ICONS',
+          ],
+        },
       ],
     },
   }

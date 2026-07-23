@@ -4,7 +4,7 @@ import { format as formatSql } from "sql-formatter";
 import { useI18n } from "../../../../i18n/LanguageProvider";
 import { ToolToolbar, ToolColumn, ToolTextarea, ToolField, ToolError, ToolWorkspace } from "../../shared";
 import { SplitEditor } from "../SplitEditor";
-import { formatGraphql, minifyCode } from "../utils/text";
+import { minifyCode } from "../utils/text";
 import { REGEX_PATTERNS } from "../utils/staticData";
 
 type CodeLang = "javascript" | "typescript" | "html" | "css" | "sql" | "json" | "yaml" | "markdown";

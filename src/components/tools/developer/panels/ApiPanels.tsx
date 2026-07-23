@@ -52,7 +52,6 @@ export function JwtDecoderPanel() {
 }
 
 export function CurlParserPanel() {
-  const { t } = useI18n();
   const [input, setInput] = useState('curl -X POST "https://api.example.com/users" -H "Authorization: Bearer token" -d \'{"name":"Nima"}\'');
 
   const parsed = useMemo(() => {
@@ -78,7 +77,6 @@ export function CurlParserPanel() {
 }
 
 export function CurlGeneratorPanel() {
-  const { t } = useI18n();
   const [method, setMethod] = useState("GET");
   const [url, setUrl] = useState("https://api.example.com/users");
   const [headers, setHeaders] = useState("Content-Type: application/json");

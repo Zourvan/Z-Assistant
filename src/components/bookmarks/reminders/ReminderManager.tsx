@@ -221,6 +221,7 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
             bookmarkId={editingReminder.bookmarkId}
             bookmarkTitle={editingReminder.bookmarkTitle}
             bookmarkUrl={editingReminder.bookmarkUrl}
+            isFolder={!editingReminder.bookmarkUrl}
             existing={editingReminder}
             onSave={async (input) => {
               await updateReminder(editingReminder.id, {
@@ -237,6 +238,7 @@ export function ReminderManager({ onClose }: ReminderManagerProps) {
             bookmarkId={creatingFor.id}
             bookmarkTitle={creatingFor.title}
             bookmarkUrl={creatingFor.url}
+            isFolder={creatingFor.isFolder}
             onSave={addReminder}
             onClose={() => setCreatingFor(null)}
           />

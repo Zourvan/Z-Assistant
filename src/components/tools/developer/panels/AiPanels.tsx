@@ -3,8 +3,7 @@ import { marked } from "marked";
 import mermaid from "mermaid";
 import Ajv from "ajv";
 import { useI18n } from "../../../../i18n/LanguageProvider";
-import { ToolToolbar, ToolColumn, ToolTextarea, ToolField, ToolError, ToolWorkspace } from "../../shared";
-import { SplitEditor } from "../SplitEditor";
+import { ToolColumn, ToolTextarea, ToolField, ToolError, ToolWorkspace } from "../../shared";
 import { estimateTokens } from "../utils/text";
 
 export function TokenCounterPanel() {
@@ -27,7 +26,6 @@ export function TokenCounterPanel() {
 }
 
 export function MarkdownPreviewPanel() {
-  const { t } = useI18n();
   const [input, setInput] = useState("# Hello\n\n**Bold** and *italic* text.");
 
   const html = useMemo(() => {

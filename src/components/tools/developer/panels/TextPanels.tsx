@@ -15,6 +15,8 @@ import {
 } from "../utils/text";
 import { LOREM_WORDS } from "../utils/staticData";
 
+const CASE_STYLES: CaseStyle[] = ["camel", "pascal", "snake", "kebab", "constant", "title"];
+
 export function DiffPanel() {
   const { t } = useI18n();
   const [left, setLeft] = useState("");
@@ -40,12 +42,11 @@ export function DiffPanel() {
 export function CasePanel() {
   const { t } = useI18n();
   const [input, setInput] = useState("");
-  const styles: CaseStyle[] = ["camel", "pascal", "snake", "kebab", "constant", "title"];
 
   const outputs = useMemo(() => {
     const words = toWords(input);
     if (!words.length) return [];
-    return styles.map((s) => ({ label: t(`tools.encodingToolkit.case.${s === "constant" ? "constant" : s}`), value: applyCase(words, s) }));
+    return CASE_STYLES.map((s) => ({ label: t(`tools.encodingToolkit.case.${s === "constant" ? "constant" : s}`), value: applyCase(words, s) }));
   }, [input, t]);
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale/fa-IR";
 import { useCalendar } from "../../Settings";
 import { useI18n } from "../../../i18n/LanguageProvider";
 import { convertToPersianNumbers } from "../../tasks/taskUtils";
@@ -31,6 +32,10 @@ export function ThemedDateTimeFields({ value, dateOnly = false, onChange }: Them
   }, [value]);
 
   useEffect(() => {
+    if (dateOnly) setTimeOpen(false);
+  }, [dateOnly]);
+
+  useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) {
         setDateOpen(false);
@@ -45,9 +50,12 @@ export function ThemedDateTimeFields({ value, dateOnly = false, onChange }: Them
     language === "fa" ? convertToPersianNumbers(String(text)) : String(text);
 
   const dateLabel = useMemo(() => {
-    const formatted = dateLib.format(value, "dd MMMM yyyy");
-    return language === "fa" ? convertToPersianNumbers(formatted) : formatted;
-  }, [value, dateLib, language]);
+    if (useJalali) {
+      const formatted = dateFnsJalali.format(value, "dd MMMM yyyy", { locale: faIR });
+      return language === "fa" ? convertToPersianNumbers(formatted) : formatted;
+    }
+    return dateFns.format(value, "dd MMMM yyyy");
+  }, [value, useJalali, language]);
 
   const timeLabel = useMemo(() => {
     const formatted = dateFns.format(value, "HH:mm");
@@ -55,9 +63,12 @@ export function ThemedDateTimeFields({ value, dateOnly = false, onChange }: Them
   }, [value, language]);
 
   const monthTitle = useMemo(() => {
-    const formatted = dateLib.format(viewDate, "MMMM yyyy");
-    return language === "fa" ? convertToPersianNumbers(formatted) : formatted;
-  }, [viewDate, dateLib, language]);
+    if (useJalali) {
+      const formatted = dateFnsJalali.format(viewDate, "MMMM yyyy", { locale: faIR });
+      return language === "fa" ? convertToPersianNumbers(formatted) : formatted;
+    }
+    return dateFns.format(viewDate, "MMMM yyyy");
+  }, [viewDate, useJalali, language]);
 
   const daysInMonth = dateLib.getDaysInMonth(viewDate);
   const monthStart = dateLib.startOfMonth(viewDate);

@@ -1,5 +1,4 @@
 import type { StoredBackground } from "./types";
-import { resolveExtensionAssetUrl } from "../../utils/extensionAssetUrl";
 
 const buildImage = (filename: string): StoredBackground => {
   const base = filename.replace(/\.[^.]+$/, "");

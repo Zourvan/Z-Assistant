@@ -11,7 +11,6 @@ interface Rgba {
   a: number;
 }
 
-const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 const rgbToHex = (r: number, g: number, b: number) => `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`.toUpperCase();
 
 const rgbToHsl = (r: number, g: number, b: number) => {
@@ -112,7 +111,6 @@ export function CssGradientPanel() {
 }
 
 export function BoxShadowPanel() {
-  const { t } = useI18n();
   const [x, setX] = useState("0");
   const [y, setY] = useState("4");
   const [blur, setBlur] = useState("12");
@@ -137,7 +135,6 @@ export function BoxShadowPanel() {
 }
 
 export function BorderRadiusPanel() {
-  const { t } = useI18n();
   const [tl, setTl] = useState("8");
   const [tr, setTr] = useState("8");
   const [br, setBr] = useState("8");
@@ -198,7 +195,6 @@ export function CssUnitPanel() {
 }
 
 export function FlexboxPanel() {
-  const { t } = useI18n();
   const [direction, setDirection] = useState("row");
   const [justify, setJustify] = useState("center");
   const [align, setAlign] = useState("center");

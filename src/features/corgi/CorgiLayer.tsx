@@ -20,7 +20,8 @@ export function CorgiLayer() {
     const layer = layerRef.current;
     if (!layer) return;
 
-    if (!settings.enabled || !(settings.variants ?? []).length) {
+    const variants = settings.variants ?? [];
+    if (!settings.enabled || !variants.length) {
       managerRef.current?.stop();
       managerRef.current = null;
       return;
@@ -34,7 +35,7 @@ export function CorgiLayer() {
       manager.stop();
       if (managerRef.current === manager) managerRef.current = null;
     };
-  }, [settings.enabled, (settings.variants ?? []).join(","), settings.size, settings.speed]);
+  }, [settings.enabled, settings.variants, settings.size, settings.speed]);
 
   useEffect(() => {
     const layer = layerRef.current;

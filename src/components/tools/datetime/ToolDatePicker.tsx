@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ReactDOM from "react-dom";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale/fa-IR";
 import { toGregorian, toHijri } from "hijri-converter";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "../../../i18n/LanguageProvider";
@@ -48,7 +49,8 @@ function MiniCalendar({ viewDate, selectedDate, calendarSystem, firstDayOfWeek, 
 
   const monthLabel = useMemo(() => {
     if (calendarSystem === "jalali") {
-      const label = dateFnsJalali.format(viewDate, "MMMM yyyy");
+      // Always use fa-IR so Jalali months stay Persian (avoids mixed "May 1405").
+      const label = dateFnsJalali.format(viewDate, "MMMM yyyy", { locale: faIR });
       return language === "fa" ? toFaDigits(label) : label;
     }
     if (calendarSystem === "hijri") {

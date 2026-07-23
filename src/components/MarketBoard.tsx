@@ -33,8 +33,8 @@ const MarketBoard: React.FC = () => {
       }
       const json: ApiResponse = await response.json();
       setData(json);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }

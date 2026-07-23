@@ -1,5 +1,6 @@
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale/fa-IR";
 import type { Task } from "./types";
 
 export function toDateKey(date: Date): string {
@@ -22,7 +23,7 @@ export function convertToPersianNumbers(input: string): string {
 export function formatTaskDate(timestamp: number, calendarType: "gregorian" | "persian"): string {
   const date = new Date(timestamp);
   if (calendarType === "persian") {
-    return convertToPersianNumbers(dateFnsJalali.format(date, "dd MMMM yyyy"));
+    return convertToPersianNumbers(dateFnsJalali.format(date, "dd MMMM yyyy", { locale: faIR }));
   }
   return dateFns.format(date, "dd MMMM yyyy");
 }
@@ -30,7 +31,7 @@ export function formatTaskDate(timestamp: number, calendarType: "gregorian" | "p
 export function formatDueDate(dateKey: string, calendarType: "gregorian" | "persian"): string {
   const date = parseDateKey(dateKey);
   if (calendarType === "persian") {
-    return convertToPersianNumbers(dateFnsJalali.format(date, "dd MMMM yyyy"));
+    return convertToPersianNumbers(dateFnsJalali.format(date, "dd MMMM yyyy", { locale: faIR }));
   }
   return dateFns.format(date, "dd MMMM yyyy");
 }

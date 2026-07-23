@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Folder, Link2, X } from "lucide-react";
 import { useI18n } from "../../../i18n/LanguageProvider";
 import { useCalendar } from "../../Settings";
 import { buildThemeCssVars } from "../../settings/themeUtils";
@@ -13,6 +13,7 @@ interface BookmarkReminderModalProps {
   bookmarkId: string;
   bookmarkTitle: string;
   bookmarkUrl?: string;
+  isFolder?: boolean;
   existing?: BookmarkReminder;
   onSave: (input: ReminderInput) => Promise<void>;
   onClose: () => void;
@@ -40,10 +41,17 @@ const CATEGORIES: ReminderCategory[] = [
 
 const PRIORITIES: ReminderPriority[] = ["low", "medium", "high"];
 
+const applyDateOnlyHours = (timestamp: number, hour: number, minute: number): number => {
+  const next = new Date(timestamp);
+  next.setHours(hour, minute, 0, 0);
+  return next.getTime();
+};
+
 export function BookmarkReminderModal({
   bookmarkId,
   bookmarkTitle,
   bookmarkUrl,
+  isFolder: isFolderProp,
   existing,
   onSave,
   onClose,
@@ -52,6 +60,8 @@ export function BookmarkReminderModal({
   const { textColor, backgroundColor } = useCalendar();
   const themeCssVars = buildThemeCssVars(textColor, backgroundColor);
   const settings = getReminderSettings();
+
+  const isFolder = isFolderProp ?? (!bookmarkUrl && !existing?.bookmarkUrl);
 
   const [enabled, setEnabled] = useState(existing ? existing.enabled : true);
   const [dateOnly, setDateOnly] = useState(existing?.dateOnly ?? false);
@@ -64,18 +74,28 @@ export function BookmarkReminderModal({
   const [saving, setSaving] = useState(false);
 
   const reminderAt = useMemo(() => {
-    if (selectedPreset !== "custom") return applyQuickPreset(selectedPreset);
-    const next = new Date(selectedAt.getTime());
-    if (dateOnly) {
-      next.setHours(settings.defaultReminderHour, settings.defaultReminderMinute, 0, 0);
-    }
-    return next.getTime();
+    const base =
+      selectedPreset !== "custom" ? applyQuickPreset(selectedPreset) : selectedAt.getTime();
+    if (!dateOnly) return base;
+    return applyDateOnlyHours(base, settings.defaultReminderHour, settings.defaultReminderMinute);
   }, [selectedPreset, selectedAt, dateOnly, settings]);
 
   const handlePresetClick = (preset: QuickPreset) => {
     setSelectedPreset(preset);
     if (preset === "custom") return;
     setSelectedAt(new Date(applyQuickPreset(preset)));
+  };
+
+  const handleDateOnlyChange = (checked: boolean) => {
+    setDateOnly(checked);
+    if (checked) {
+      setSelectedPreset("custom");
+      setSelectedAt((prev) => {
+        const next = new Date(prev.getTime());
+        next.setHours(settings.defaultReminderHour, settings.defaultReminderMinute, 0, 0);
+        return next;
+      });
+    }
   };
 
   const handleSave = async () => {
@@ -88,7 +108,7 @@ export function BookmarkReminderModal({
       await onSave({
         bookmarkId,
         bookmarkTitle,
-        bookmarkUrl,
+        bookmarkUrl: isFolder ? undefined : bookmarkUrl,
         note: note.trim() || undefined,
         reminderAt,
         dateOnly,
@@ -101,6 +121,8 @@ export function BookmarkReminderModal({
       setSaving(false);
     }
   };
+
+  const showCustomWhen = selectedPreset === "custom" || dateOnly;
 
   return (
     <div className="bookmarks-overlay" onClick={onClose}>
@@ -118,18 +140,35 @@ export function BookmarkReminderModal({
           </button>
         </div>
 
-        <p className="reminder-modal__bookmark-title">{bookmarkTitle}</p>
+        <div className={`reminder-modal__target${isFolder ? " reminder-modal__target--folder" : ""}`}>
+          <span className="reminder-modal__target-kind">
+            {isFolder ? <Folder className="w-3.5 h-3.5" /> : <Link2 className="w-3.5 h-3.5" />}
+            {isFolder ? t("bookmarks.reminder.targetFolder") : t("bookmarks.reminder.targetBookmark")}
+          </span>
+          <p className="reminder-modal__target-title" title={bookmarkTitle}>
+            {bookmarkTitle}
+          </p>
+          {!isFolder && bookmarkUrl ? (
+            <p className="reminder-modal__target-url" title={bookmarkUrl}>
+              {bookmarkUrl}
+            </p>
+          ) : null}
+        </div>
 
-        <label className="reminder-modal__toggle">
-          <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
-          <span>{t("bookmarks.reminder.enableReminder")}</span>
-        </label>
+        {existing && (
+          <label className="reminder-modal__switch">
+            <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+            <span>{t("bookmarks.reminder.enableReminder")}</span>
+          </label>
+        )}
 
         {enabled && (
-          <>
-            <fieldset className="reminder-modal__section">
-              <legend>{t("bookmarks.reminder.when")}</legend>
-              <div className="reminder-modal__presets">
+          <div className="reminder-modal__body">
+            <section className="reminder-modal__block" aria-labelledby="reminder-when-heading">
+              <h4 id="reminder-when-heading" className="reminder-modal__block-title">
+                {t("bookmarks.reminder.when")}
+              </h4>
+              <div className="reminder-modal__presets" role="group" aria-label={t("bookmarks.reminder.when")}>
                 {QUICK_PRESETS.map((preset) => (
                   <button
                     key={preset}
@@ -141,71 +180,86 @@ export function BookmarkReminderModal({
                   </button>
                 ))}
               </div>
-            </fieldset>
 
-            <ThemedDateTimeFields
-              value={selectedAt}
-              dateOnly={dateOnly}
-              onChange={(next) => {
-                setSelectedPreset("custom");
-                setSelectedAt(next);
-              }}
-            />
-
-            <div className="reminder-modal__row">
-              <label className="reminder-modal__toggle">
-                <input type="checkbox" checked={dateOnly} onChange={(e) => setDateOnly(e.target.checked)} />
+              <label className="reminder-modal__switch reminder-modal__switch--inline reminder-modal__switch--spaced">
+                <input
+                  type="checkbox"
+                  checked={dateOnly}
+                  onChange={(e) => handleDateOnlyChange(e.target.checked)}
+                />
                 <span>{t("bookmarks.reminder.dateOnly")}</span>
               </label>
-            </div>
 
-            <label className="reminder-modal__field">
-              <span>{t("bookmarks.reminder.note")}</span>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={t("bookmarks.reminder.notePlaceholder")}
-                rows={2}
-              />
-            </label>
+              {showCustomWhen && (
+                <div className="reminder-modal__custom-when">
+                  <ThemedDateTimeFields
+                    value={selectedAt}
+                    dateOnly={dateOnly}
+                    onChange={(next) => {
+                      setSelectedPreset("custom");
+                      if (dateOnly) {
+                        next.setHours(settings.defaultReminderHour, settings.defaultReminderMinute, 0, 0);
+                      }
+                      setSelectedAt(next);
+                    }}
+                  />
+                </div>
+              )}
+            </section>
 
-            <div className="reminder-modal__row reminder-modal__row--split">
-              <label className="reminder-modal__field">
-                <span>{t("bookmarks.reminder.category")}</span>
-                <select value={category} onChange={(e) => setCategory(e.target.value as ReminderCategory | "")}>
-                  <option value="">{t("bookmarks.reminder.noCategory")}</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {t(`bookmarks.reminder.categories.${cat}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <section className="reminder-modal__block" aria-labelledby="reminder-details-heading">
+              <h4 id="reminder-details-heading" className="reminder-modal__block-title">
+                {t("bookmarks.reminder.details")}
+              </h4>
 
               <label className="reminder-modal__field">
-                <span>{t("bookmarks.reminder.priority")}</span>
-                <select value={priority} onChange={(e) => setPriority(e.target.value as ReminderPriority)}>
-                  {PRIORITIES.map((p) => (
-                    <option key={p} value={p}>
-                      {t(`bookmarks.reminder.priorities.${p}`)}
-                    </option>
-                  ))}
-                </select>
+                <span>{t("bookmarks.reminder.note")}</span>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={t("bookmarks.reminder.notePlaceholder")}
+                  rows={2}
+                />
               </label>
-            </div>
 
-            {settings.enableRecurring && (
-              <label className="reminder-modal__field">
-                <span>{t("bookmarks.reminder.repeat")}</span>
-                <select value={repeatType} onChange={(e) => setRepeatType(e.target.value)}>
-                  <option value="none">{t("bookmarks.reminder.repeatNone")}</option>
-                  <option value="daily">{t("bookmarks.reminder.repeatDaily")}</option>
-                  <option value="weekly">{t("bookmarks.reminder.repeatWeekly")}</option>
-                  <option value="monthly">{t("bookmarks.reminder.repeatMonthly")}</option>
-                </select>
-              </label>
-            )}
-          </>
+              <div className="reminder-modal__grid">
+                <label className="reminder-modal__field">
+                  <span>{t("bookmarks.reminder.category")}</span>
+                  <select value={category} onChange={(e) => setCategory(e.target.value as ReminderCategory | "")}>
+                    <option value="">{t("bookmarks.reminder.noCategory")}</option>
+                    {CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {t(`bookmarks.reminder.categories.${cat}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="reminder-modal__field">
+                  <span>{t("bookmarks.reminder.priority")}</span>
+                  <select value={priority} onChange={(e) => setPriority(e.target.value as ReminderPriority)}>
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>
+                        {t(`bookmarks.reminder.priorities.${p}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {settings.enableRecurring && (
+                  <label className="reminder-modal__field reminder-modal__field--full">
+                    <span>{t("bookmarks.reminder.repeat")}</span>
+                    <select value={repeatType} onChange={(e) => setRepeatType(e.target.value)}>
+                      <option value="none">{t("bookmarks.reminder.repeatNone")}</option>
+                      <option value="daily">{t("bookmarks.reminder.repeatDaily")}</option>
+                      <option value="weekly">{t("bookmarks.reminder.repeatWeekly")}</option>
+                      <option value="monthly">{t("bookmarks.reminder.repeatMonthly")}</option>
+                    </select>
+                  </label>
+                )}
+              </div>
+            </section>
+          </div>
         )}
 
         <div className="reminder-modal__actions">

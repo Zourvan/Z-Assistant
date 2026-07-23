@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import * as dateFns from "date-fns";
 import * as dateFnsJalali from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale/fa-IR";
 import { useCalendar, DayOfWeek } from "./Settings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "../i18n/LanguageProvider";
@@ -8,6 +9,16 @@ import { useTasks } from "./tasks/TasksContext";
 import { useReminders } from "./bookmarks/reminders/RemindersContext";
 import { DayDetailModal } from "./tasks/DayDetailModal";
 import { getDayTaskSummary, toDateKey } from "./tasks/taskUtils";
+
+const DAY_INDEX_TO_NAME: Record<number, DayOfWeek> = {
+  0: "Sunday",
+  1: "Monday",
+  2: "Tuesday",
+  3: "Wednesday",
+  4: "Thursday",
+  5: "Friday",
+  6: "Saturday",
+};
 
 export function Calendar({ embedded = false }: { embedded?: boolean }) {
   const { calendarType, weekendDays, weekendColor, firstDayOfWeek, textColor, backgroundColor } = useCalendar();
@@ -32,23 +43,9 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     Saturday: 6,
   };
 
-  const dayIndexToName: Record<number, DayOfWeek> = {
-    0: "Sunday",
-    1: "Monday",
-    2: "Tuesday",
-    3: "Wednesday",
-    4: "Thursday",
-    5: "Friday",
-    6: "Saturday",
-  };
-
   const firstDayIndex = dayNameToIndex[firstDayOfWeek];
 
-  const getStandardWeekdayIndex = (date: Date): number => {
-    return dateLib.getDay(date);
-  };
-
-  const firstDayOfMonthWeekday = getStandardWeekdayIndex(firstDayOfMonth);
+  const firstDayOfMonthWeekday = dateLib.getDay(firstDayOfMonth);
 
   const emptyDayCount = useMemo(() => {
     return (7 + firstDayOfMonthWeekday - firstDayIndex) % 7;
@@ -58,7 +55,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     const days: DayOfWeek[] = [];
     for (let i = 0; i < 7; i++) {
       const index = (firstDayIndex + i) % 7;
-      days.push(dayIndexToName[index]);
+      days.push(DAY_INDEX_TO_NAME[index]);
     }
     return days;
   }, [firstDayIndex]);
@@ -92,8 +89,8 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = dateLib.setDate(firstDayOfMonth, day);
-      const weekdayIndex = getStandardWeekdayIndex(date);
-      const dayName = dayIndexToName[weekdayIndex];
+      const weekdayIndex = dateLib.getDay(date);
+      const dayName = DAY_INDEX_TO_NAME[weekdayIndex];
       const isWeekendDay = weekendDays.includes(dayName);
       const today = new Date();
       const isCurrentDay = dateLib.isSameDay(date, today);
@@ -128,7 +125,7 @@ export function Calendar({ embedded = false }: { embedded?: boolean }) {
     if (calendarType === "gregorian") {
       return dateFns.format(currentDate, "dd MMMM yyyy");
     }
-    return convertToPersianNumbers(dateFnsJalali.format(currentDate, "dd MMMM yyyy"));
+    return convertToPersianNumbers(dateFnsJalali.format(currentDate, "dd MMMM yyyy", { locale: faIR }));
   };
 
   const handlePreviousMonth = () => {

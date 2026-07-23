@@ -175,6 +175,9 @@
       "hour": "ساعت",
       "minute": "دقیقه",
       "when": "زمان",
+      "details": "جزئیات",
+      "targetFolder": "پوشه",
+      "targetBookmark": "بوک‌مارک",
       "addForAny": "افزودن یادآور",
       "pickBookmark": "انتخاب بوک‌مارک یا پوشه",
       "pickBookmarkHint": "پوشه را باز کنید، یا روی «استفاده» بزنید تا برای خود پوشه یادآور بگذارید.",
@@ -208,7 +211,7 @@
         "this_weekend": "این آخر هفته",
         "next_week": "هفته آینده",
         "next_month": "ماه آینده",
-        "custom": "انتخاب تاریخ"
+        "custom": "سفارشی"
       },
       "snoozePresets": {
         "10m": "۱۰ دقیقه",

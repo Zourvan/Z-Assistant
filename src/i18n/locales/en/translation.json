@@ -176,6 +176,9 @@
       "hour": "Hour",
       "minute": "Min",
       "when": "When",
+      "details": "Details",
+      "targetFolder": "Folder",
+      "targetBookmark": "Bookmark",
       "addForAny": "Add reminder",
       "pickBookmark": "Choose bookmark or folder",
       "pickBookmarkHint": "Open a folder, or click Use on a folder to set a reminder for it.",
@@ -209,7 +212,7 @@
         "this_weekend": "This Weekend",
         "next_week": "Next Week",
         "next_month": "Next Month",
-        "custom": "Pick Custom Date"
+        "custom": "Custom"
       },
       "snoozePresets": {
         "10m": "10 Minutes",

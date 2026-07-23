@@ -4,7 +4,7 @@ import type { AiProviderId } from "./providers";
 import type { SearchSiteId } from "./searchSites";
 
 /** Minimal DeepSeek mark (whale silhouette) — not in react-icons. */
-const DeepSeekIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
+export const DeepSeekIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
   <svg
     viewBox="0 0 24 24"
     width={size}
@@ -20,7 +20,7 @@ const DeepSeekIcon: IconType = ({ size = "1em", color = "currentColor", classNam
 );
 
 /** Digikala bag mark — not in react-icons. */
-const DigikalaIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
+export const DigikalaIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
   <svg
     viewBox="0 0 24 24"
     width={size}
@@ -37,7 +37,7 @@ const DigikalaIcon: IconType = ({ size = "1em", color = "currentColor", classNam
 );
 
 /** Divar pin mark — not in react-icons. */
-const DivarIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
+export const DivarIcon: IconType = ({ size = "1em", color = "currentColor", className, style, ...rest }) => (
   <svg
     viewBox="0 0 24 24"
     width={size}

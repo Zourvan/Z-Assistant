@@ -87,7 +87,6 @@ export function SemverPanel() {
 }
 
 export function GitignorePanel() {
-  const { t } = useI18n();
   const [template, setTemplate] = useState("node");
   const output = GITIGNORE_TEMPLATES[template] ?? "";
 
@@ -147,7 +146,6 @@ export function ConventionalCommitPanel() {
 }
 
 export function DockerIgnorePanel() {
-  const { t } = useI18n();
   const [template, setTemplate] = useState("general");
   const output = DOCKERIGNORE_TEMPLATES[template] ?? "";
 
@@ -189,7 +187,6 @@ export function DockerTagsPanel() {
 }
 
 export function K8sConverterPanel() {
-  const { t } = useI18n();
   const [cpu, setCpu] = useState("500m");
   const [memory, setMemory] = useState("2048Mi");
 

@@ -103,7 +103,7 @@ function transformBookmarkNode(node: chrome.bookmarks.BookmarkTreeNode): Bookmar
 
 function truncateTitle(title: string): string {
   const words = title.trim().split(/\s+/);
-  let truncated = words.length <= 4 ? title : words.slice(0, 4).join(" ") + "…";
+  const truncated = words.length <= 4 ? title : words.slice(0, 4).join(" ") + "…";
 
   if (truncated.length > 20) {
     return truncated.substring(0, 17) + "…";
@@ -400,7 +400,7 @@ export function Bookmarks() {
   const [tileIndexForColor, setTileIndexForColor] = useState<number | null>(null);
 
   // Add state for emoji picker
-  const [selectedTileIcon, setSelectedTileIcon] = useState<string>("📁"); // Default folder emoji
+  const [, setSelectedTileIcon] = useState<string>("📁"); // Default folder emoji
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [tileIndexForIcon, setTileIndexForIcon] = useState<number | null>(null);
 
@@ -562,46 +562,47 @@ export function Bookmarks() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
 
-  const handleSortEndCallback = useCallback(
-    throttle(async () => {
-      if (!tileGridRef.current) {
-        return;
-      }
+  const handleSortEndCallback = useMemo(
+    () =>
+      throttle(async () => {
+        if (!tileGridRef.current) {
+          return;
+        }
 
-      const tileElements = Array.from(tileGridRef.current.children);
-      const newTiles: (TileConfig | null)[] = [];
+        const tileElements = Array.from(tileGridRef.current.children);
+        const newTiles: (TileConfig | null)[] = [];
 
-      for (const tileElement of tileElements) {
-        const indexStr = tileElement.getAttribute("data-tile-index");
-        if (indexStr) {
-          const index = parseInt(indexStr, 10);
-          const existingTile = tiles[index];
-          newTiles.push(existingTile);
-        } else {
-          console.error("Tile element missing data-tile-index attribute");
+        for (const tileElement of tileElements) {
+          const indexStr = tileElement.getAttribute("data-tile-index");
+          if (indexStr) {
+            const index = parseInt(indexStr, 10);
+            const existingTile = tiles[index];
+            newTiles.push(existingTile);
+          } else {
+            console.error("Tile element missing data-tile-index attribute");
+            newTiles.push(null);
+          }
+        }
+
+        while (newTiles.length < tileNumber) {
           newTiles.push(null);
         }
-      }
 
-      while (newTiles.length < tileNumber) {
-        newTiles.push(null);
-      }
+        // Update positions and save to database
+        const updatedTiles = newTiles.map((tile, index) => (tile ? { ...tile, position: index } : null));
 
-      // Update positions and save to database
-      const updatedTiles = newTiles.map((tile, index) => (tile ? { ...tile, position: index } : null));
-
-      // Save each tile with its new position
-      for (let i = 0; i < updatedTiles.length; i++) {
-        const tile = updatedTiles[i];
-        if (tile) {
-          await bookmarkDB.saveItem(tile);
+        // Save each tile with its new position
+        for (let i = 0; i < updatedTiles.length; i++) {
+          const tile = updatedTiles[i];
+          if (tile) {
+            await bookmarkDB.saveItem(tile);
+          }
         }
-      }
 
-      setTiles(updatedTiles);
-      scheduleSyncPush();
-    }, 200),
-    [tiles, tileGridRef, tileNumber]
+        setTiles(updatedTiles);
+        scheduleSyncPush();
+      }, 200),
+    [tiles, tileNumber]
   );
 
   useEffect(() => {
@@ -686,9 +687,11 @@ export function Bookmarks() {
     if (indexToUpdate === null) return;
 
     // Create an updated tile with new properties if provided
-    let updatedTile = { ...tile };
-    if (color) updatedTile.tileColor = color;
-    if (icon) updatedTile.tileIcon = icon;
+    const updatedTile = {
+      ...tile,
+      ...(color ? { tileColor: color } : {}),
+      ...(icon ? { tileIcon: icon } : {}),
+    };
 
     // Save to database directly like in Notes.tsx
     await bookmarkDB.saveItem(updatedTile);
@@ -1065,8 +1068,8 @@ export function Bookmarks() {
   };
 
   // Add a type guard function to check if data is grouped
-  const isGroupedData = (data: any[]): data is GroupedData[] => {
-    return data.length > 0 && "title" in data[0] && "nodes" in data[0];
+  const isGroupedData = (data: unknown[]): data is GroupedData[] => {
+    return data.length > 0 && typeof data[0] === "object" && data[0] !== null && "title" in data[0] && "nodes" in data[0];
   };
 
   // Add a function to filter folder content by search term
@@ -1668,6 +1671,7 @@ export function Bookmarks() {
           bookmarkId={reminderTile.id}
           bookmarkTitle={reminderTile.title}
           bookmarkUrl={reminderTile.url}
+          isFolder={reminderTile.type === "folder"}
           onSave={addReminder}
           onClose={() => setReminderTile(null)}
         />

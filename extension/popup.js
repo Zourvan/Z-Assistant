@@ -23,7 +23,7 @@ const STRINGS = {
     unsupported: "This page cannot be bookmarked.",
     loadError: "Could not read the current tab.",
     weekdays: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
-    months: [
+    gregorianMonths: [
       "January",
       "February",
       "March",
@@ -62,27 +62,44 @@ const STRINGS = {
     unsupported: "این صفحه قابل بوک‌مارک نیست.",
     loadError: "خواندن تب فعلی ممکن نشد.",
     weekdays: ["ی", "د", "س", "چ", "پ", "ج", "ش"],
-    months: [
-      "فروردین",
-      "اردیبهشت",
-      "خرداد",
-      "تیر",
-      "مرداد",
-      "شهریور",
-      "مهر",
-      "آبان",
-      "آذر",
-      "دی",
-      "بهمن",
-      "اسفند",
+    gregorianMonths: [
+      "ژانویه",
+      "فوریه",
+      "مارس",
+      "آوریل",
+      "مه",
+      "ژوئن",
+      "ژوئیه",
+      "اوت",
+      "سپتامبر",
+      "اکتبر",
+      "نوامبر",
+      "دسامبر",
     ],
   },
 };
+
+/** Jalali month names stay Persian even when UI language is English (avoids mixed "2 May 1405"). */
+const JALALI_MONTHS = [
+  "فروردین",
+  "اردیبهشت",
+  "خرداد",
+  "تیر",
+  "مرداد",
+  "شهریور",
+  "مهر",
+  "آبان",
+  "آذر",
+  "دی",
+  "بهمن",
+  "اسفند",
+];
 
 const language = localStorage.getItem("language") === "fa" ? "fa" : "en";
 const calendarType = localStorage.getItem("calendarType");
 const useJalali = language === "fa" || calendarType === "persian";
 const t = STRINGS[language];
+const monthNames = useJalali ? JALALI_MONTHS : t.gregorianMonths;
 const weekStartsOn = useJalali ? 6 : 0; // Saturday for Jalali, Sunday for Gregorian
 
 document.documentElement.lang = language;
@@ -200,7 +217,7 @@ const monthLength = (year, month) => {
 
 const formatDateLabel = (date) => {
   const parts = getParts(date);
-  const monthName = t.months[parts.month - 1];
+  const monthName = monthNames[parts.month - 1];
   return `${localizeNumber(parts.day)} ${monthName} ${localizeNumber(parts.year)}`;
 };
 
@@ -247,7 +264,7 @@ const renderWeekdays = () => {
 };
 
 const renderCalendar = () => {
-  els.calTitle.textContent = `${t.months[viewMonth - 1]} ${localizeNumber(viewYear)}`;
+  els.calTitle.textContent = `${monthNames[viewMonth - 1]} ${localizeNumber(viewYear)}`;
   els.calGrid.innerHTML = "";
 
   const first = dateFromParts(viewYear, viewMonth, 1);
